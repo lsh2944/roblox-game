@@ -1,0 +1,15 @@
+{
+  "description": "포획 도구 자원을 거래 가능(trade_class tradable)으로 → 도구 속성 위반(RULE_CAPTURE_TOOL) + MVP 거래 예약 위반(RULE_TRADE_RESERVED)",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL",
+    "RULE_TRADE_RESERVED"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "resources",
+      "path": "/resources/id:lure_ridge/trade_class",
+      "value": "tradable"
+    }
+  ]
+}

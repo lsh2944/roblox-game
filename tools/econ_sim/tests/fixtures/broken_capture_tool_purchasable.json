@@ -1,0 +1,26 @@
+{
+  "description": "포획 도구 레시피 입력에 구매 가능 기본 재료(dew) 사용 → 입력 hunt만(RULE_CAPTURE_TOOL) + 확률 투입물 유료 경로(RULE_PAID_CAPTURE). 2026-11-11 재료 상자 제거로 기본 재료가 비매가 되어 dew를 purchasable=true로 되돌린 상태를 가정한다",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL",
+    "RULE_PAID_CAPTURE"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "resources",
+      "path": "/resources/id:dew/purchasable",
+      "value": true
+    },
+    {
+      "op": "set",
+      "file": "crafting",
+      "path": "/recipes/id:lure_from_cave/inputs",
+      "value": [
+        {
+          "resource": "dew",
+          "amount": 50
+        }
+      ]
+    }
+  ]
+}

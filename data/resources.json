@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "notes": "kind: basic(기본 재료, 방치 생산·직접 채집) / hunt(직접 플레이 전용 사냥 재료) / research(놓아주기 보상) / craft(제작물, crafting.json 레시피로만 생산). purchasable=true는 basic만 가능(2026-11-11 사용자 결정으로 재료 상자·초심자 패스를 제거해 판매 경로가 없으므로 현재 모든 자원이 false). 선택 키(2026-11-10 추가): stack=stock(재고로 쌓임)|atomic(사용 시점에 레시피로 원자적 제작·즉시 소비, 재고 0), trade_class(MVP는 untradable만, 검증기 RULE_TRADE_RESERVED), bind=account, origin=base|craft|event. 거래는 미구현이며 필드만 예약한다.",
+  "resources": [
+    {"id": "dew", "name": "이슬", "kind": "basic", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "bloom", "name": "꽃빛", "kind": "basic", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "crystal", "name": "결정", "kind": "basic", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "hunt_meadow", "name": "초원 사냥 재료(가칭)", "kind": "hunt", "purchasable": false, "placeholder": true, "notes": "필드별 사냥 재료 1종씩 가안", "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "hunt_forest", "name": "숲 사냥 재료(가칭)", "kind": "hunt", "purchasable": false, "placeholder": true, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "hunt_cave", "name": "동굴 사냥 재료(가칭)", "kind": "hunt", "purchasable": false, "placeholder": true, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "hunt_ridge", "name": "능선 사냥 재료(가칭)", "kind": "hunt", "purchasable": false, "placeholder": true, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "research", "name": "연구 포인트", "kind": "research", "purchasable": false, "notes": "놓아주기 보상. 사용처는 연구 트리(research.json) 비용. 판매·상품 지급 금지(검증기 RULE_RESEARCH_PAID).", "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "base"},
+    {"id": "wick", "name": "빛 심지", "kind": "craft", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true, "notes": "포획 시도 1회에 1개 소모(capture.json attempt_cost). 사냥 재료로만 제작(crafting.json)."},
+    {"id": "food", "name": "정령 먹이(가칭)", "kind": "craft", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true, "notes": "동행 정령의 활력 회복(capture.json vigor.food). 사냥 재료로만 제작(crafting.json group food). 상품 지급·판매 금지."},
+    {"id": "key_meadow", "name": "초원 길표", "kind": "craft", "purchasable": false, "stack": "atomic", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true, "notes": "필드 해금 비용용 제작물. 전개하면 현행 forest 해금의 사냥 재료와 같다."},
+    {"id": "key_forest", "name": "숲 길표", "kind": "craft", "purchasable": false, "stack": "atomic", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true},
+    {"id": "key_cave", "name": "동굴 길표", "kind": "craft", "purchasable": false, "stack": "atomic", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true},
+    {"id": "comp_meadow", "name": "초원 부품", "kind": "craft", "purchasable": false, "stack": "atomic", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true, "notes": "가구·의상용 지역 부품."},
+    {"id": "comp_forest", "name": "숲 부품", "kind": "craft", "purchasable": false, "stack": "atomic", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true},
+    {"id": "comp_cave", "name": "동굴 부품", "kind": "craft", "purchasable": false, "stack": "atomic", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true},
+    {"id": "lure_meadow", "name": "초원 유인 도구(가칭)", "kind": "craft", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true, "notes": "지역 재료 포획 보조 도구(2026-11-11 사용자 결정). 고유 필드(home_field)가 이 필드인 정령의 포획 시도에 1개씩 소비해 성공률에 등급별 배율(capture.json capture_tool). 사냥 재료로만 제작, 비매·상품 지급 금지(검증기 RULE_CAPTURE_TOOL·RULE_PAID_CAPTURE)."},
+    {"id": "lure_forest", "name": "숲 유인 도구(가칭)", "kind": "craft", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true},
+    {"id": "lure_cave", "name": "동굴 유인 도구(가칭)", "kind": "craft", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true},
+    {"id": "lure_ridge", "name": "능선 유인 도구(가칭)", "kind": "craft", "purchasable": false, "stack": "stock", "trade_class": "untradable", "bind": "account", "origin": "craft", "placeholder": true}
+  ]
+}

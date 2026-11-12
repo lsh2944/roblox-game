@@ -1,0 +1,13 @@
+{
+  "description": "meadow 도구 항목 누락(필드마다 도구 1개 필요) → RULE_CAPTURE_TOOL",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "remove",
+      "file": "capture",
+      "path": "/capture_tool/items/field_id=meadow"
+    }
+  ]
+}

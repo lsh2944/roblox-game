@@ -1,0 +1,19 @@
+{
+  "description": "연구 방치 효과 합계가 예산(1200bps) 초과(i3 +800 → 1600)",
+  "expect_codes": [
+    "RULE_RESEARCH_BUDGET"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "research",
+      "path": "/nodes/id:i3/effects",
+      "value": [
+        {
+          "type": "basic_idle_bps",
+          "value_bps": 800
+        }
+      ]
+    }
+  ]
+}

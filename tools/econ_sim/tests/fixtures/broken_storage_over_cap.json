@@ -1,0 +1,14 @@
+{
+  "description": "보관함 확장 한도가 최대 200을 넘음(사용자 규칙 F4)",
+  "expect_codes": [
+    "RULE_STORAGE_CAP"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "products",
+      "path": "/products/id:storage_plus_10/purchase_limit_total",
+      "value": 11
+    }
+  ]
+}

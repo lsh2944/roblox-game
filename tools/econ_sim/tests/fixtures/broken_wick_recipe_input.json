@@ -1,0 +1,7 @@
+{
+  "description": "심지 레시피 입력에 사냥 재료가 아닌 연구 포인트 사용",
+  "expect_codes": ["RULE_WICK_RECIPE_INPUT"],
+  "ops": [
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_meadow/inputs", "value": [{"resource": "research", "amount": 5}]}
+  ]
+}

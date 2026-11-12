@@ -1,0 +1,17 @@
+{
+  "description": "포획 보조 도구를 필드별 포획 설정(fields[].capture)에 정의 → 도구는 capture.json capture_tool에만(RULE_CAPTURE_TOOL)",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "fields",
+      "path": "/fields/id:cave/capture/lure",
+      "value": {
+        "resource": "lure_cave",
+        "mult": 12000
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "description": "포획 도구의 직접 포획 이력 조건 해제(첫 포획에도 효과) → RULE_CAPTURE_TOOL",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/capture_tool/requires_prior_direct_capture",
+      "value": false
+    }
+  ]
+}

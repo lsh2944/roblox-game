@@ -1,0 +1,7 @@
+{
+  "description": "포획 실패 누적 천장(pity) 키 추가 → 확률만으로 판정 규칙 위반",
+  "expect_codes": ["RULE_CAPTURE_NO_PITY"],
+  "ops": [
+    {"op": "set", "file": "capture", "path": "/flee_after_failure/pity_after_failures", "value": 10}
+  ]
+}

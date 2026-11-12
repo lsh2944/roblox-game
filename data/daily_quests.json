@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "notes": "방치 유저의 사냥 재료 경로. reward_mode=highest_unlocked_field: 해금한 가장 높은 필드의 보상만 지급. 사용자 결정(2026-11-06): 하루 지급량 = 그 단계 건설 요구량(시설 게이트·슬롯·거점 등급·오프라인 상한, meadow/forest/cave 9, ridge 6)의 1/3(3일에 1건). 필드 해금 비용은 대상 외. 심지(wick) 하루 meadow 40·forest 20·cave 30·ridge 18(placeholder). 이력: 2026-11-10 심지 공급 조정(1차 루프 25 공통 → 단계 7 루프 2회차에서 hardcore 1일차·동굴 부족 대응으로 meadow 40·forest 25·cave 35·ridge 25). 2026-11-11 사용자 결정(일일 심지 축소·제작 비중 확대, 레시피 A 유지): 일일 심지를 balanced 사용량(D15+ 하루 약 43)의 약 절반으로 낮춰 사냥 재료로 만드는 심지 비중을 늘림 → forest 20·cave 30·ridge 18, meadow는 시작 1일차 부족 방지로 40 유지(조정 루프 20261111_wick_q1~q3). 심지는 시도 비용이므로 비매·상품 지급 금지 규칙(RULE_PAID_CAPTURE)과 무관한 무료 지급.",
+  "quests": [
+    {"id": "daily_login", "name": "일일 의뢰(접속)", "requires": "login", "reward_mode": "highest_unlocked_field",
+     "rewards_by_field": [
+       {"field_id": "meadow", "rewards": [{"resource": "hunt_meadow", "amount": 3}, {"resource": "wick", "amount": 40}]},
+       {"field_id": "forest", "rewards": [{"resource": "hunt_forest", "amount": 3}, {"resource": "wick", "amount": 20}]},
+       {"field_id": "cave", "rewards": [{"resource": "hunt_cave", "amount": 3}, {"resource": "wick", "amount": 30}]},
+       {"field_id": "ridge", "rewards": [{"resource": "hunt_ridge", "amount": 2}, {"resource": "wick", "amount": 18}]}],
+     "placeholder": true}
+  ]
+}

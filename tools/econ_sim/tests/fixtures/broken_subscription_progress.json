@@ -1,0 +1,21 @@
+{
+  "description": "구독에 진행 효과(기본 재료 지급) 추가",
+  "expect_codes": [
+    "RULE_SUBSCRIPTION_EFFECT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products/id:monthly_membership/effects",
+      "value": {
+        "type": "basic_material_hours",
+        "hours": 4,
+        "resources": [
+          "dew"
+        ],
+        "rate_reference": "standard_free_idle_at_purchase"
+      }
+    }
+  ]
+}

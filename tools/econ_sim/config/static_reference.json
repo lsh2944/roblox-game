@@ -1,0 +1,490 @@
+{
+  "schema_version": 1,
+  "placeholder": true,
+  "notes": "static 단계의 기준 상태(정규화 가정). *_entry는 '해금 순간' 상태: balanced 10회(replicate 0~9)를 돌려 unlock_field 호출 직전의 시설 레벨·도구 레벨·시설 배치(실제 종·레벨)와 새 필드 노드에 대한 동행 파티를 기록하고, 시설 레벨 합계가 중앙값에 가장 가까운 실행 1개를 채택(해금으로 새로 열린 시설은 열린 직후 배치). 관측 도구 docs/stage4_tools/observe_entry.py, 결과 entry_obs.json(2026-11-09, 4단계 재조정 후 데이터). 시설 레벨은 직전 필드 상한 이하. *_exit와 *_by_resource가 없는 자원은 가상 기준 정령(staff/companions) 사용. 실제 진행·정체 판정은 시뮬레이션이 한다.",
+  "ability_curve": "spirit_ability",
+  "gather_tool": "gather_tool",
+  "payback_staff": {
+    "slots": 3,
+    "gather": 5,
+    "aptitude": "B",
+    "spirit_level": 1
+  },
+  "hunt": {
+    "power_ratio_bps": 10000,
+    "bonus_spirit_id": "sunset_bird"
+  },
+  "capture_minutes_per_day": 30,
+  "g2_daily_reference": {
+    "direct_gather_minutes_per_day": 60,
+    "idle_minutes_per_day": 1440
+  },
+  "g2_states": [
+    {
+      "id": "meadow_entry",
+      "field_id": "meadow",
+      "facility_level": 1,
+      "tool_level": 1,
+      "staff": {
+        "slots": 3,
+        "gather": 5,
+        "aptitude": "B",
+        "spirit_level": 1
+      },
+      "companions": {
+        "count": 1,
+        "gather": 5,
+        "aptitude": "B",
+        "spirit_level": 1
+      }
+    },
+    {
+      "id": "meadow_exit",
+      "field_id": "meadow",
+      "facility_level": 10,
+      "tool_level": 10,
+      "staff": {
+        "slots": 4,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 10
+      },
+      "companions": {
+        "count": 3,
+        "gather": 5,
+        "aptitude": "B",
+        "spirit_level": 5
+      }
+    },
+    {
+      "id": "forest_entry",
+      "transition_exempt": true,
+      "field_id": "forest",
+      "facility_level": 2,
+      "tool_level": 1,
+      "staff": {
+        "slots": 3,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 10
+      },
+      "companions": {
+        "count": 3,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 1
+      },
+      "facility_levels_by_resource": {
+        "dew": 2,
+        "bloom": 2,
+        "crystal": 1
+      },
+      "staff_members_by_resource": {
+        "dew": [
+          {
+            "species": "dewdrop",
+            "level": 8
+          },
+          {
+            "species": "dewdrop",
+            "level": 9
+          },
+          {
+            "species": "dewdrop",
+            "level": 8
+          }
+        ],
+        "bloom": [
+          {
+            "species": "flower_lamp",
+            "level": 10
+          },
+          {
+            "species": "flower_lamp",
+            "level": 9
+          },
+          {
+            "species": "flower_lamp",
+            "level": 9
+          }
+        ],
+        "crystal": [
+          {
+            "species": "sparkle",
+            "level": 1
+          },
+          {
+            "species": "sparkle",
+            "level": 1
+          },
+          {
+            "species": "sparkle",
+            "level": 1
+          }
+        ]
+      },
+      "companion_members_by_resource": {
+        "dew": [
+          {
+            "species": "dewdrop",
+            "level": 1
+          },
+          {
+            "species": "dewdrop",
+            "level": 1
+          },
+          {
+            "species": "dewdrop",
+            "level": 1
+          }
+        ],
+        "bloom": [
+          {
+            "species": "flower_lamp",
+            "level": 1
+          },
+          {
+            "species": "flower_lamp",
+            "level": 1
+          },
+          {
+            "species": "flower_lamp",
+            "level": 1
+          }
+        ],
+        "crystal": [
+          {
+            "species": "sunset_bird",
+            "level": 1
+          },
+          {
+            "species": "sparkle",
+            "level": 1
+          },
+          {
+            "species": "sparkle",
+            "level": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "forest_exit",
+      "field_id": "forest",
+      "facility_level": 20,
+      "tool_level": 20,
+      "staff": {
+        "slots": 5,
+        "gather": 8,
+        "aptitude": "A",
+        "spirit_level": 20
+      },
+      "companions": {
+        "count": 3,
+        "gather": 8,
+        "aptitude": "A",
+        "spirit_level": 20
+      }
+    },
+    {
+      "id": "cave_entry",
+      "transition_exempt": true,
+      "field_id": "cave",
+      "facility_level": 19,
+      "tool_level": 20,
+      "staff": {
+        "slots": 4,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 30
+      },
+      "companions": {
+        "count": 3,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 1
+      },
+      "facility_levels_by_resource": {
+        "dew": 19,
+        "bloom": 20,
+        "crystal": 15
+      },
+      "staff_members_by_resource": {
+        "dew": [
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "dewdrop",
+            "level": 30
+          }
+        ],
+        "bloom": [
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "sunset_bird",
+            "level": 30
+          },
+          {
+            "species": "flower_lamp",
+            "level": 30
+          }
+        ],
+        "crystal": [
+          {
+            "species": "shard_light",
+            "level": 30
+          },
+          {
+            "species": "sunset_bird",
+            "level": 30
+          },
+          {
+            "species": "rainbow_butterfly",
+            "level": 30
+          },
+          {
+            "species": "shard_light",
+            "level": 30
+          }
+        ]
+      },
+      "companion_members_by_resource": {
+        "crystal": [
+          {
+            "species": "shard_light",
+            "level": 1
+          },
+          {
+            "species": "shard_light",
+            "level": 1
+          },
+          {
+            "species": "shard_light",
+            "level": 1
+          }
+        ],
+        "dew": [
+          {
+            "species": "dewdrop",
+            "level": 1
+          },
+          {
+            "species": "dewdrop",
+            "level": 1
+          },
+          {
+            "species": "dewdrop",
+            "level": 1
+          }
+        ],
+        "bloom": [
+          {
+            "species": "flower_lamp",
+            "level": 1
+          },
+          {
+            "species": "flower_lamp",
+            "level": 1
+          },
+          {
+            "species": "flower_lamp",
+            "level": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "cave_exit",
+      "field_id": "cave",
+      "facility_level": 25,
+      "tool_level": 25,
+      "staff": {
+        "slots": 5,
+        "gather": 9,
+        "aptitude": "S",
+        "spirit_level": 25
+      },
+      "companions": {
+        "count": 3,
+        "gather": 9,
+        "aptitude": "S",
+        "spirit_level": 25
+      }
+    },
+    {
+      "id": "ridge_entry",
+      "transition_exempt": true,
+      "field_id": "ridge",
+      "facility_level": 24,
+      "tool_level": 21,
+      "staff": {
+        "slots": 5,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 30
+      },
+      "companions": {
+        "count": 3,
+        "gather": 6,
+        "aptitude": "A",
+        "spirit_level": 1
+      },
+      "facility_levels_by_resource": {
+        "dew": 24,
+        "bloom": 24,
+        "crystal": 24
+      },
+      "staff_members_by_resource": {
+        "dew": [
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "dewdrop",
+            "level": 30
+          },
+          {
+            "species": "moon_fox",
+            "level": 21
+          }
+        ],
+        "bloom": [
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "flower_lamp",
+            "level": 30
+          },
+          {
+            "species": "rainbow_butterfly",
+            "level": 20
+          }
+        ],
+        "crystal": [
+          {
+            "species": "shard_light",
+            "level": 30
+          },
+          {
+            "species": "rainbow_butterfly",
+            "level": 30
+          },
+          {
+            "species": "shard_light",
+            "level": 30
+          },
+          {
+            "species": "shadow_lantern",
+            "level": 16
+          },
+          {
+            "species": "shadow_lantern",
+            "level": 17
+          }
+        ]
+      },
+      "companion_members_by_resource": {
+        "dew": [
+          {
+            "species": "moon_fox",
+            "level": 1
+          },
+          {
+            "species": "sunset_bird",
+            "level": 30
+          },
+          {
+            "species": "sunset_bird",
+            "level": 30
+          }
+        ],
+        "bloom": [
+          {
+            "species": "sunset_bird",
+            "level": 30
+          },
+          {
+            "species": "sunset_bird",
+            "level": 30
+          },
+          {
+            "species": "sparkle",
+            "level": 1
+          }
+        ],
+        "crystal": [
+          {
+            "species": "shadow_lantern",
+            "level": 1
+          },
+          {
+            "species": "sunset_bird",
+            "level": 30
+          },
+          {
+            "species": "shadow_lantern",
+            "level": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "ridge_exit",
+      "field_id": "ridge",
+      "facility_level": 30,
+      "tool_level": 30,
+      "staff": {
+        "slots": 5,
+        "gather": 9,
+        "aptitude": "S",
+        "spirit_level": 30
+      },
+      "companions": {
+        "count": 3,
+        "gather": 9,
+        "aptitude": "S",
+        "spirit_level": 30
+      }
+    }
+  ]
+}

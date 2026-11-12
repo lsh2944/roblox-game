@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오로라 사슴 미리보기</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #070b1c; overflow: hidden; font-family: system-ui, sans-serif; }
+  #cap { position: fixed; left: 16px; top: 12px; color: #e8ecff; font-size: 14px; line-height: 1.5; text-shadow: 0 1px 2px #000; }
+  #cap b { font-size: 18px; }
+  #cap small { color: #9aa3c7; }
+</style>
+</head>
+<body>
+<div id="cap"><b>오로라 사슴 ★4</b> (aurora_stag · 샘플 3판 · 귀여운 아기 사슴 쪽, 미확정)<br>
+<small>Roblox 코드 조합 방식(타원체 + 원기둥·관절 구 관 + Beam + 파티클 + 라이트) 시안을 브라우저로 흉내 낸 미리보기입니다. 실제 Roblox 화면과는 다릅니다.</small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// AuroraStag.luau と同じ座標・寸法をブラウザで近似する(Roblox の前方 -Z → three の +Z に反転)
+const R = (x, y, z) => new THREE.Vector3(x, y, -z);
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x070b1c, 10, 30);
+const camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
+camera.position.set(6.8, 3.4, 7.4); camera.lookAt(0, 2.6, -0.4);
+
+const A = [new THREE.Color(0x6bffb8), new THREE.Color(0x5ad7ff), new THREE.Color(0xb48cff)];
+const auroraAt = u => { u = Math.min(1, Math.max(0, u)); return u < 0.5 ? A[0].clone().lerp(A[1], u * 2) : A[1].clone().lerp(A[2], (u - 0.5) * 2); };
+
+scene.add(new THREE.HemisphereLight(0x8fb8ff, 0x0b2a22, 0.55));
+const pl = new THREE.PointLight(0x5ad7ff, 1.6, 14); pl.position.set(0, 3, 0); scene.add(pl);
+const fill = new THREE.DirectionalLight(0xcfe8ff, 0.35); fill.position.set(5, 8, 6); scene.add(fill);
+
+function glowTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+const soft = glowTex();
+
+// 地面・星・地面の光
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshLambertMaterial({ color: 0x0c2a22 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const gg = new THREE.Mesh(new THREE.CircleGeometry(2.6, 48), new THREE.MeshBasicMaterial({ map: soft, color: 0x5ad7ff, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
+gg.rotation.x = -Math.PI / 2; gg.position.y = 0.01; scene.add(gg);
+const sg = new THREE.BufferGeometry(), sp = [];
+for (let i = 0; i < 500; i++) sp.push((Math.random() - 0.5) * 80, 5 + Math.random() * 25, -15 - Math.random() * 25);
+sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, fog: false })));
+
+const std = (c, e, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, emissive: e, roughness: 0.6, metalness: 0 }, o || {}));
+const bodyMat = std(0xcef2ec, 0x174240), creamMat = std(0xf6fffa, 0x2a3a36), darkMat = std(0x2c2e42, 0x000000, { roughness: 0.3 });
+const pinkMat = std(0xffb0c4, 0x4a2030, { transparent: true, opacity: 0.85 });
+const neon = c => new THREE.MeshBasicMaterial({ color: c });
+
+const root = new THREE.Group(); scene.add(root);
+const HP = R(0, 2.4, -0.9);
+const headPivot = new THREE.Group(); headPivot.position.copy(HP); root.add(headPivot);
+const headG = new THREE.Group(); headG.position.copy(HP).negate(); headPivot.add(headG);
+
+const SPH = new THREE.SphereGeometry(0.5, 32, 24), CYL = new THREE.CylinderGeometry(0.5, 0.5, 1, 24, 1, true);
+function ell(size, pos, mat, grp, rot) {
+  const m = new THREE.Mesh(SPH, mat); m.scale.set(size[0], size[1], size[2]); m.position.copy(pos);
+  if (rot) m.rotation.set(rot[0], rot[1], rot[2]); grp.add(m); return m;
+}
+function ball(p, w, mat, grp) { const m = new THREE.Mesh(SPH, mat); m.scale.set(w, w, w); m.position.copy(p); grp.add(m); return m; }
+function tube(a, b, w, mat, grp) {
+  const m = new THREE.Mesh(CYL, mat); m.scale.set(w, a.distanceTo(b), w); m.position.copy(a).add(b).multiplyScalar(0.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize()); grp.add(m);
+  return [m, ball(b, w, mat, grp)];
+}
+const bez = (p0, p1, p2, u) => { const v = 1 - u; return p0.clone().multiplyScalar(v * v).addScaledVector(p1, 2 * v * u).addScaledVector(p2, u * u); };
+const antlers = [];
+function antler(p0, p1, p2, n, w0, w1, u0, u1) {
+  antlers.push({ m: ball(p0, w0, neon(auroraAt(u0)), headG), u: u0 });
+  for (let i = 0; i < n; i++) {
+    const k = (i + 0.5) / n, u = u0 + (u1 - u0) * k;
+    tube(bez(p0, p1, p2, i / n), bez(p0, p1, p2, (i + 1) / n), w0 + (w1 - w0) * k, neon(auroraAt(u)), headG).forEach(m => antlers.push({ m, u }));
+  }
+}
+
+// 胴体(丸く短い)・背中の斑点・尾
+ell([1.3, 1.2, 1.8], R(0, 1.7, 0.15), bodyMat, root);
+ell([1.1, 1.15, 1.0], R(0, 1.85, -0.55), bodyMat, root);
+[[-0.3, 2.25, -0.1], [0.3, 2.25, -0.1], [0, 2.3, 0.35], [-0.35, 2.2, 0.6], [0.35, 2.2, 0.6], [0.15, 2.3, -0.4]]
+  .forEach(p => ell([0.2, 0.06, 0.2], R(p[0], p[1], p[2]), creamMat, root));
+ell([0.32, 0.4, 0.3], R(0, 2.0, 1.05), creamMat, root, [0.7, 0, 0]);
+// 脚(太さ一定のカプセル)・太もも・蹄
+for (const s of [-1, 1]) {
+  tube(R(s * 0.35, 1.4, -0.55), R(s * 0.35, 0.22, -0.55), 0.28, bodyMat, root);
+  tube(R(s * 0.38, 1.5, 0.72), R(s * 0.38, 0.22, 0.75), 0.28, bodyMat, root);
+  ell([0.45, 0.75, 0.7], R(s * 0.38, 1.45, 0.7), bodyMat, root);
+  ell([0.3, 0.16, 0.34], R(s * 0.35, 0.1, -0.55), darkMat, root);
+  ell([0.3, 0.16, 0.34], R(s * 0.38, 0.1, 0.75), darkMat, root);
+}
+tube(R(0, 2.0, -0.75), R(0, 2.55, -0.95), 0.45, bodyMat, root);
+// 頭・鼻先・鼻・目・ハイライト・頬・耳
+ell([1.1, 1.0, 1.0], R(0, 2.95, -1.15), bodyMat, headG);
+ell([0.5, 0.4, 0.45], R(0, 2.75, -1.6), creamMat, headG);
+ell([0.14, 0.1, 0.08], R(0, 2.82, -1.83), darkMat, headG);
+for (const s of [-1, 1]) {
+  ell([0.26, 0.3, 0.12], R(s * 0.28, 3.05, -1.58), darkMat, headG, [0, s * 0.35, 0]);
+  ell([0.08, 0.08, 0.04], R(s * 0.24, 3.12, -1.65), neon(0xffffff), headG);
+  ell([0.2, 0.12, 0.06], R(s * 0.4, 2.85, -1.5), pinkMat, headG, [0, s * 0.52, 0]);
+  ell([0.22, 0.65, 0.4], R(s * 0.6, 3.25, -1.0), bodyMat, headG, [0, 0, s * -1.05]);
+  ell([0.12, 0.45, 0.25], R(s * 0.6, 3.25, -1.08), pinkMat, headG, [0, 0, s * -1.05]);
+}
+
+// 角(第2版の形を縮小)とオーロラ帯の端点
+const ribbons = [];
+const anchor = (pos, grp) => { const o = new THREE.Object3D(); o.position.copy(pos); grp.add(o); return o; };
+for (const s of [-1, 1]) {
+  const p0 = R(s * 0.25, 3.4, -1.15), p1 = R(s * 0.75, 4.0, -1.1), p2 = R(s * 0.7, 4.9, -0.5);
+  antler(p0, p1, p2, 8, 0.14, 0.06, 0, 1);
+  const b1 = bez(p0, p1, p2, 0.35);
+  antler(b1, b1.clone().add(R(0, 0.4, -0.4)), b1.clone().add(R(s * -0.08, 0.64, -0.6)), 3, 0.09, 0.045, 0.35, 0.6);
+  const b2 = bez(p0, p1, p2, 0.65);
+  antler(b2, b2.clone().add(R(s * 0.32, 0.24, -0.16)), b2.clone().add(R(s * 0.56, 0.48, -0.08)), 3, 0.08, 0.04, 0.65, 0.9);
+  ribbons.push({ a: anchor(p2, headG), b: anchor(R(s * 1.2, 3.6, 2.8), root), phase: s > 0 ? 0 : 1.7, w0: 0.6 });
+}
+ribbons.push({ a: anchor(R(0, 2.6, -0.8), root), b: anchor(R(0, 2.4, 2.6), root), phase: 0.9, w0: 0.45 });
+const antlerGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: soft, color: 0x5ad7ff, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }));
+antlerGlow.scale.set(2.8, 2.8, 1); antlerGlow.position.copy(R(0, 4.2, -0.9)); headG.add(antlerGlow);
+
+// オーロラ帯: カメラに向いた帯を Beam の CurveSize 風にベジェで波打たせる
+const N = 32;
+ribbons.forEach(r => {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array((N + 1) * 2 * 3), 3));
+  const col = [];
+  for (let i = 0; i <= N; i++) { const u = i / N, c = auroraAt(u).multiplyScalar(0.85 * (1 - u)); col.push(c.r, c.g, c.b, c.r, c.g, c.b); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const idx = []; for (let i = 0; i < N; i++) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  g.setIndex(idx);
+  r.mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(r.mesh);
+});
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+function updateRibbon(r, t) {
+  r.a.getWorldPosition(tmpA); r.b.getWorldPosition(tmpB);
+  const dir = tmpB.clone().sub(tmpA), len = dir.length(); dir.normalize();
+  const side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
+  const c0 = 1.2 * Math.sin(t * 1.3 + r.phase), c1 = -1.0 * Math.sin(t * 1.1 + r.phase);
+  const p1 = tmpA.clone().addScaledVector(dir, len / 3).addScaledVector(side, c0).add(new THREE.Vector3(0, c0 * 0.5, 0));
+  const p2 = tmpA.clone().addScaledVector(dir, 2 * len / 3).addScaledVector(side, c1).add(new THREE.Vector3(0, c1 * 0.5, 0));
+  const camDir = new THREE.Vector3(), pos = r.mesh.geometry.attributes.position;
+  for (let i = 0; i <= N; i++) {
+    const u = i / N, v = 1 - u;
+    const p = tmpA.clone().multiplyScalar(v * v * v).addScaledVector(p1, 3 * v * v * u).addScaledVector(p2, 3 * v * u * u).addScaledVector(tmpB, u * u * u);
+    const tan = p1.clone().sub(tmpA).multiplyScalar(3 * v * v).addScaledVector(p2.clone().sub(p1), 6 * v * u).addScaledVector(tmpB.clone().sub(p2), 3 * u * u).normalize();
+    camDir.copy(camera.position).sub(p).normalize();
+    const n = new THREE.Vector3().crossVectors(tan, camDir).normalize().multiplyScalar((r.w0 + (0.1 - r.w0) * u) / 2);
+    pos.setXYZ(i * 2, p.x + n.x, p.y + n.y, p.z + n.z); pos.setXYZ(i * 2 + 1, p.x - n.x, p.y - n.y, p.z - n.z);
+  }
+  pos.needsUpdate = true; r.mesh.geometry.computeBoundingSphere();
+}
+
+// 立ちのぼる光の粒
+const parts = [];
+function emit() {
+  const p = new THREE.Sprite(new THREE.SpriteMaterial({ map: soft, color: auroraAt(Math.random()), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  p.position.set((Math.random() - 0.5) * 1.4, 1.8 + root.position.y + (Math.random() - 0.5), (Math.random() - 0.5) * 2.4);
+  parts.push({ p, v: new THREE.Vector3((Math.random() - 0.5) * 0.4, 0.2 + Math.random() * 0.3, (Math.random() - 0.5) * 0.4), life: 0, max: 1.5 + Math.random() }); scene.add(p);
+}
+for (let i = 0; i < 14; i++) { emit(); parts[i].life = Math.random() * 1.4; }
+
+const clock = new THREE.Clock(); let last = 0, acc = 0;
+function tick() {
+  const t = clock.getElapsedTime(), dt = t - last; last = t;
+  root.position.y = 0.12 * Math.sin(t * 1.2);
+  headPivot.rotation.x = -(10 * Math.PI / 180 + (4 * Math.PI / 180) * Math.sin(t * 0.8)); headPivot.rotation.z = (6 * Math.PI / 180) * Math.sin(t * 0.5);
+  const flow = (t * 0.15) % 1;
+  antlers.forEach(a => { const u = (a.u + flow) % 1; a.m.material.color.copy(auroraAt(u < 0.5 ? u * 2 : (1 - u) * 2)); });
+  pl.color.copy(auroraAt(0.5 + 0.5 * Math.sin(t * 0.6)));
+  scene.updateMatrixWorld();
+  ribbons.forEach(r => updateRibbon(r, t));
+  acc += dt * 8; while (acc >= 1) { acc -= 1; emit(); }
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const q = parts[i]; q.life += dt; q.v.y += 0.3 * dt; q.p.position.addScaledVector(q.v, dt);
+    const k = q.life / q.max, s = 0.3 * (1 - k) * 1.5; q.p.scale.set(s, s, 1); q.p.material.opacity = 0.9 * (1 - k);
+    if (k >= 1) { scene.remove(q.p); parts.splice(i, 1); }
+  }
+  renderer.render(scene, camera); requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

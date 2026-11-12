@@ -1,0 +1,16 @@
+{
+  "description": "생산 연구 효과의 대상에 사냥 재료(hunt_cave) 포함 — KeyError 없이 RULE_RESEARCH_EFFECT",
+  "expect_codes": [
+    "RULE_RESEARCH_EFFECT"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "research",
+      "path": "/nodes/id:i1/effects",
+      "value": [
+        {"type": "basic_idle_bps", "value_bps": 400, "resources": ["dew", "bloom", "crystal", "hunt_cave"]}
+      ]
+    }
+  ]
+}

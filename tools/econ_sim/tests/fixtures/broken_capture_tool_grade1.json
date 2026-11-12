@@ -1,0 +1,17 @@
+{
+  "description": "포획 도구에 ★1 배율(×1.10) 추가 → ★1은 효과 없음(RULE_CAPTURE_TOOL)",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "capture",
+      "path": "/capture_tool/mult_bps_by_grade",
+      "value": {
+        "grade": 1,
+        "bps": 11000
+      }
+    }
+  ]
+}

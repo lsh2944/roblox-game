@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "notes": "제작 레시피. mode=stock: 재고 제작(심지). mode=atomic: 사용 시점에 원자적으로 제작해 즉시 소비(길표·부품, 레시피는 정확히 1개). 심지 레시피 입력은 사냥 재료(kind hunt)만 허용(검증기 RULE_WICK_RECIPE_INPUT). 연구 포인트 레시피는 없다(포획 결정이 소비처 결정 I1을 대체). 레시피 B(Codex 비교안)는 variants/wick_recipe_codex.json 패치로 둔다. 먹이(food) 레시피는 필드별 사냥 재료 1개 → 먹이 2개(placeholder, 심지와 사냥 재료를 경쟁하므로 작게 둠, 입력은 hunt만 — 검증기 RULE_FOOD_RECIPE_INPUT). 포획 보조 도구(lure_<필드>) 레시피는 그 필드 사냥 재료 1개 → 도구 2개(2026-11-11 사용자 결정, placeholder, 입력은 hunt만 — 검증기 RULE_CAPTURE_TOOL).",
+  "recipes": [
+    {"id": "wick_from_meadow", "output": {"resource": "wick", "amount": 25}, "inputs": [{"resource": "hunt_meadow", "amount": 5}], "mode": "stock", "group": "wick", "placeholder": true},
+    {"id": "wick_from_forest", "output": {"resource": "wick", "amount": 24}, "inputs": [{"resource": "hunt_forest", "amount": 4}], "mode": "stock", "group": "wick", "placeholder": true},
+    {"id": "wick_from_cave", "output": {"resource": "wick", "amount": 32}, "inputs": [{"resource": "hunt_cave", "amount": 4}], "mode": "stock", "group": "wick", "placeholder": true},
+    {"id": "wick_from_ridge", "output": {"resource": "wick", "amount": 30}, "inputs": [{"resource": "hunt_ridge", "amount": 3}], "mode": "stock", "group": "wick", "placeholder": true},
+    {"id": "food_from_meadow", "output": {"resource": "food", "amount": 2}, "inputs": [{"resource": "hunt_meadow", "amount": 1}], "mode": "stock", "group": "food", "placeholder": true},
+    {"id": "food_from_forest", "output": {"resource": "food", "amount": 2}, "inputs": [{"resource": "hunt_forest", "amount": 1}], "mode": "stock", "group": "food", "placeholder": true},
+    {"id": "food_from_cave", "output": {"resource": "food", "amount": 2}, "inputs": [{"resource": "hunt_cave", "amount": 1}], "mode": "stock", "group": "food", "placeholder": true},
+    {"id": "food_from_ridge", "output": {"resource": "food", "amount": 2}, "inputs": [{"resource": "hunt_ridge", "amount": 1}], "mode": "stock", "group": "food", "placeholder": true},
+    {"id": "key_meadow", "output": {"resource": "key_meadow", "amount": 1}, "inputs": [{"resource": "hunt_meadow", "amount": 15}], "mode": "atomic", "group": "key"},
+    {"id": "key_forest", "output": {"resource": "key_forest", "amount": 1}, "inputs": [{"resource": "hunt_forest", "amount": 24}, {"resource": "key_meadow", "amount": 2}], "mode": "atomic", "group": "key"},
+    {"id": "key_cave", "output": {"resource": "key_cave", "amount": 1}, "inputs": [{"resource": "hunt_cave", "amount": 20}, {"resource": "key_forest", "amount": 1}], "mode": "atomic", "group": "key"},
+    {"id": "comp_meadow", "output": {"resource": "comp_meadow", "amount": 1}, "inputs": [{"resource": "hunt_meadow", "amount": 2}], "mode": "atomic", "group": "component", "placeholder": true},
+    {"id": "comp_forest", "output": {"resource": "comp_forest", "amount": 1}, "inputs": [{"resource": "hunt_forest", "amount": 2}], "mode": "atomic", "group": "component", "placeholder": true},
+    {"id": "comp_cave", "output": {"resource": "comp_cave", "amount": 1}, "inputs": [{"resource": "hunt_cave", "amount": 2}], "mode": "atomic", "group": "component", "placeholder": true},
+    {"id": "lure_from_meadow", "output": {"resource": "lure_meadow", "amount": 2}, "inputs": [{"resource": "hunt_meadow", "amount": 1}], "mode": "stock", "group": "lure", "placeholder": true},
+    {"id": "lure_from_forest", "output": {"resource": "lure_forest", "amount": 2}, "inputs": [{"resource": "hunt_forest", "amount": 1}], "mode": "stock", "group": "lure", "placeholder": true},
+    {"id": "lure_from_cave", "output": {"resource": "lure_cave", "amount": 2}, "inputs": [{"resource": "hunt_cave", "amount": 1}], "mode": "stock", "group": "lure", "placeholder": true},
+    {"id": "lure_from_ridge", "output": {"resource": "lure_ridge", "amount": 2}, "inputs": [{"resource": "hunt_ridge", "amount": 1}], "mode": "stock", "group": "lure", "placeholder": true}
+  ]
+}

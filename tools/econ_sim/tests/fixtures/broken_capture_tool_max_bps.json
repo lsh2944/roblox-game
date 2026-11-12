@@ -1,0 +1,14 @@
+{
+  "description": "도구 적용 후 성공률 상한 max_bps를 100% 초과(12000)로 → RULE_CAPTURE_TOOL",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/capture_tool/max_bps",
+      "value": 12000
+    }
+  ]
+}

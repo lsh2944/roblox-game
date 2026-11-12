@@ -1,0 +1,7 @@
+{
+  "description": "소비처 가구에 생산 효과 부여 → MVP 효과 0 위반",
+  "expect_codes": ["RULE_SINK_EFFECT"],
+  "ops": [
+    {"op": "set", "file": "sinks", "path": "/items/id:furniture_meadow_1/effects", "value": [{"type": "facility_output_bps", "value_bps": 100}]}
+  ]
+}

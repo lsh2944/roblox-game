@@ -1,0 +1,10 @@
+{
+  "description": "정령 판매 상품",
+  "expect_codes": ["RULE_FORBIDDEN_PRODUCT"],
+  "ops": [
+    {"op": "append", "file": "products", "path": "/products", "value": {
+      "id": "deer_direct", "name": "오로라 사슴 즉시 획득", "kind": "spirit_sale", "price_robux": 499,
+      "purchase_limit_total": 1, "purchase_limit_per_day": 0,
+      "effects": [{"type": "grant_spirit", "spirit_id": "aurora_deer"}]}}
+  ]
+}

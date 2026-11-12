@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "placeholder": true,
+  "notes": "단계 7 비교 실행용(2026-11-10): 소비처 구매 선호 none/normal(기본)/high 민감도. 같은 비교군 난수.",
+  "master_seed": 20261106,
+  "horizon_days": 60,
+  "extract_days": [
+    30,
+    60
+  ],
+  "replicates_quick": 20,
+  "replicates_default": 200,
+  "start": {
+    "spirits": [
+      {
+        "species": "sparkle",
+        "level": 1
+      },
+      {
+        "species": "dewdrop",
+        "level": 1
+      },
+      {
+        "species": "flower_lamp",
+        "level": 1
+      }
+    ],
+    "placeholder": true,
+    "notes": "시작 정령(★1 3종 Lv1) 가정. 게임 데이터에 시작 상태 정의가 생기면 그쪽으로 옮긴다."
+  },
+  "policy": {
+    "step_minutes": 5,
+    "manage_every_steps": 6,
+    "flex_pool": [
+      "gather",
+      "hunt"
+    ],
+    "post_goal_payback_max_minutes": 10080,
+    "max_purchases_per_manage": 300,
+    "hub_rank_when_free_slots_at_most": 1,
+    "max_sinks_per_manage": 50,
+    "notes": "다음 필드 해금 ETA를 줄이는 강화만 구매. 마지막 필드 해금 후에는 회수기간 7일 이내 강화를 회수기간 순으로 구매."
+  },
+  "personas": [
+    {
+      "id": "balanced",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": []
+    },
+    {
+      "id": "balanced_sink_none",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": [],
+      "sink_preference": "none"
+    },
+    {
+      "id": "balanced_sink_high",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": [],
+      "sink_preference": "high"
+    }
+  ]
+}

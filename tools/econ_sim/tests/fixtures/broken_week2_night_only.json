@@ -1,0 +1,7 @@
+{
+  "description": "2주판 정령의 유일한 출현을 밤 한정으로 바꿈(상시 획득 아님)",
+  "expect_codes": ["RULE_RELEASE_ACCESS"],
+  "ops": [
+    {"op": "set", "file": "fields", "path": "/fields/id:forest/capture/table/spirit_id=rainbow_butterfly/availability", "value": "night_only"}
+  ]
+}

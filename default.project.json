@@ -1,0 +1,77 @@
+{
+  "name": "light-spirits",
+  "globIgnorePaths": [
+    "game/tests/lune_run.luau"
+  ],
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "game/src/shared"
+      },
+      "GameData": {
+        "$className": "Folder",
+        "manifest": { "$path": "data/manifest.json" },
+        "resources": { "$path": "data/resources.json" },
+        "rules": { "$path": "data/rules.json" },
+        "spirits": { "$path": "data/spirits.json" },
+        "curves": { "$path": "data/curves.json" },
+        "facilities": { "$path": "data/facilities.json" },
+        "tools": { "$path": "data/tools.json" },
+        "fields": { "$path": "data/fields.json" },
+        "hub": { "$path": "data/hub.json" },
+        "daily_quests": { "$path": "data/daily_quests.json" },
+        "products": { "$path": "data/products.json" },
+        "releases": { "$path": "data/releases.json" },
+        "research": { "$path": "data/research.json" },
+        "capture": { "$path": "data/capture.json" },
+        "crafting": { "$path": "data/crafting.json" },
+        "sinks": { "$path": "data/sinks.json" },
+        "generated": {
+          "$className": "Folder",
+          "upgrade_tables": { "$path": "data/generated/upgrade_tables.json" },
+          "sink_tables": { "$path": "data/generated/sink_tables.json" }
+        }
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "GetSnapshot": { "$className": "RemoteFunction" },
+        "StateChanged": { "$className": "RemoteEvent" },
+        "GatherStart": { "$className": "RemoteFunction" },
+        "GatherStop": { "$className": "RemoteEvent" },
+        "CaptureEngage": { "$className": "RemoteFunction" },
+        "EncounterEvent": { "$className": "RemoteEvent" },
+        "SetParty": { "$className": "RemoteFunction" },
+        "AssignSlot": { "$className": "RemoteFunction" },
+        "UpgradeFacility": { "$className": "RemoteFunction" },
+        "Craft": { "$className": "RemoteFunction" },
+        "ClaimDaily": { "$className": "RemoteFunction" },
+        "Notify": { "$className": "RemoteEvent" },
+        "ReleaseSpirit": { "$className": "RemoteFunction" },
+        "LevelUpSpirit": { "$className": "RemoteFunction" },
+        "MoveSlot": { "$className": "RemoteFunction" }
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "game/src/server"
+      }
+    },
+    "ServerStorage": {
+      "TestData": {
+        "$className": "Folder",
+        "test_vectors": { "$path": "data/test_vectors.json" }
+      },
+      "Tests": {
+        "$path": "game/tests"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "game/src/client"
+        }
+      }
+    }
+  }
+}

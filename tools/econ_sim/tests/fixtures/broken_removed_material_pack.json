@@ -1,0 +1,33 @@
+{
+  "description": "2026-11-11 사용자 결정으로 제거한 기본 재료 상자(kind basic_material_pack)를 다시 추가 → 금지 kind(RULE_FORBIDDEN_PRODUCT)",
+  "expect_codes": [
+    "RULE_FORBIDDEN_PRODUCT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products",
+      "value": {
+        "id": "basic_pack_4h",
+        "name": "기본 재료 상자(방치 4시간분)",
+        "kind": "basic_material_pack",
+        "price_robux": 39,
+        "purchase_limit_total": 0,
+        "purchase_limit_per_day": 1,
+        "effects": [
+          {
+            "type": "basic_material_hours",
+            "hours": 4,
+            "resources": [
+              "dew",
+              "bloom",
+              "crystal"
+            ],
+            "rate_reference": "standard_free_idle_at_purchase"
+          }
+        ]
+      }
+    }
+  ]
+}

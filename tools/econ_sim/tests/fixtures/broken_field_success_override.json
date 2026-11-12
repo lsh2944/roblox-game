@@ -1,0 +1,19 @@
+{
+  "description": "필드별 포획 성공률(success_bps_by_grade)을 다시 둠 → 전역 규칙만 허용",
+  "expect_codes": [
+    "RULE_CAPTURE_NO_PITY"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "fields",
+      "path": "/fields/id:meadow/capture/success_bps_by_grade",
+      "value": [
+        {
+          "grade": 4,
+          "bps": 5000
+        }
+      ]
+    }
+  ]
+}

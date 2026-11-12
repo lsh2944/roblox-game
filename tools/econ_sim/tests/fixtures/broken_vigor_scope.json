@@ -1,0 +1,18 @@
+{
+  "description": "활력을 집 방치 생산(idle)에도 적용 → 유지비 없음 원칙 위반",
+  "expect_codes": [
+    "RULE_VIGOR_SCOPE"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/vigor/applies_to",
+      "value": [
+        "weaken",
+        "hunt",
+        "idle"
+      ]
+    }
+  ]
+}

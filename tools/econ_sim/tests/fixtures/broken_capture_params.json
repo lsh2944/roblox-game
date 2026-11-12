@@ -1,0 +1,7 @@
+{
+  "description": "빛 구간 배율이 빛이 낮아질수록 줄어듦(낮은 빛에서 오히려 포획이 어려워짐)",
+  "expect_codes": ["RULE_CAPTURE_PARAMS"],
+  "ops": [
+    {"op": "set", "file": "capture", "path": "/light/bands", "value": [{"above": 60, "mult_bps": 15000}, {"above": 20, "mult_bps": 12500}, {"above": 0, "mult_bps": 10000}]}
+  ]
+}

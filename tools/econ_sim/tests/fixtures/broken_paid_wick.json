@@ -1,0 +1,29 @@
+{
+  "description": "포획 시도 비용에 구매 가능 자원(dew) 사용 → 간접 유료 랜덤(전개 검사). 2026-11-11 재료 상자 제거로 기본 재료가 비매가 되어 dew를 purchasable=true로 되돌린 상태를 가정한다",
+  "expect_codes": [
+    "RULE_PAID_CAPTURE"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "resources",
+      "path": "/resources/id:dew/purchasable",
+      "value": true
+    },
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/attempt_cost",
+      "value": [
+        {
+          "resource": "wick",
+          "amount": 1
+        },
+        {
+          "resource": "dew",
+          "amount": 10
+        }
+      ]
+    }
+  ]
+}

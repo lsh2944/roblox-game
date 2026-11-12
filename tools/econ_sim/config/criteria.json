@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "notes": "판정 임계값. *_approval이 approved인 값은 사용자 확정·승인 규칙, draft는 초안(공식 합격 근거 아님).",
+  "g2": {
+    "max_ratio": 3.0,
+    "max_ratio_approval": "approved",
+    "target_ratio": 2.0,
+    "target_approval": "approved",
+    "warn_below_ratio": 1.5,
+    "warn_below_approval": "draft",
+    "transition_minutes": 4320,
+    "transition_approval": "approved",
+    "notes": "최대 3배는 사용자 확정 규칙. 판정 R=현재 보유 정령의 최선 배치 기준(실제 배치 기준은 참고). 새 필드(시작 필드 제외) 해금 후 transition_minutes(4320분=3일, 사용자 결정 2026-11-06) 동안의 R>3·R 미정의는 허용하고 별도 보고. 필드별 채집 가중 R 대역 1.5~2.5는 초안. 2026-11-09 사용자 결정: 3배 판정은 sim.g2_approved_personas(3시간 이상)만, light_1h는 참고(INFO) / static 진입 순간 행은 전환 구간 면제(INFO) / 헤비 선행 1~2일 수용(min_days 1) / MVP는 D30 콘텐츠 소진 수용(exhaustion_info_only).",
+    "field_band_min": 1.5,
+    "field_band_max": 2.5,
+    "field_band_approval": "draft"
+  },
+  "g3": {
+    "pass_min_minutes": 10,
+    "pass_max_minutes": 60,
+    "pass_approval": "approved",
+    "warn_min_minutes": 5,
+    "warn_max_minutes": 90,
+    "warn_approval": "draft",
+    "idle_wait_days_max": 3,
+    "idle_wait_approval": "draft",
+    "notes": "사냥 분 허용 10~60분은 사용자 승인(2026-11-06). WARN 대역은 참고(draft)."
+  },
+  "sim": {
+    "approval": "draft",
+    "notes": "시뮬 지표 임계값. approval 필드가 있는 항목은 그 값을, 없으면 sim.approval(draft)을 따른다. paid_pair·paid_max_shortening(판정 paid_unlock_shortening, approved ≤0.5): 2026-11-11 사용자 결정으로 기본 재료 상자·초심자 패스를 제거해 balanced_paid는 외형·편의 상품(외형·배치 프리셋·보관함 확장)만 사는 페르소나가 됐다. 이 판정은 '과금 상품이 진행을 가속하지 않는다'는 회귀 감시로 유지하며 기대값은 ≈0(임계값·승인 상태는 변경 없음).",
+    "unlock_targets": [
+      {
+        "persona_id": "balanced",
+        "field_id": "ridge",
+        "p50_day": 14,
+        "p50_tolerance": 0.2,
+        "p90_max_day": 21,
+        "approval": "approved"
+      }
+    ],
+    "min_samples_tail": 100,
+    "usage_low_grade_max_grade": 2,
+    "usage_low_grade_min_share": 0.2,
+    "usage_single_species_max_share": 0.35,
+    "capture_release_id": "week2",
+    "capture_by_day": 14,
+    "capture_min_rate": 0.9,
+    "report_capture_persona": "balanced",
+    "storage_full_min_day": [
+      {
+        "persona_id": "balanced",
+        "day": 4,
+        "notes": "2026-11-10 사용자 결정: 포획 상태 기계(★1 약화 생략 유지)로 초원 조우가 짧아져 draft 기준 5→4일"
+      },
+      {
+        "persona_id": "hardcore",
+        "day": 2
+      }
+    ],
+    "paid_pair": {
+      "free": "balanced",
+      "paid": "balanced_paid"
+    },
+    "paid_max_shortening": 0.5,
+    "paid_approval": "approved",
+    "exhaustion_max_rate": [
+      {
+        "persona_id": "balanced",
+        "day": 30,
+        "rate": 0.1
+      },
+      {
+        "persona_id": "balanced",
+        "day": 60,
+        "rate": 0.5
+      }
+    ],
+    "convergence_min_exclusion_loss_pct": 3.0,
+    "g2_approved_personas": [
+      "balanced",
+      "hardcore",
+      "balanced_paid"
+    ],
+    "exhaustion_info_only": true,
+    "g2_personas": [
+      "light_1h",
+      "balanced",
+      "hardcore",
+      "balanced_paid"
+    ],
+    "lead": {
+      "fast": "hardcore",
+      "base": "balanced",
+      "field_id": "ridge",
+      "min_days": 1,
+      "approval": "draft"
+    },
+    "star4_first_capture": {
+      "max_days_after_entry": 14,
+      "quantile": 0.985,
+      "notes": "★4 첫 획득 꼬리 판정. 사용자 결정 2026-11-09: 200시드에서 오로라 사슴 14일 초과 1.5%(p99 17일)가 확인돼 기준을 '운 나쁜 1%'에서 1.5%(p98.5, 최근순위법)로 완화.",
+      "approved_personas": [
+        "balanced"
+      ],
+      "approval": "approved"
+    },
+    "hunt_idle_early_days": 14,
+    "capture_sinks": {
+      "approval": "draft",
+      "early_days": 14,
+      "wick_shortage_max": 0.01,
+      "wick_shortage_personas": ["balanced", "hardcore"],
+      "finite_complete_persona": "balanced",
+      "finite_complete_day_min": 45,
+      "finite_complete_day_max": 60,
+      "finite_progress_days": [30, 60],
+      "sink_absorption_from_day": 21,
+      "conformance_min_encounters": 30,
+      "wick_unlimited_pairs": [{"base": "balanced", "test": "balanced_wick_unlimited"}, {"base": "hardcore", "test": "hardcore_wick_unlimited"}],
+      "ablation_pairs": [{"base": "balanced", "test": "balanced_level_off"}, {"base": "balanced", "test": "balanced_vigor_off"}],
+      "tool_balance_days": [14, 30, 60],
+      "notes": "포획 보조 도구(2026-11-11): capture_tool_first_capture_zero(첫 포획·전역 해금 전 도구 0, draft PASS/FAIL)·capture_tool_conformance(도구 조우 적합도, draft)·capture_tool_usage·capture_tool_field·star4_success_per_day_after_unlock(INFO), 사냥 재료 잔고는 tool_balance_days 기준. 단계 5(2026-11-10) 새 지표. 전부 draft/INFO이며 기존 approved 판정과 무관. 심지 부족 ≤0.01(balanced·hardcore)과 유한 외형 완료 balanced p50 D45~D60은 계획서 6절 초안. 비교 페르소나(wick_unlimited·ablation)는 config/personas_wick_compare.json·personas_ablation.json으로 실행할 때만 행이 나온다."
+    },
+    "research": {
+      "none": "balanced_noresearch",
+      "cap": "balanced_research_cap",
+      "natural": "balanced",
+      "final_field": "ridge",
+      "ci_level": 0.95,
+      "min_pairs": 10,
+      "cap_max_shortening": 0.15,
+      "cap_approval": "approved",
+      "cap_cumulative_info_band": [0.10, 0.15],
+      "natural_min_gain": 0.03,
+      "natural_approval": "approved",
+      "noresearch_p50_max_day": 16.8,
+      "noresearch_p90_max_day": 21,
+      "noresearch_approval": "approved",
+      "noresearch_reach_min_rate": 0.9,
+      "noresearch_reach_approval": "draft",
+      "rp_period_days": [14, 30, 60],
+      "notes": "연구 R2 판정(사용자 결정 2026-11-09). 상한 시험(cap) 대 무연구의 필드 구간별 S=1−Δcap/Δnone(분 단위, 같은 replicate 짝) 중앙값과 95% 순위 CI 상단 ≤0.15(CI가 경계를 걸치면 INCONCLUSIVE), 자연 연구(balanced) 능선 누적 단축 중앙값 ≥0.03, 무연구 능선 p50 ≤16.8일·p90 ≤21일은 approved. 도달률 임계값 0.9는 구현 판단(draft). 연구 단축 상품은 MVP에서 제외(사용자 결정 2026-11-09, 측정 이득 0)해 research_skip_gain 판정은 skip 페르소나가 지정될 때만 출력."
+    }
+  }
+}

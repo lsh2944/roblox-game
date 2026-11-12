@@ -1,0 +1,7 @@
+{
+  "description": "반복 소비처(제단)가 상한 없는 강화 곡선(exp_ceil)을 사용",
+  "expect_codes": ["RULE_SINK_REPEAT"],
+  "ops": [
+    {"op": "set", "file": "sinks", "path": "/repeat_sinks/id:altar_meadow/cost_curve", "value": "fac_cost_dew_spring"}
+  ]
+}

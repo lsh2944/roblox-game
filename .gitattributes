@@ -1,0 +1,6 @@
+# Windows（自宅）と macOS（会社）の両方で改行を LF に固定する。
+# CRLF 変換が入るとハッシュ比較・静的検査・Lune の文字列比較が壊れるため
+* text=auto eol=lf
+*.zip binary
+*.png binary
+*.rbxl binary

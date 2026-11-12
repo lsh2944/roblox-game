@@ -1,0 +1,27 @@
+{
+  "description": "포획 도구 ★4 배율을 결정 상한(×1.20)보다 크게(×1.50) → RULE_CAPTURE_TOOL",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/capture_tool/mult_bps_by_grade",
+      "value": [
+        {
+          "grade": 2,
+          "bps": 11000
+        },
+        {
+          "grade": 3,
+          "bps": 11500
+        },
+        {
+          "grade": 4,
+          "bps": 15000
+        }
+      ]
+    }
+  ]
+}

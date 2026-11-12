@@ -1,0 +1,14 @@
+{
+  "description": "생태 연구(e2)에 speedup_allowed=true",
+  "expect_codes": [
+    "RULE_RESEARCH_SPEEDUP"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "research",
+      "path": "/nodes/id:e2/speedup_allowed",
+      "value": true
+    }
+  ]
+}

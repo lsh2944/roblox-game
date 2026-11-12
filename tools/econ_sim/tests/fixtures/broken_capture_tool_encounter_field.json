@@ -1,0 +1,14 @@
+{
+  "description": "포획 도구 적용 기준을 조우 필드로 변경 → home_field만 허용(RULE_CAPTURE_TOOL)",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/capture_tool/applies_to",
+      "value": "encounter_field"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "description": "먹이 레시피 입력에 사냥 재료가 아닌 자원(심지, craft) 사용 → 사냥 재료만 허용(구매 가능 자원이면 RULE_PAID_CAPTURE도 함께 나므로 비매 자원으로 시험)",
+  "expect_codes": [
+    "RULE_FOOD_RECIPE_INPUT"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "crafting",
+      "path": "/recipes/id:food_from_meadow/inputs",
+      "value": [
+        {
+          "resource": "wick",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

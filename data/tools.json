@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "notes": "플레이어 도구. 채집 도구는 직접 채집 배율(bonus_curve)을 올린다.",
+  "tools": [
+    {"id": "gather_tool", "name": "채집 도구", "kind": "gather", "cost_curve": "tool_cost_gather", "bonus_curve": "tool_gather_bonus", "max_level": 30,
+     "level_cap_by_field": [{"field_id": "meadow", "max_level": 10}, {"field_id": "forest", "max_level": 20}, {"field_id": "cave", "max_level": 24}, {"field_id": "ridge", "max_level": 30}],
+     "placeholder": true}
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "notes": "필드 4개 가안(2주판: meadow·forest, 4주판: +cave·ridge). gather_nodes.base_per_hour는 직접 채집 1시간당 기본량, hunt.drops는 추천 전투력에서 1시간당 드롭. unlock.costs의 사냥 재료는 길표(key_*, atomic, crafting.json)로 표기한다(2026-11-10 단계 3, 해금 순간 원자적으로 제작·소비, 전개하면 이전 비용과 같음). capture.table은 조우 시 종 선택 가중치(출현 표)만 둔다. 성공률·시도 비용·조우 시간은 전역 규칙 capture.json으로 옮겼다(2026-11-10 단계 2, 필드별 성공률 덮어쓰기는 검증기 RULE_CAPTURE_NO_PITY로 금지). 채집 노드량은 직접 채집 R 최대 3배 결정에 맞춰 조정(큰 결정 노드 포함).",
+  "fields": [
+    {"id": "meadow", "name": "이슬 초원", "order": 1,
+     "unlock": {"requires_fields": [], "costs": []},
+     "gather_nodes": [
+       {"id": "meadow_dew", "resource": "dew", "base_per_hour": 160},
+       {"id": "meadow_bloom", "resource": "bloom", "base_per_hour": 160}],
+     "hunt": {"recommended_power": 10, "drops": [{"resource": "hunt_meadow", "base_per_hour": 30}]},
+     "capture": {
+       "table": [
+         {"spirit_id": "sparkle", "weight": 40, "availability": "always"},
+         {"spirit_id": "dewdrop", "weight": 35, "availability": "always"},
+         {"spirit_id": "flower_lamp", "weight": 25, "availability": "always"},
+         {"spirit_id": "sunset_bird", "weight": 10, "availability": "always"},
+         {"spirit_id": "shard_light", "weight": 5, "availability": "always"}]},
+     "placeholder": true},
+    {"id": "forest", "name": "꽃빛 숲", "order": 2,
+     "unlock": {"requires_fields": ["meadow"], "costs": [{"resource": "dew", "amount": 1500}, {"resource": "bloom", "amount": 1500}, {"resource": "key_meadow", "amount": 1}]},
+     "gather_nodes": [
+       {"id": "forest_dew", "resource": "dew", "base_per_hour": 240},
+       {"id": "forest_bloom", "resource": "bloom", "base_per_hour": 240},
+       {"id": "forest_crystal", "resource": "crystal", "base_per_hour": 160},
+       {"id": "big_crystal", "resource": "crystal", "base_per_hour": 200, "requires_node_trait": true, "node_kind": "big_crystal", "notes": "조각빛 동행 시에만 채집 가능"}],
+     "hunt": {"recommended_power": 25, "drops": [{"resource": "hunt_forest", "base_per_hour": 24}]},
+     "capture": {
+       "table": [
+         {"spirit_id": "sparkle", "weight": 20, "availability": "always"},
+         {"spirit_id": "dewdrop", "weight": 20, "availability": "always"},
+         {"spirit_id": "flower_lamp", "weight": 30, "availability": "always"},
+         {"spirit_id": "shard_light", "weight": 15, "availability": "always"},
+         {"spirit_id": "sunset_bird", "weight": 15, "availability": "always"},
+         {"spirit_id": "rainbow_butterfly", "weight": 6, "availability": "always"}]},
+     "placeholder": true},
+    {"id": "cave", "name": "결정 동굴", "order": 3,
+     "unlock": {"requires_fields": ["forest"], "costs": [{"resource": "dew", "amount": 15000}, {"resource": "bloom", "amount": 15000}, {"resource": "crystal", "amount": 3000}, {"resource": "key_forest", "amount": 1}]},
+     "gather_nodes": [
+       {"id": "cave_crystal", "resource": "crystal", "base_per_hour": 775},
+       {"id": "cave_dew", "resource": "dew", "base_per_hour": 1030},
+       {"id": "cave_bloom", "resource": "bloom", "base_per_hour": 1030},
+       {"id": "cave_big_crystal", "resource": "crystal", "base_per_hour": 875, "requires_node_trait": true, "node_kind": "big_crystal"}],
+     "hunt": {"recommended_power": 45, "drops": [{"resource": "hunt_cave", "base_per_hour": 20}]},
+     "capture": {
+       "table": [
+         {"spirit_id": "sparkle", "weight": 20, "availability": "always"},
+         {"spirit_id": "shard_light", "weight": 25, "availability": "always"},
+         {"spirit_id": "sunset_bird", "weight": 10, "availability": "always"},
+         {"spirit_id": "rainbow_butterfly", "weight": 4, "availability": "always"},
+         {"spirit_id": "lighthouse_bear", "weight": 8, "availability": "always"},
+         {"spirit_id": "moon_fox", "weight": 6, "availability": "always"},
+         {"spirit_id": "shadow_lantern", "weight": 5, "availability": "always"}]},
+     "placeholder": true},
+    {"id": "ridge", "name": "오로라 능선", "order": 4,
+     "unlock": {"requires_fields": ["cave"], "costs": [{"resource": "dew", "amount": 600000}, {"resource": "bloom", "amount": 600000}, {"resource": "crystal", "amount": 240000}, {"resource": "key_cave", "amount": 1}]},
+     "gather_nodes": [
+       {"id": "ridge_dew", "resource": "dew", "base_per_hour": 2190},
+       {"id": "ridge_bloom", "resource": "bloom", "base_per_hour": 2190},
+       {"id": "ridge_crystal", "resource": "crystal", "base_per_hour": 1630}],
+     "hunt": {"recommended_power": 70, "drops": [{"resource": "hunt_ridge", "base_per_hour": 15}]},
+     "capture": {
+       "table": [
+         {"spirit_id": "dewdrop", "weight": 15, "availability": "always"},
+         {"spirit_id": "flower_lamp", "weight": 15, "availability": "always"},
+         {"spirit_id": "sunset_bird", "weight": 15, "availability": "always"},
+         {"spirit_id": "rainbow_butterfly", "weight": 8, "availability": "always"},
+         {"spirit_id": "lighthouse_bear", "weight": 8, "availability": "always"},
+         {"spirit_id": "moon_fox", "weight": 8, "availability": "always"},
+         {"spirit_id": "shadow_lantern", "weight": 5, "availability": "always"},
+         {"spirit_id": "aurora_deer", "weight": 5, "availability": "always"}]},
+     "placeholder": true}
+  ]
+}

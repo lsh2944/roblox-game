@@ -1,0 +1,7 @@
+{
+  "description": "심지를 거래 가능으로 표시 → MVP 거래 미구현(예약 필드)",
+  "expect_codes": ["RULE_TRADE_RESERVED"],
+  "ops": [
+    {"op": "set", "file": "resources", "path": "/resources/id:wick/trade_class", "value": "tradable"}
+  ]
+}

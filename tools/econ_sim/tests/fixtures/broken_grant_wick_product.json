@@ -1,0 +1,7 @@
+{
+  "description": "상품 효과로 심지 지급(grant_wick) → 금지 효과",
+  "expect_codes": ["RULE_FORBIDDEN_PRODUCT"],
+  "ops": [
+    {"op": "append", "file": "products", "path": "/products/id:lantern_skin_glow/effects", "value": {"type": "grant_wick", "amount": 30}}
+  ]
+}

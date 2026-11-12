@@ -1,0 +1,32 @@
+{
+  "description": "연구 포인트를 지급하는 상품(보관함 확장 kind에 자원 지급 효과, 2026-11-11 재료팩 kind 금지 후)",
+  "expect_codes": [
+    "RULE_RESEARCH_PAID",
+    "RULE_PRODUCT_EFFECT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products",
+      "value": {
+        "id": "research_pack",
+        "name": "연구 포인트 상자",
+        "kind": "storage_expand",
+        "price_robux": 49,
+        "purchase_limit_total": 0,
+        "purchase_limit_per_day": 1,
+        "effects": [
+          {
+            "type": "basic_material_hours",
+            "hours": 4,
+            "resources": [
+              "research"
+            ],
+            "rate_reference": "standard_free_idle_at_purchase"
+          }
+        ]
+      }
+    }
+  ]
+}

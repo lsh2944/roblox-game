@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반짝이 미리보기</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1026; overflow: hidden; font-family: system-ui, sans-serif; }
+  #cap { position: fixed; left: 16px; top: 12px; color: #e8ecff; font-size: 14px; line-height: 1.5; text-shadow: 0 1px 2px #000; }
+  #cap b { font-size: 18px; }
+  #cap small { color: #9aa3c7; }
+</style>
+</head>
+<body>
+<div id="cap"><b>반짝이 ★1</b> (sparkle · 초원)<br>
+<small>Roblox 코드 조합 방식(Neon 파츠 + 파티클 + 라이트) 시안을 브라우저로 흉내 낸 미리보기입니다. 실제 Roblox 화면과는 다릅니다.</small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Roblox 版 Sparkle.luau と同じ構成・寸法・色・動きをブラウザで近似する
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0b1026, 6, 22);
+const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+camera.position.set(0, 2.0, 5.6); camera.lookAt(0, 1.5, 0);
+
+const C = { core: 0xfff4c2, halo: 0xffe27a, wing: 0x8fe9ff, eye: 0x282030 };
+
+// 放射グラデーションの光テクスチャ
+function glowTex(stops) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  stops.forEach(([o, col]) => gr.addColorStop(o, col));
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const softTex = glowTex([[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,255,255,0.55)'], [1, 'rgba(255,255,255,0)']]);
+const add = (col, op) => new THREE.SpriteMaterial({ map: softTex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
+
+// 地面と星
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: 0x0f2a22 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const groundGlow = new THREE.Mesh(new THREE.CircleGeometry(1.3, 48), new THREE.MeshBasicMaterial({ map: softTex, color: C.halo, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }));
+groundGlow.rotation.x = -Math.PI / 2; groundGlow.position.y = 0.01; scene.add(groundGlow);
+const starGeo = new THREE.BufferGeometry(), sp = [];
+for (let i = 0; i < 400; i++) sp.push((Math.random() - 0.5) * 60, 4 + Math.random() * 20, -10 - Math.random() * 20);
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, fog: false })));
+
+// 精霊本体
+const body = new THREE.Group(); scene.add(body);
+const core = new THREE.Mesh(new THREE.SphereGeometry(0.5, 40, 30), new THREE.MeshBasicMaterial({ color: C.core }));
+body.add(core);
+const halo = new THREE.Mesh(new THREE.SphereGeometry(0.9, 40, 30), new THREE.MeshBasicMaterial({ color: C.halo, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false }));
+body.add(halo);
+const glow1 = new THREE.Sprite(add(C.halo, 0.45)); glow1.scale.set(2.2, 2.2, 1); body.add(glow1);
+const glow2 = new THREE.Sprite(add(C.halo, 0.12)); glow2.scale.set(4.5, 4.5, 1); body.add(glow2);
+const eyeMat = new THREE.MeshBasicMaterial({ color: C.eye });
+const eyes = [-1, 1].map(s => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.065, 16, 12), eyeMat); e.position.set(s * 0.17, 0.08, 0.45); body.add(e); return e; });
+
+// 羽(円盤)。上の大きい羽・下の小さい羽
+const wingMat = new THREE.MeshBasicMaterial({ color: C.wing, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false });
+const wings = [];
+[{ d: 0.75, tilt: 15, y: 0.1 }, { d: 0.45, tilt: -30, y: -0.12 }].forEach(def => [-1, 1].forEach(s => {
+  const hinge = new THREE.Group(); hinge.position.set(0, def.y, -0.3); body.add(hinge);
+  const tilt = new THREE.Group(); tilt.rotation.z = s * def.tilt * Math.PI / 180; hinge.add(tilt);
+  const m = new THREE.Mesh(new THREE.CircleGeometry(def.d / 2, 40), wingMat); m.position.x = s * (def.d / 2 + 0.05); tilt.add(m);
+  wings.push({ hinge, s });
+}));
+
+// きらきら粒子(下にふわっと落ちる)
+const parts = [];
+const pMat = [add(C.halo, 1), add(C.wing, 1)];
+function emit(origin) {
+  const p = new THREE.Sprite(pMat[Math.random() < 0.5 ? 0 : 1].clone());
+  p.position.copy(origin);
+  const v = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(0.4 + Math.random() * 0.6);
+  parts.push({ p, v, life: 0, max: 0.6 + Math.random() * 0.6 }); scene.add(p);
+}
+
+const clock = new THREE.Clock(); let acc = 0, last = 0;
+function tick() {
+  const t = clock.getElapsedTime(), dt = t - last; last = t;
+  body.position.set(0, 1.5 + Math.sin(t * 2) * 0.25, 0);
+  body.rotation.y = Math.sin(t * 0.5) * 0.6;
+  halo.material.opacity = 0.07 + 0.03 * Math.sin(t * 3);
+  glow1.material.opacity = 0.4 + 0.1 * Math.sin(t * 3);
+  groundGlow.material.opacity = 0.15 + 0.05 * Math.sin(t * 3);
+  const blink = (t % 3.2) < 0.12; eyes.forEach(e => e.visible = !blink);
+  const flap = 25 * Math.PI / 180 * Math.sin(t * 14);
+  wings.forEach(w => w.hinge.rotation.y = -w.s * flap);
+  acc += dt * 14; while (acc >= 1) { acc -= 1; emit(body.position); }
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const q = parts[i]; q.life += dt; q.v.y -= 0.6 * dt; q.p.position.addScaledVector(q.v, dt);
+    const k = q.life / q.max, s = 0.25 * (1 - k) * 1.6;
+    q.p.scale.set(s, s, 1); q.p.material.opacity = 0.8 * (1 - k);
+    if (k >= 1) { scene.remove(q.p); parts.splice(i, 1); }
+  }
+  renderer.render(scene, camera); requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

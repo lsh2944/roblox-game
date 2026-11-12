@@ -1,0 +1,16 @@
+{
+  "description": "상품 효과로 활력 회복(vigor_restore) → 먹이·활력 유료 경로 금지(2026-11-11 재료 상자 제거로 보관함 확장 상품에 붙임)",
+  "expect_codes": [
+    "RULE_FORBIDDEN_PRODUCT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products/id:storage_plus_10/effects",
+      "value": {
+        "type": "vigor_restore"
+      }
+    }
+  ]
+}

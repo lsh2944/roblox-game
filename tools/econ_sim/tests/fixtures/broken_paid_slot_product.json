@@ -1,0 +1,27 @@
+{
+  "description": "생산 슬롯을 늘리는 유료 효과(과금 슬롯 확장 금지)",
+  "expect_codes": [
+    "RULE_FORBIDDEN_PRODUCT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products",
+      "value": {
+        "id": "extra_worker",
+        "name": "일꾼 슬롯 +1",
+        "kind": "storage_expand",
+        "price_robux": 199,
+        "purchase_limit_total": 1,
+        "purchase_limit_per_day": 0,
+        "effects": [
+          {
+            "type": "production_slot",
+            "amount": 1
+          }
+        ]
+      }
+    }
+  ]
+}

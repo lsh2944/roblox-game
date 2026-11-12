@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "notes": "허용 kind: cosmetic(시뮬 효과 0) / storage_expand / placement_preset(효과 0) / research_time_skip(진행 중인 speedup_allowed 생산 연구의 남은 시간만 줄임, 비용·조건 면제 없음 — kind·검증 규칙만 유지, MVP 상품 없음: 사용자 결정 2026-11-09, 측정 이득 0) / subscription(외형·이벤트 트랙만, 시뮬 효과 0). purchase_limit 0 = 무제한. 보관함 확장은 무료 100 + 상품 10개×10 = 최대 200(사용자 규칙 F4). 생산 슬롯·개체값 재추첨 상품은 금지. 기본 재료 상자(basic_pack_4h, kind basic_material_pack)·초심자 패스(beginner_pass)는 상품 후보에서 완전히 제거(사용자 결정 2026-11-11, docs/bm_monetization_debate_20261111.md 끝 '사용자 결정(유사 장르 조사 후)'): 모든 BM은 외형·편의(진행 효과 없음)로 한정하며 두 kind는 검증기 금지 목록(RULE_FORBIDDEN_PRODUCT)에 있다.",
+  "products": [
+    {"id": "lantern_skin_glow", "name": "등불 외형: 은은한 빛", "kind": "cosmetic", "price_robux": 49,
+     "purchase_limit_total": 1, "purchase_limit_per_day": 0, "effects": [], "placeholder": true},
+    {"id": "storage_plus_10", "name": "보관함 +10", "kind": "storage_expand", "price_robux": 99,
+     "purchase_limit_total": 10, "purchase_limit_per_day": 0, "effects": [{"type": "storage_capacity", "amount": 10}], "placeholder": true},
+    {"id": "placement_preset_3", "name": "배치 프리셋 3칸", "kind": "placement_preset", "price_robux": 79,
+     "purchase_limit_total": 1, "purchase_limit_per_day": 0, "effects": [], "placeholder": true},
+    {"id": "monthly_membership", "name": "월간 멤버십", "kind": "subscription", "price_robux": 299,
+     "purchase_limit_total": 0, "purchase_limit_per_day": 0,
+     "effects": [{"type": "cosmetic"}, {"type": "event_track"}],
+     "placeholder": true, "notes": "사용자 결정(2026-11-09): Robux 단일 구독, 외형(영구 보유) + 기간 이벤트 구독자 전용 가구 트랙, 299 Robux 가안. 진행 효과·오프라인 상한 효과 없음(시뮬 효과 0). 해지 = 결제 기간 만료(결정 C6)."}
+  ]
+}

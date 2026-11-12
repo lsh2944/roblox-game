@@ -1,0 +1,14 @@
+{
+  "description": "고유 필드의 포획표에 없는 종(사용자 규칙 F1)",
+  "expect_codes": [
+    "RULE_HOME_FIELD"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:aurora_deer/home_field",
+      "value": "meadow"
+    }
+  ]
+}

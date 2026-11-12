@@ -1,0 +1,19 @@
+{
+  "description": "생태 연구에 포획 확률 효과(허용 3종 외)",
+  "expect_codes": [
+    "RULE_RESEARCH_EFFECT"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "research",
+      "path": "/nodes/id:e1/effects",
+      "value": [
+        {
+          "type": "capture_rate_bps",
+          "value_bps": 500
+        }
+      ]
+    }
+  ]
+}

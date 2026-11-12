@@ -1,0 +1,14 @@
+{
+  "description": "비활동 회복이 0(활력이 회복되지 않음)",
+  "expect_codes": [
+    "RULE_VIGOR_PARAMS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/vigor/rest_recovery_per_hour",
+      "value": 0
+    }
+  ]
+}

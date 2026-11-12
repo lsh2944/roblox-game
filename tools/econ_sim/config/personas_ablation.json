@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "placeholder": true,
+  "notes": "12절 ablation(2026-11-10): 약화 레벨 효과 off, 활력 off. 같은 비교군 난수. criteria capture_sinks.ablation_pairs가 짝을 지정.",
+  "master_seed": 20261106,
+  "horizon_days": 60,
+  "extract_days": [
+    30,
+    60
+  ],
+  "replicates_quick": 20,
+  "replicates_default": 200,
+  "start": {
+    "spirits": [
+      {
+        "species": "sparkle",
+        "level": 1
+      },
+      {
+        "species": "dewdrop",
+        "level": 1
+      },
+      {
+        "species": "flower_lamp",
+        "level": 1
+      }
+    ],
+    "placeholder": true,
+    "notes": "시작 정령(★1 3종 Lv1) 가정. 게임 데이터에 시작 상태 정의가 생기면 그쪽으로 옮긴다."
+  },
+  "policy": {
+    "step_minutes": 5,
+    "manage_every_steps": 6,
+    "flex_pool": [
+      "gather",
+      "hunt"
+    ],
+    "post_goal_payback_max_minutes": 10080,
+    "max_purchases_per_manage": 300,
+    "hub_rank_when_free_slots_at_most": 1,
+    "max_sinks_per_manage": 50,
+    "notes": "다음 필드 해금 ETA를 줄이는 강화만 구매. 마지막 필드 해금 후에는 회수기간 7일 이내 강화를 회수기간 순으로 구매."
+  },
+  "personas": [
+    {
+      "id": "balanced",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": []
+    },
+    {
+      "id": "balanced_paid",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": [
+        {
+          "product_id": "lantern_skin_glow",
+          "day": 0,
+          "every_days": 0,
+          "until_day": 0
+        },
+        {
+          "product_id": "placement_preset_3",
+          "day": 0,
+          "every_days": 0,
+          "until_day": 0
+        },
+        {
+          "product_id": "storage_plus_10",
+          "day": 4,
+          "every_days": 1,
+          "until_day": 13
+        }
+      ],
+      "notes": "balanced와 같은 일정·같은 비교군 난수. 외형·편의 구매자(사용자 결정 2026-11-11: 기본 재료 상자·초심자 패스 제거, BM은 외형·편의만): 1일차 등불 외형·배치 프리셋(시뮬 효과 0), 5일차(day 4, balanced 보관함 첫 가득 참 기준)부터 보관함 +10을 하루 1개씩 총 10개(+100, 상품 총 한도). 연구 단축 상품은 MVP에서 제외(사용자 결정 2026-11-09)."
+    },
+    {
+      "id": "balanced_level_off",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": [],
+      "ablation": [
+        "weaken_level_off"
+      ]
+    },
+    {
+      "id": "balanced_vigor_off",
+      "pairing_group": "balanced",
+      "research": "natural",
+      "sessions": [
+        {
+          "start_minute": 420,
+          "minutes": 30
+        },
+        {
+          "start_minute": 750,
+          "minutes": 30
+        },
+        {
+          "start_minute": 1170,
+          "minutes": 120
+        }
+      ],
+      "activity_minutes": {
+        "gather": 60,
+        "hunt": 60,
+        "capture": 30,
+        "decor": 30,
+        "manage": 0
+      },
+      "purchases": [],
+      "ablation": [
+        "vigor_off"
+      ]
+    }
+  ]
+}

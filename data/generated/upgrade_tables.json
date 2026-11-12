@@ -1,0 +1,3801 @@
+{
+  "schema_version": 1,
+  "generator": "econ_sim.tables/1",
+  "notes": "자동 생성 파일. 직접 수정하지 말고 curves.json을 고친 뒤 gen-tables를 실행한다.",
+  "curves_sha256": "b21c7f0ff33c6a4a97008296251c9db03d7b332143fe8a48e699d93d9eb6d2b9",
+  "tables_sha256": "28df3889595c6b64bfa9137411653e6456d72fc5acad957a48fc9df5d1ed324f",
+  "cost_tables": [
+    {
+      "id": "fac_cost_dew_spring",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 40
+            },
+            {
+              "resource": "bloom",
+              "amount": 20
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 46
+            },
+            {
+              "resource": "bloom",
+              "amount": 23
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 53
+            },
+            {
+              "resource": "bloom",
+              "amount": 27
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 61
+            },
+            {
+              "resource": "bloom",
+              "amount": 31
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 70
+            },
+            {
+              "resource": "bloom",
+              "amount": 35
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 81
+            },
+            {
+              "resource": "bloom",
+              "amount": 41
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 93
+            },
+            {
+              "resource": "bloom",
+              "amount": 47
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 107
+            },
+            {
+              "resource": "bloom",
+              "amount": 54
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 123
+            },
+            {
+              "resource": "bloom",
+              "amount": 62
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 141
+            },
+            {
+              "resource": "bloom",
+              "amount": 71
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 162
+            },
+            {
+              "resource": "bloom",
+              "amount": 81
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 187
+            },
+            {
+              "resource": "bloom",
+              "amount": 94
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 215
+            },
+            {
+              "resource": "bloom",
+              "amount": 108
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 247
+            },
+            {
+              "resource": "bloom",
+              "amount": 124
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 284
+            },
+            {
+              "resource": "bloom",
+              "amount": 142
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 326
+            },
+            {
+              "resource": "bloom",
+              "amount": 163
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 375
+            },
+            {
+              "resource": "bloom",
+              "amount": 188
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 431
+            },
+            {
+              "resource": "bloom",
+              "amount": 216
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 496
+            },
+            {
+              "resource": "bloom",
+              "amount": 248
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 570
+            },
+            {
+              "resource": "bloom",
+              "amount": 285
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 655
+            },
+            {
+              "resource": "bloom",
+              "amount": 328
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 753
+            },
+            {
+              "resource": "bloom",
+              "amount": 377
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 866
+            },
+            {
+              "resource": "bloom",
+              "amount": 433
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 996
+            },
+            {
+              "resource": "bloom",
+              "amount": 498
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1146
+            },
+            {
+              "resource": "bloom",
+              "amount": 573
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1317
+            },
+            {
+              "resource": "bloom",
+              "amount": 659
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1515
+            },
+            {
+              "resource": "bloom",
+              "amount": 758
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1742
+            },
+            {
+              "resource": "bloom",
+              "amount": 871
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2003
+            },
+            {
+              "resource": "bloom",
+              "amount": 1002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fac_cost_bloom_garden",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 40
+            },
+            {
+              "resource": "dew",
+              "amount": 20
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 46
+            },
+            {
+              "resource": "dew",
+              "amount": 23
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 53
+            },
+            {
+              "resource": "dew",
+              "amount": 27
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 61
+            },
+            {
+              "resource": "dew",
+              "amount": 31
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 70
+            },
+            {
+              "resource": "dew",
+              "amount": 35
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 81
+            },
+            {
+              "resource": "dew",
+              "amount": 41
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 93
+            },
+            {
+              "resource": "dew",
+              "amount": 47
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 107
+            },
+            {
+              "resource": "dew",
+              "amount": 54
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 123
+            },
+            {
+              "resource": "dew",
+              "amount": 62
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 141
+            },
+            {
+              "resource": "dew",
+              "amount": 71
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 162
+            },
+            {
+              "resource": "dew",
+              "amount": 81
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 187
+            },
+            {
+              "resource": "dew",
+              "amount": 94
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 215
+            },
+            {
+              "resource": "dew",
+              "amount": 108
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 247
+            },
+            {
+              "resource": "dew",
+              "amount": 124
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 284
+            },
+            {
+              "resource": "dew",
+              "amount": 142
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 326
+            },
+            {
+              "resource": "dew",
+              "amount": 163
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 375
+            },
+            {
+              "resource": "dew",
+              "amount": 188
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 431
+            },
+            {
+              "resource": "dew",
+              "amount": 216
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 496
+            },
+            {
+              "resource": "dew",
+              "amount": 248
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 570
+            },
+            {
+              "resource": "dew",
+              "amount": 285
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 655
+            },
+            {
+              "resource": "dew",
+              "amount": 328
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 753
+            },
+            {
+              "resource": "dew",
+              "amount": 377
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 866
+            },
+            {
+              "resource": "dew",
+              "amount": 433
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 996
+            },
+            {
+              "resource": "dew",
+              "amount": 498
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 1146
+            },
+            {
+              "resource": "dew",
+              "amount": 573
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 1317
+            },
+            {
+              "resource": "dew",
+              "amount": 659
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 1515
+            },
+            {
+              "resource": "dew",
+              "amount": 758
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 1742
+            },
+            {
+              "resource": "dew",
+              "amount": 871
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "bloom",
+              "amount": 2003
+            },
+            {
+              "resource": "dew",
+              "amount": 1002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fac_cost_crystal_forge",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 30
+            },
+            {
+              "resource": "dew",
+              "amount": 15
+            },
+            {
+              "resource": "bloom",
+              "amount": 15
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 35
+            },
+            {
+              "resource": "dew",
+              "amount": 18
+            },
+            {
+              "resource": "bloom",
+              "amount": 18
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 40
+            },
+            {
+              "resource": "dew",
+              "amount": 20
+            },
+            {
+              "resource": "bloom",
+              "amount": 20
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 46
+            },
+            {
+              "resource": "dew",
+              "amount": 23
+            },
+            {
+              "resource": "bloom",
+              "amount": 23
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 53
+            },
+            {
+              "resource": "dew",
+              "amount": 27
+            },
+            {
+              "resource": "bloom",
+              "amount": 27
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 61
+            },
+            {
+              "resource": "dew",
+              "amount": 31
+            },
+            {
+              "resource": "bloom",
+              "amount": 31
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 70
+            },
+            {
+              "resource": "dew",
+              "amount": 35
+            },
+            {
+              "resource": "bloom",
+              "amount": 35
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 80
+            },
+            {
+              "resource": "dew",
+              "amount": 40
+            },
+            {
+              "resource": "bloom",
+              "amount": 40
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 92
+            },
+            {
+              "resource": "dew",
+              "amount": 46
+            },
+            {
+              "resource": "bloom",
+              "amount": 46
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 106
+            },
+            {
+              "resource": "dew",
+              "amount": 53
+            },
+            {
+              "resource": "bloom",
+              "amount": 53
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 122
+            },
+            {
+              "resource": "dew",
+              "amount": 61
+            },
+            {
+              "resource": "bloom",
+              "amount": 61
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 140
+            },
+            {
+              "resource": "dew",
+              "amount": 70
+            },
+            {
+              "resource": "bloom",
+              "amount": 70
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 161
+            },
+            {
+              "resource": "dew",
+              "amount": 81
+            },
+            {
+              "resource": "bloom",
+              "amount": 81
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 185
+            },
+            {
+              "resource": "dew",
+              "amount": 93
+            },
+            {
+              "resource": "bloom",
+              "amount": 93
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 213
+            },
+            {
+              "resource": "dew",
+              "amount": 107
+            },
+            {
+              "resource": "bloom",
+              "amount": 107
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 245
+            },
+            {
+              "resource": "dew",
+              "amount": 123
+            },
+            {
+              "resource": "bloom",
+              "amount": 123
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 281
+            },
+            {
+              "resource": "dew",
+              "amount": 141
+            },
+            {
+              "resource": "bloom",
+              "amount": 141
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 323
+            },
+            {
+              "resource": "dew",
+              "amount": 162
+            },
+            {
+              "resource": "bloom",
+              "amount": 162
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 372
+            },
+            {
+              "resource": "dew",
+              "amount": 186
+            },
+            {
+              "resource": "bloom",
+              "amount": 186
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 427
+            },
+            {
+              "resource": "dew",
+              "amount": 214
+            },
+            {
+              "resource": "bloom",
+              "amount": 214
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 491
+            },
+            {
+              "resource": "dew",
+              "amount": 246
+            },
+            {
+              "resource": "bloom",
+              "amount": 246
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 565
+            },
+            {
+              "resource": "dew",
+              "amount": 283
+            },
+            {
+              "resource": "bloom",
+              "amount": 283
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 650
+            },
+            {
+              "resource": "dew",
+              "amount": 325
+            },
+            {
+              "resource": "bloom",
+              "amount": 325
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 747
+            },
+            {
+              "resource": "dew",
+              "amount": 374
+            },
+            {
+              "resource": "bloom",
+              "amount": 374
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 859
+            },
+            {
+              "resource": "dew",
+              "amount": 430
+            },
+            {
+              "resource": "bloom",
+              "amount": 430
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 988
+            },
+            {
+              "resource": "dew",
+              "amount": 494
+            },
+            {
+              "resource": "bloom",
+              "amount": 494
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 1136
+            },
+            {
+              "resource": "dew",
+              "amount": 568
+            },
+            {
+              "resource": "bloom",
+              "amount": 568
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 1307
+            },
+            {
+              "resource": "dew",
+              "amount": 654
+            },
+            {
+              "resource": "bloom",
+              "amount": 654
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "crystal",
+              "amount": 1502
+            },
+            {
+              "resource": "dew",
+              "amount": 751
+            },
+            {
+              "resource": "bloom",
+              "amount": 751
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spirit_cost_g1",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 7
+            },
+            {
+              "resource": "bloom",
+              "amount": 7
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 8
+            },
+            {
+              "resource": "bloom",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 9
+            },
+            {
+              "resource": "bloom",
+              "amount": 9
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 10
+            },
+            {
+              "resource": "bloom",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 11
+            },
+            {
+              "resource": "bloom",
+              "amount": 11
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 12
+            },
+            {
+              "resource": "bloom",
+              "amount": 12
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 14
+            },
+            {
+              "resource": "bloom",
+              "amount": 14
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 15
+            },
+            {
+              "resource": "bloom",
+              "amount": 15
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 17
+            },
+            {
+              "resource": "bloom",
+              "amount": 17
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 19
+            },
+            {
+              "resource": "bloom",
+              "amount": 19
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 21
+            },
+            {
+              "resource": "bloom",
+              "amount": 21
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 24
+            },
+            {
+              "resource": "bloom",
+              "amount": 24
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 27
+            },
+            {
+              "resource": "bloom",
+              "amount": 27
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 30
+            },
+            {
+              "resource": "bloom",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 33
+            },
+            {
+              "resource": "bloom",
+              "amount": 33
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 37
+            },
+            {
+              "resource": "bloom",
+              "amount": 37
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 42
+            },
+            {
+              "resource": "bloom",
+              "amount": 42
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 47
+            },
+            {
+              "resource": "bloom",
+              "amount": 47
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 52
+            },
+            {
+              "resource": "bloom",
+              "amount": 52
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 58
+            },
+            {
+              "resource": "bloom",
+              "amount": 58
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 65
+            },
+            {
+              "resource": "bloom",
+              "amount": 65
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 73
+            },
+            {
+              "resource": "bloom",
+              "amount": 73
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 82
+            },
+            {
+              "resource": "bloom",
+              "amount": 82
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 92
+            },
+            {
+              "resource": "bloom",
+              "amount": 92
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 103
+            },
+            {
+              "resource": "bloom",
+              "amount": 103
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 115
+            },
+            {
+              "resource": "bloom",
+              "amount": 115
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 128
+            },
+            {
+              "resource": "bloom",
+              "amount": 128
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 144
+            },
+            {
+              "resource": "bloom",
+              "amount": 144
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 161
+            },
+            {
+              "resource": "bloom",
+              "amount": 161
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spirit_cost_g2",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 12
+            },
+            {
+              "resource": "bloom",
+              "amount": 12
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 13
+            },
+            {
+              "resource": "bloom",
+              "amount": 13
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 15
+            },
+            {
+              "resource": "bloom",
+              "amount": 15
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 16
+            },
+            {
+              "resource": "bloom",
+              "amount": 16
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 18
+            },
+            {
+              "resource": "bloom",
+              "amount": 18
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 20
+            },
+            {
+              "resource": "bloom",
+              "amount": 20
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 23
+            },
+            {
+              "resource": "bloom",
+              "amount": 23
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 25
+            },
+            {
+              "resource": "bloom",
+              "amount": 25
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 28
+            },
+            {
+              "resource": "bloom",
+              "amount": 28
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 32
+            },
+            {
+              "resource": "bloom",
+              "amount": 32
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 35
+            },
+            {
+              "resource": "bloom",
+              "amount": 35
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 39
+            },
+            {
+              "resource": "bloom",
+              "amount": 39
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 44
+            },
+            {
+              "resource": "bloom",
+              "amount": 44
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 49
+            },
+            {
+              "resource": "bloom",
+              "amount": 49
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 55
+            },
+            {
+              "resource": "bloom",
+              "amount": 55
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 62
+            },
+            {
+              "resource": "bloom",
+              "amount": 62
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 69
+            },
+            {
+              "resource": "bloom",
+              "amount": 69
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 77
+            },
+            {
+              "resource": "bloom",
+              "amount": 77
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 87
+            },
+            {
+              "resource": "bloom",
+              "amount": 87
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 97
+            },
+            {
+              "resource": "bloom",
+              "amount": 97
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 109
+            },
+            {
+              "resource": "bloom",
+              "amount": 109
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 122
+            },
+            {
+              "resource": "bloom",
+              "amount": 122
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 136
+            },
+            {
+              "resource": "bloom",
+              "amount": 136
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 152
+            },
+            {
+              "resource": "bloom",
+              "amount": 152
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 171
+            },
+            {
+              "resource": "bloom",
+              "amount": 171
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 191
+            },
+            {
+              "resource": "bloom",
+              "amount": 191
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 214
+            },
+            {
+              "resource": "bloom",
+              "amount": 214
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 239
+            },
+            {
+              "resource": "bloom",
+              "amount": 239
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 268
+            },
+            {
+              "resource": "bloom",
+              "amount": 268
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spirit_cost_g3",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 18
+            },
+            {
+              "resource": "bloom",
+              "amount": 18
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 21
+            },
+            {
+              "resource": "bloom",
+              "amount": 21
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 23
+            },
+            {
+              "resource": "bloom",
+              "amount": 23
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 26
+            },
+            {
+              "resource": "bloom",
+              "amount": 26
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 29
+            },
+            {
+              "resource": "bloom",
+              "amount": 29
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 32
+            },
+            {
+              "resource": "bloom",
+              "amount": 32
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 36
+            },
+            {
+              "resource": "bloom",
+              "amount": 36
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 40
+            },
+            {
+              "resource": "bloom",
+              "amount": 40
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 45
+            },
+            {
+              "resource": "bloom",
+              "amount": 45
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 50
+            },
+            {
+              "resource": "bloom",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 56
+            },
+            {
+              "resource": "bloom",
+              "amount": 56
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 63
+            },
+            {
+              "resource": "bloom",
+              "amount": 63
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 70
+            },
+            {
+              "resource": "bloom",
+              "amount": 70
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 79
+            },
+            {
+              "resource": "bloom",
+              "amount": 79
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 88
+            },
+            {
+              "resource": "bloom",
+              "amount": 88
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 99
+            },
+            {
+              "resource": "bloom",
+              "amount": 99
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 110
+            },
+            {
+              "resource": "bloom",
+              "amount": 110
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 124
+            },
+            {
+              "resource": "bloom",
+              "amount": 124
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 138
+            },
+            {
+              "resource": "bloom",
+              "amount": 138
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 155
+            },
+            {
+              "resource": "bloom",
+              "amount": 155
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 173
+            },
+            {
+              "resource": "bloom",
+              "amount": 173
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 194
+            },
+            {
+              "resource": "bloom",
+              "amount": 194
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 217
+            },
+            {
+              "resource": "bloom",
+              "amount": 217
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 243
+            },
+            {
+              "resource": "bloom",
+              "amount": 243
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 273
+            },
+            {
+              "resource": "bloom",
+              "amount": 273
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 305
+            },
+            {
+              "resource": "bloom",
+              "amount": 305
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 342
+            },
+            {
+              "resource": "bloom",
+              "amount": 342
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 383
+            },
+            {
+              "resource": "bloom",
+              "amount": 383
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 428
+            },
+            {
+              "resource": "bloom",
+              "amount": 428
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spirit_cost_g4",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 27
+            },
+            {
+              "resource": "bloom",
+              "amount": 27
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 31
+            },
+            {
+              "resource": "bloom",
+              "amount": 31
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 34
+            },
+            {
+              "resource": "bloom",
+              "amount": 34
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 38
+            },
+            {
+              "resource": "bloom",
+              "amount": 38
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 43
+            },
+            {
+              "resource": "bloom",
+              "amount": 43
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 48
+            },
+            {
+              "resource": "bloom",
+              "amount": 48
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 54
+            },
+            {
+              "resource": "bloom",
+              "amount": 54
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 60
+            },
+            {
+              "resource": "bloom",
+              "amount": 60
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 67
+            },
+            {
+              "resource": "bloom",
+              "amount": 67
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 75
+            },
+            {
+              "resource": "bloom",
+              "amount": 75
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 84
+            },
+            {
+              "resource": "bloom",
+              "amount": 84
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 94
+            },
+            {
+              "resource": "bloom",
+              "amount": 94
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 105
+            },
+            {
+              "resource": "bloom",
+              "amount": 105
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 118
+            },
+            {
+              "resource": "bloom",
+              "amount": 118
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 132
+            },
+            {
+              "resource": "bloom",
+              "amount": 132
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 148
+            },
+            {
+              "resource": "bloom",
+              "amount": 148
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 165
+            },
+            {
+              "resource": "bloom",
+              "amount": 165
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 185
+            },
+            {
+              "resource": "bloom",
+              "amount": 185
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 207
+            },
+            {
+              "resource": "bloom",
+              "amount": 207
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 232
+            },
+            {
+              "resource": "bloom",
+              "amount": 232
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 260
+            },
+            {
+              "resource": "bloom",
+              "amount": 260
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 291
+            },
+            {
+              "resource": "bloom",
+              "amount": 291
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 326
+            },
+            {
+              "resource": "bloom",
+              "amount": 326
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 365
+            },
+            {
+              "resource": "bloom",
+              "amount": 365
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 409
+            },
+            {
+              "resource": "bloom",
+              "amount": 409
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 457
+            },
+            {
+              "resource": "bloom",
+              "amount": 457
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 512
+            },
+            {
+              "resource": "bloom",
+              "amount": 512
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 574
+            },
+            {
+              "resource": "bloom",
+              "amount": 574
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 642
+            },
+            {
+              "resource": "bloom",
+              "amount": 642
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tool_cost_gather",
+      "max_level": 30,
+      "levels": [
+        {
+          "from_level": 1,
+          "to_level": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 50
+            },
+            {
+              "resource": "bloom",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "from_level": 2,
+          "to_level": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 59
+            },
+            {
+              "resource": "bloom",
+              "amount": 59
+            }
+          ]
+        },
+        {
+          "from_level": 3,
+          "to_level": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 70
+            },
+            {
+              "resource": "bloom",
+              "amount": 70
+            }
+          ]
+        },
+        {
+          "from_level": 4,
+          "to_level": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 83
+            },
+            {
+              "resource": "bloom",
+              "amount": 83
+            }
+          ]
+        },
+        {
+          "from_level": 5,
+          "to_level": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 97
+            },
+            {
+              "resource": "bloom",
+              "amount": 97
+            }
+          ]
+        },
+        {
+          "from_level": 6,
+          "to_level": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 115
+            },
+            {
+              "resource": "bloom",
+              "amount": 115
+            }
+          ]
+        },
+        {
+          "from_level": 7,
+          "to_level": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 135
+            },
+            {
+              "resource": "bloom",
+              "amount": 135
+            }
+          ]
+        },
+        {
+          "from_level": 8,
+          "to_level": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 160
+            },
+            {
+              "resource": "bloom",
+              "amount": 160
+            }
+          ]
+        },
+        {
+          "from_level": 9,
+          "to_level": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 188
+            },
+            {
+              "resource": "bloom",
+              "amount": 188
+            }
+          ]
+        },
+        {
+          "from_level": 10,
+          "to_level": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 222
+            },
+            {
+              "resource": "bloom",
+              "amount": 222
+            }
+          ]
+        },
+        {
+          "from_level": 11,
+          "to_level": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 262
+            },
+            {
+              "resource": "bloom",
+              "amount": 262
+            }
+          ]
+        },
+        {
+          "from_level": 12,
+          "to_level": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 309
+            },
+            {
+              "resource": "bloom",
+              "amount": 309
+            }
+          ]
+        },
+        {
+          "from_level": 13,
+          "to_level": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 365
+            },
+            {
+              "resource": "bloom",
+              "amount": 365
+            }
+          ]
+        },
+        {
+          "from_level": 14,
+          "to_level": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 430
+            },
+            {
+              "resource": "bloom",
+              "amount": 430
+            }
+          ]
+        },
+        {
+          "from_level": 15,
+          "to_level": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 508
+            },
+            {
+              "resource": "bloom",
+              "amount": 508
+            }
+          ]
+        },
+        {
+          "from_level": 16,
+          "to_level": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 599
+            },
+            {
+              "resource": "bloom",
+              "amount": 599
+            }
+          ]
+        },
+        {
+          "from_level": 17,
+          "to_level": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 707
+            },
+            {
+              "resource": "bloom",
+              "amount": 707
+            }
+          ]
+        },
+        {
+          "from_level": 18,
+          "to_level": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 834
+            },
+            {
+              "resource": "bloom",
+              "amount": 834
+            }
+          ]
+        },
+        {
+          "from_level": 19,
+          "to_level": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 984
+            },
+            {
+              "resource": "bloom",
+              "amount": 984
+            }
+          ]
+        },
+        {
+          "from_level": 20,
+          "to_level": 21,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1161
+            },
+            {
+              "resource": "bloom",
+              "amount": 1161
+            }
+          ]
+        },
+        {
+          "from_level": 21,
+          "to_level": 22,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1370
+            },
+            {
+              "resource": "bloom",
+              "amount": 1370
+            }
+          ]
+        },
+        {
+          "from_level": 22,
+          "to_level": 23,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1617
+            },
+            {
+              "resource": "bloom",
+              "amount": 1617
+            }
+          ]
+        },
+        {
+          "from_level": 23,
+          "to_level": 24,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 1908
+            },
+            {
+              "resource": "bloom",
+              "amount": 1908
+            }
+          ]
+        },
+        {
+          "from_level": 24,
+          "to_level": 25,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2251
+            },
+            {
+              "resource": "bloom",
+              "amount": 2251
+            }
+          ]
+        },
+        {
+          "from_level": 25,
+          "to_level": 26,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2656
+            },
+            {
+              "resource": "bloom",
+              "amount": 2656
+            }
+          ]
+        },
+        {
+          "from_level": 26,
+          "to_level": 27,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3134
+            },
+            {
+              "resource": "bloom",
+              "amount": 3134
+            }
+          ]
+        },
+        {
+          "from_level": 27,
+          "to_level": 28,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3698
+            },
+            {
+              "resource": "bloom",
+              "amount": 3698
+            }
+          ]
+        },
+        {
+          "from_level": 28,
+          "to_level": 29,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 4363
+            },
+            {
+              "resource": "bloom",
+              "amount": 4363
+            }
+          ]
+        },
+        {
+          "from_level": 29,
+          "to_level": 30,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 5149
+            },
+            {
+              "resource": "bloom",
+              "amount": 5149
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bonus_tables": [
+    {
+      "id": "facility_output",
+      "max_level": 30,
+      "levels": [
+        {
+          "level": 1,
+          "mult_bps": 10000
+        },
+        {
+          "level": 2,
+          "mult_bps": 11000
+        },
+        {
+          "level": 3,
+          "mult_bps": 12000
+        },
+        {
+          "level": 4,
+          "mult_bps": 13000
+        },
+        {
+          "level": 5,
+          "mult_bps": 14000
+        },
+        {
+          "level": 6,
+          "mult_bps": 15000
+        },
+        {
+          "level": 7,
+          "mult_bps": 16000
+        },
+        {
+          "level": 8,
+          "mult_bps": 17000
+        },
+        {
+          "level": 9,
+          "mult_bps": 18000
+        },
+        {
+          "level": 10,
+          "mult_bps": 38000
+        },
+        {
+          "level": 11,
+          "mult_bps": 40000
+        },
+        {
+          "level": 12,
+          "mult_bps": 42000
+        },
+        {
+          "level": 13,
+          "mult_bps": 44000
+        },
+        {
+          "level": 14,
+          "mult_bps": 46000
+        },
+        {
+          "level": 15,
+          "mult_bps": 48000
+        },
+        {
+          "level": 16,
+          "mult_bps": 50000
+        },
+        {
+          "level": 17,
+          "mult_bps": 52000
+        },
+        {
+          "level": 18,
+          "mult_bps": 54000
+        },
+        {
+          "level": 19,
+          "mult_bps": 56000
+        },
+        {
+          "level": 20,
+          "mult_bps": 58000
+        },
+        {
+          "level": 21,
+          "mult_bps": 60000
+        },
+        {
+          "level": 22,
+          "mult_bps": 62000
+        },
+        {
+          "level": 23,
+          "mult_bps": 64000
+        },
+        {
+          "level": 24,
+          "mult_bps": 66000
+        },
+        {
+          "level": 25,
+          "mult_bps": 136000
+        },
+        {
+          "level": 26,
+          "mult_bps": 140000
+        },
+        {
+          "level": 27,
+          "mult_bps": 144000
+        },
+        {
+          "level": 28,
+          "mult_bps": 148000
+        },
+        {
+          "level": 29,
+          "mult_bps": 152000
+        },
+        {
+          "level": 30,
+          "mult_bps": 156000
+        }
+      ]
+    },
+    {
+      "id": "spirit_ability",
+      "max_level": 30,
+      "levels": [
+        {
+          "level": 1,
+          "mult_bps": 10000
+        },
+        {
+          "level": 2,
+          "mult_bps": 10400
+        },
+        {
+          "level": 3,
+          "mult_bps": 10800
+        },
+        {
+          "level": 4,
+          "mult_bps": 11200
+        },
+        {
+          "level": 5,
+          "mult_bps": 11600
+        },
+        {
+          "level": 6,
+          "mult_bps": 12000
+        },
+        {
+          "level": 7,
+          "mult_bps": 12400
+        },
+        {
+          "level": 8,
+          "mult_bps": 12800
+        },
+        {
+          "level": 9,
+          "mult_bps": 13200
+        },
+        {
+          "level": 10,
+          "mult_bps": 13600
+        },
+        {
+          "level": 11,
+          "mult_bps": 14000
+        },
+        {
+          "level": 12,
+          "mult_bps": 14400
+        },
+        {
+          "level": 13,
+          "mult_bps": 14800
+        },
+        {
+          "level": 14,
+          "mult_bps": 15200
+        },
+        {
+          "level": 15,
+          "mult_bps": 15600
+        },
+        {
+          "level": 16,
+          "mult_bps": 16000
+        },
+        {
+          "level": 17,
+          "mult_bps": 16400
+        },
+        {
+          "level": 18,
+          "mult_bps": 16800
+        },
+        {
+          "level": 19,
+          "mult_bps": 17200
+        },
+        {
+          "level": 20,
+          "mult_bps": 17600
+        },
+        {
+          "level": 21,
+          "mult_bps": 18000
+        },
+        {
+          "level": 22,
+          "mult_bps": 18400
+        },
+        {
+          "level": 23,
+          "mult_bps": 18800
+        },
+        {
+          "level": 24,
+          "mult_bps": 19200
+        },
+        {
+          "level": 25,
+          "mult_bps": 19600
+        },
+        {
+          "level": 26,
+          "mult_bps": 20000
+        },
+        {
+          "level": 27,
+          "mult_bps": 20400
+        },
+        {
+          "level": 28,
+          "mult_bps": 20800
+        },
+        {
+          "level": 29,
+          "mult_bps": 21200
+        },
+        {
+          "level": 30,
+          "mult_bps": 21600
+        }
+      ]
+    },
+    {
+      "id": "tool_gather_bonus",
+      "max_level": 30,
+      "levels": [
+        {
+          "level": 1,
+          "mult_bps": 10000
+        },
+        {
+          "level": 2,
+          "mult_bps": 11000
+        },
+        {
+          "level": 3,
+          "mult_bps": 12000
+        },
+        {
+          "level": 4,
+          "mult_bps": 13000
+        },
+        {
+          "level": 5,
+          "mult_bps": 14000
+        },
+        {
+          "level": 6,
+          "mult_bps": 15000
+        },
+        {
+          "level": 7,
+          "mult_bps": 16000
+        },
+        {
+          "level": 8,
+          "mult_bps": 17000
+        },
+        {
+          "level": 9,
+          "mult_bps": 18000
+        },
+        {
+          "level": 10,
+          "mult_bps": 19000
+        },
+        {
+          "level": 11,
+          "mult_bps": 20000
+        },
+        {
+          "level": 12,
+          "mult_bps": 21000
+        },
+        {
+          "level": 13,
+          "mult_bps": 22000
+        },
+        {
+          "level": 14,
+          "mult_bps": 23000
+        },
+        {
+          "level": 15,
+          "mult_bps": 24000
+        },
+        {
+          "level": 16,
+          "mult_bps": 25000
+        },
+        {
+          "level": 17,
+          "mult_bps": 26000
+        },
+        {
+          "level": 18,
+          "mult_bps": 27000
+        },
+        {
+          "level": 19,
+          "mult_bps": 28000
+        },
+        {
+          "level": 20,
+          "mult_bps": 29000
+        },
+        {
+          "level": 21,
+          "mult_bps": 30000
+        },
+        {
+          "level": 22,
+          "mult_bps": 31000
+        },
+        {
+          "level": 23,
+          "mult_bps": 32000
+        },
+        {
+          "level": 24,
+          "mult_bps": 33000
+        },
+        {
+          "level": 25,
+          "mult_bps": 34000
+        },
+        {
+          "level": 26,
+          "mult_bps": 35000
+        },
+        {
+          "level": 27,
+          "mult_bps": 36000
+        },
+        {
+          "level": 28,
+          "mult_bps": 37000
+        },
+        {
+          "level": 29,
+          "mult_bps": 38000
+        },
+        {
+          "level": 30,
+          "mult_bps": 39000
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "description": "상품(등불 외형에 붙인 자원 지급 효과)이 사냥 재료 hunt_ridge를 지급 → RULE_PAID_CAPTURE (외형 상품에 효과가 붙어 RULE_PRODUCT_EFFECT도 함께 남). 2026-11-11 초심자 패스 제거로 외형 상품을 지급 경로로 사용",
+  "expect_codes": [
+    "RULE_PAID_CAPTURE",
+    "RULE_PRODUCT_EFFECT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products/id:lantern_skin_glow/effects",
+      "value": {
+        "type": "basic_material_hours",
+        "hours": 4,
+        "resources": [
+          "hunt_ridge"
+        ],
+        "rate_reference": "standard_free_idle_at_purchase"
+      }
+    }
+  ]
+}

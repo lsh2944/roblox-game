@@ -1,0 +1,14 @@
+{
+  "description": "a1 선행에서 i1 제거 → 완료 상태 {a1}에서 직접 400 > 방치 0(중간 상태 A>I)",
+  "expect_codes": [
+    "RULE_RESEARCH_R_NEUTRAL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "research",
+      "path": "/nodes/id:a1/prerequisites",
+      "value": []
+    }
+  ]
+}

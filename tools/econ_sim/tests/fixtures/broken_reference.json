@@ -1,0 +1,8 @@
+{
+  "description": "존재하지 않는 정령·곡선 참조",
+  "expect_codes": ["REF_UNKNOWN"],
+  "ops": [
+    {"op": "append", "file": "fields", "path": "/fields/id:meadow/capture/table", "value": {"spirit_id": "ghost_spirit", "weight": 5, "availability": "always"}},
+    {"op": "set", "file": "spirits", "path": "/spirits/id:sparkle/level_cost_curve", "value": "missing_curve"}
+  ]
+}

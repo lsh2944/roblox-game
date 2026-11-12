@@ -1,0 +1,26 @@
+{
+  "description": "개체값 재추첨(리롤) 유료 상품(사용자 규칙 F2)",
+  "expect_codes": [
+    "RULE_FORBIDDEN_PRODUCT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products",
+      "value": {
+        "id": "stat_reroll_ticket",
+        "name": "개체값 재추첨권",
+        "kind": "stat_reroll",
+        "price_robux": 49,
+        "purchase_limit_total": 0,
+        "purchase_limit_per_day": 0,
+        "effects": [
+          {
+            "type": "individual_reroll"
+          }
+        ]
+      }
+    }
+  ]
+}

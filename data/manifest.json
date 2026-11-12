@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "notes": "Python 시뮬레이터와 게임(Luau)이 공유하는 데이터 진입점. 순수 JSON(주석·null·NaN 금지), 배열은 id 또는 명시적 순서를 가진다.",
+  "files": [
+    {"id": "resources", "path": "resources.json", "role": "source"},
+    {"id": "rules", "path": "rules.json", "role": "source"},
+    {"id": "spirits", "path": "spirits.json", "role": "source"},
+    {"id": "curves", "path": "curves.json", "role": "source"},
+    {"id": "facilities", "path": "facilities.json", "role": "source"},
+    {"id": "tools", "path": "tools.json", "role": "source"},
+    {"id": "fields", "path": "fields.json", "role": "source"},
+    {"id": "hub", "path": "hub.json", "role": "source"},
+    {"id": "daily_quests", "path": "daily_quests.json", "role": "source"},
+    {"id": "products", "path": "products.json", "role": "source"},
+    {"id": "releases", "path": "releases.json", "role": "source"},
+    {"id": "research", "path": "research.json", "role": "source"},
+    {"id": "capture", "path": "capture.json", "role": "source"},
+    {"id": "crafting", "path": "crafting.json", "role": "source"},
+    {"id": "sinks", "path": "sinks.json", "role": "source"},
+    {"id": "upgrade_tables", "path": "generated/upgrade_tables.json", "role": "generated"},
+    {"id": "sink_tables", "path": "generated/sink_tables.json", "role": "generated"},
+    {"id": "test_vectors", "path": "test_vectors.json", "role": "test_vectors"}
+  ]
+}

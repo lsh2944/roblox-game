@@ -1,0 +1,16 @@
+# シミュ結果（再生成可能・約 1 GB）
+outputs/
+# Git 導入前のレビュー用基準本（履歴は Git が代替）
+baselines/
+# Rojo・Lune のバイナリ（PC ごとに公式リリースから取得）
+.tools/
+# Python キャッシュ
+__pycache__/
+*.pyc
+# macOS
+.DS_Store
+# Rojo ビルド成果物
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock

@@ -1,0 +1,14 @@
+{
+  "description": "2주판 정령(무지개 나비)을 2주판 필드 합집합에서 획득 불가로 만듦 (고유 필드가 forest인 종이라 RULE_HOME_FIELD도 함께 발생)",
+  "expect_codes": [
+    "RULE_RELEASE_ACCESS",
+    "RULE_HOME_FIELD"
+  ],
+  "ops": [
+    {
+      "op": "remove",
+      "file": "fields",
+      "path": "/fields/id:forest/capture/table/spirit_id=rainbow_butterfly"
+    }
+  ]
+}

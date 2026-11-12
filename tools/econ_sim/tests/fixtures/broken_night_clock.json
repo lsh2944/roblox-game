@@ -1,0 +1,7 @@
+{
+  "description": "밤 시작 오프셋이 주기(60분) 이상 — 게임 내 시계의 밤 구간이 정의되지 않음",
+  "expect_codes": ["RULE_NIGHT_CLOCK"],
+  "ops": [
+    {"op": "set", "file": "rules", "path": "/night/night_start_offset_minutes", "value": 60}
+  ]
+}

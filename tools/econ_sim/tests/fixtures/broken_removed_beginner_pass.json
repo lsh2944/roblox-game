@@ -1,0 +1,46 @@
+{
+  "description": "2026-11-11 사용자 결정으로 제거한 초심자 패스(kind beginner_pass)를 다시 추가 → 금지 kind(RULE_FORBIDDEN_PRODUCT)",
+  "expect_codes": [
+    "RULE_FORBIDDEN_PRODUCT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products",
+      "value": {
+        "id": "beginner_pass",
+        "name": "초심자 패스",
+        "kind": "beginner_pass",
+        "price_robux": 199,
+        "purchase_limit_total": 1,
+        "purchase_limit_per_day": 0,
+        "effects": [
+          {
+            "type": "mission_rewards",
+            "retroactive": true,
+            "missions": [
+              {
+                "id": "bp_capture_3",
+                "condition": {
+                  "type": "capture_count",
+                  "amount": 3
+                },
+                "rewards": [
+                  {
+                    "resource": "dew",
+                    "amount": 150
+                  },
+                  {
+                    "resource": "bloom",
+                    "amount": 150
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

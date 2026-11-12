@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "notes": "거점 공통 설정. 보유 상한 = storage.base_capacity(무료 100 고정) + 보관함 상품(과금, 최대 +100). 거점 등급의 보관함 보너스는 사용자 결정(2026-11-06)으로 0(등급 자체의 다른 효과는 미정).",
+  "storage": {"base_capacity": 100, "max_capacity": 200, "notes": "사용자 규칙 F4: 무료 100 고정, 과금 보관함 확장으로 최대 200(기본의 2배)."},
+  "ranks": [
+    {"rank": 1, "costs": [], "storage_bonus": 0},
+    {"rank": 2, "costs": [{"resource": "dew", "amount": 3000}, {"resource": "bloom", "amount": 3000}, {"resource": "hunt_forest", "amount": 9}], "storage_bonus": 0, "placeholder": true},
+    {"rank": 3, "costs": [{"resource": "dew", "amount": 30000}, {"resource": "bloom", "amount": 30000}, {"resource": "crystal", "amount": 15000}, {"resource": "hunt_cave", "amount": 9}], "storage_bonus": 0, "placeholder": true}
+  ],
+  "offline_cap": {
+    "base_hours": 12,
+    "max_hours": 24,
+    "upgrades": [
+      {"hours": 16, "costs": [{"resource": "dew", "amount": 1200}, {"resource": "hunt_meadow", "amount": 9}], "placeholder": true},
+      {"hours": 20, "costs": [{"resource": "dew", "amount": 8000}, {"resource": "hunt_forest", "amount": 9}], "placeholder": true},
+      {"hours": 24, "costs": [{"resource": "dew", "amount": 25000}, {"resource": "hunt_cave", "amount": 9}], "placeholder": true}
+    ]
+  }
+}

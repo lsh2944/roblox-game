@@ -1,0 +1,27 @@
+{
+  "description": "허용된 kind(placement_preset)에 금지 효과(포획 확률 보너스)를 붙인 상품",
+  "expect_codes": [
+    "RULE_FORBIDDEN_PRODUCT"
+  ],
+  "ops": [
+    {
+      "op": "append",
+      "file": "products",
+      "path": "/products",
+      "value": {
+        "id": "lucky_preset",
+        "name": "행운 프리셋",
+        "kind": "placement_preset",
+        "price_robux": 99,
+        "purchase_limit_total": 1,
+        "purchase_limit_per_day": 0,
+        "effects": [
+          {
+            "type": "capture_rate_bonus",
+            "bps": 1000
+          }
+        ]
+      }
+    }
+  ]
+}

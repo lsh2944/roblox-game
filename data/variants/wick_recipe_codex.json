@@ -1,0 +1,13 @@
+{
+  "description": "심지 레시피 B(Codex 비교안): 아무 사냥 재료 1개 → 심지 30개. 기본안 A(crafting.json)와 비교용 패치(원본 파일은 바꾸지 않음). 실행 옵션 --patch 지원은 단계 7.",
+  "ops": [
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_meadow/output/amount", "value": 30},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_meadow/inputs", "value": [{"resource": "hunt_meadow", "amount": 1}]},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_forest/output/amount", "value": 30},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_forest/inputs", "value": [{"resource": "hunt_forest", "amount": 1}]},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_cave/output/amount", "value": 30},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_cave/inputs", "value": [{"resource": "hunt_cave", "amount": 1}]},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_ridge/output/amount", "value": 30},
+    {"op": "set", "file": "crafting", "path": "/recipes/id:wick_from_ridge/inputs", "value": [{"resource": "hunt_ridge", "amount": 1}]}
+  ]
+}

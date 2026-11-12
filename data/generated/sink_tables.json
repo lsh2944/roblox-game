@@ -1,0 +1,2441 @@
+{
+  "schema_version": 1,
+  "generator": "econ_sim.sink_tables/1",
+  "notes": "자동 생성 파일. 직접 수정하지 말고 curves.json sink_curves를 고친 뒤 gen-tables를 실행한다. n번째 구매(레벨 n) 비용이며 마지막 행 이후는 마지막 행과 같다(비용 상한).",
+  "curves_sha256": "b21c7f0ff33c6a4a97008296251c9db03d7b332143fe8a48e699d93d9eb6d2b9",
+  "tables_sha256": "8d585c49dee9c94c9a38398a8043ee55698000d9a79c7653f601848d122e5850",
+  "sink_tables": [
+    {
+      "id": "sink_altar_meadow",
+      "formula": "exp_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2160
+            },
+            {
+              "resource": "bloom",
+              "amount": 2160
+            },
+            {
+              "resource": "crystal",
+              "amount": 1080
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2333
+            },
+            {
+              "resource": "bloom",
+              "amount": 2333
+            },
+            {
+              "resource": "crystal",
+              "amount": 1167
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2520
+            },
+            {
+              "resource": "bloom",
+              "amount": 2520
+            },
+            {
+              "resource": "crystal",
+              "amount": 1260
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2721
+            },
+            {
+              "resource": "bloom",
+              "amount": 2721
+            },
+            {
+              "resource": "crystal",
+              "amount": 1361
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2939
+            },
+            {
+              "resource": "bloom",
+              "amount": 2939
+            },
+            {
+              "resource": "crystal",
+              "amount": 1470
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3174
+            },
+            {
+              "resource": "bloom",
+              "amount": 3174
+            },
+            {
+              "resource": "crystal",
+              "amount": 1587
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3428
+            },
+            {
+              "resource": "bloom",
+              "amount": 3428
+            },
+            {
+              "resource": "crystal",
+              "amount": 1714
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3702
+            },
+            {
+              "resource": "bloom",
+              "amount": 3702
+            },
+            {
+              "resource": "crystal",
+              "amount": 1851
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3999
+            },
+            {
+              "resource": "bloom",
+              "amount": 3999
+            },
+            {
+              "resource": "crystal",
+              "amount": 2000
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 4318
+            },
+            {
+              "resource": "bloom",
+              "amount": 4318
+            },
+            {
+              "resource": "crystal",
+              "amount": 2159
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 4664
+            },
+            {
+              "resource": "bloom",
+              "amount": 4664
+            },
+            {
+              "resource": "crystal",
+              "amount": 2332
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 5037
+            },
+            {
+              "resource": "bloom",
+              "amount": 5037
+            },
+            {
+              "resource": "crystal",
+              "amount": 2519
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 5440
+            },
+            {
+              "resource": "bloom",
+              "amount": 5440
+            },
+            {
+              "resource": "crystal",
+              "amount": 2720
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 5875
+            },
+            {
+              "resource": "bloom",
+              "amount": 5875
+            },
+            {
+              "resource": "crystal",
+              "amount": 2938
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 6345
+            },
+            {
+              "resource": "bloom",
+              "amount": 6345
+            },
+            {
+              "resource": "crystal",
+              "amount": 3173
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 6852
+            },
+            {
+              "resource": "bloom",
+              "amount": 6852
+            },
+            {
+              "resource": "crystal",
+              "amount": 3426
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 7401
+            },
+            {
+              "resource": "bloom",
+              "amount": 7401
+            },
+            {
+              "resource": "crystal",
+              "amount": 3701
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 7993
+            },
+            {
+              "resource": "bloom",
+              "amount": 7993
+            },
+            {
+              "resource": "crystal",
+              "amount": 3997
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 8632
+            },
+            {
+              "resource": "bloom",
+              "amount": 8632
+            },
+            {
+              "resource": "crystal",
+              "amount": 4316
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 9322
+            },
+            {
+              "resource": "bloom",
+              "amount": 9322
+            },
+            {
+              "resource": "crystal",
+              "amount": 4661
+            },
+            {
+              "resource": "hunt_meadow",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_altar_forest",
+      "formula": "exp_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 10800
+            },
+            {
+              "resource": "bloom",
+              "amount": 10800
+            },
+            {
+              "resource": "crystal",
+              "amount": 5400
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 11664
+            },
+            {
+              "resource": "bloom",
+              "amount": 11664
+            },
+            {
+              "resource": "crystal",
+              "amount": 5832
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 12598
+            },
+            {
+              "resource": "bloom",
+              "amount": 12598
+            },
+            {
+              "resource": "crystal",
+              "amount": 6299
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 13605
+            },
+            {
+              "resource": "bloom",
+              "amount": 13605
+            },
+            {
+              "resource": "crystal",
+              "amount": 6803
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 14694
+            },
+            {
+              "resource": "bloom",
+              "amount": 14694
+            },
+            {
+              "resource": "crystal",
+              "amount": 7347
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 15869
+            },
+            {
+              "resource": "bloom",
+              "amount": 15869
+            },
+            {
+              "resource": "crystal",
+              "amount": 7935
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 17139
+            },
+            {
+              "resource": "bloom",
+              "amount": 17139
+            },
+            {
+              "resource": "crystal",
+              "amount": 8570
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 18510
+            },
+            {
+              "resource": "bloom",
+              "amount": 18510
+            },
+            {
+              "resource": "crystal",
+              "amount": 9255
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 19991
+            },
+            {
+              "resource": "bloom",
+              "amount": 19991
+            },
+            {
+              "resource": "crystal",
+              "amount": 9996
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 21590
+            },
+            {
+              "resource": "bloom",
+              "amount": 21590
+            },
+            {
+              "resource": "crystal",
+              "amount": 10795
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 23317
+            },
+            {
+              "resource": "bloom",
+              "amount": 23317
+            },
+            {
+              "resource": "crystal",
+              "amount": 11659
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 25182
+            },
+            {
+              "resource": "bloom",
+              "amount": 25182
+            },
+            {
+              "resource": "crystal",
+              "amount": 12591
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 27197
+            },
+            {
+              "resource": "bloom",
+              "amount": 27197
+            },
+            {
+              "resource": "crystal",
+              "amount": 13599
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 29372
+            },
+            {
+              "resource": "bloom",
+              "amount": 29372
+            },
+            {
+              "resource": "crystal",
+              "amount": 14686
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 31722
+            },
+            {
+              "resource": "bloom",
+              "amount": 31722
+            },
+            {
+              "resource": "crystal",
+              "amount": 15861
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 34260
+            },
+            {
+              "resource": "bloom",
+              "amount": 34260
+            },
+            {
+              "resource": "crystal",
+              "amount": 17130
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 37001
+            },
+            {
+              "resource": "bloom",
+              "amount": 37001
+            },
+            {
+              "resource": "crystal",
+              "amount": 18501
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 39961
+            },
+            {
+              "resource": "bloom",
+              "amount": 39961
+            },
+            {
+              "resource": "crystal",
+              "amount": 19981
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 43158
+            },
+            {
+              "resource": "bloom",
+              "amount": 43158
+            },
+            {
+              "resource": "crystal",
+              "amount": 21579
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 46610
+            },
+            {
+              "resource": "bloom",
+              "amount": 46610
+            },
+            {
+              "resource": "crystal",
+              "amount": 23305
+            },
+            {
+              "resource": "hunt_forest",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_altar_cave",
+      "formula": "exp_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 54000
+            },
+            {
+              "resource": "bloom",
+              "amount": 54000
+            },
+            {
+              "resource": "crystal",
+              "amount": 27000
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 58320
+            },
+            {
+              "resource": "bloom",
+              "amount": 58320
+            },
+            {
+              "resource": "crystal",
+              "amount": 29160
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 62986
+            },
+            {
+              "resource": "bloom",
+              "amount": 62986
+            },
+            {
+              "resource": "crystal",
+              "amount": 31493
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 68025
+            },
+            {
+              "resource": "bloom",
+              "amount": 68025
+            },
+            {
+              "resource": "crystal",
+              "amount": 34013
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 73467
+            },
+            {
+              "resource": "bloom",
+              "amount": 73467
+            },
+            {
+              "resource": "crystal",
+              "amount": 36734
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 79344
+            },
+            {
+              "resource": "bloom",
+              "amount": 79344
+            },
+            {
+              "resource": "crystal",
+              "amount": 39672
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 85692
+            },
+            {
+              "resource": "bloom",
+              "amount": 85692
+            },
+            {
+              "resource": "crystal",
+              "amount": 42846
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 92547
+            },
+            {
+              "resource": "bloom",
+              "amount": 92547
+            },
+            {
+              "resource": "crystal",
+              "amount": 46274
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 99951
+            },
+            {
+              "resource": "bloom",
+              "amount": 99951
+            },
+            {
+              "resource": "crystal",
+              "amount": 49976
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 107947
+            },
+            {
+              "resource": "bloom",
+              "amount": 107947
+            },
+            {
+              "resource": "crystal",
+              "amount": 53974
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 116582
+            },
+            {
+              "resource": "bloom",
+              "amount": 116582
+            },
+            {
+              "resource": "crystal",
+              "amount": 58291
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 125909
+            },
+            {
+              "resource": "bloom",
+              "amount": 125909
+            },
+            {
+              "resource": "crystal",
+              "amount": 62955
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 135982
+            },
+            {
+              "resource": "bloom",
+              "amount": 135982
+            },
+            {
+              "resource": "crystal",
+              "amount": 67991
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 146860
+            },
+            {
+              "resource": "bloom",
+              "amount": 146860
+            },
+            {
+              "resource": "crystal",
+              "amount": 73430
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 158609
+            },
+            {
+              "resource": "bloom",
+              "amount": 158609
+            },
+            {
+              "resource": "crystal",
+              "amount": 79305
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 171298
+            },
+            {
+              "resource": "bloom",
+              "amount": 171298
+            },
+            {
+              "resource": "crystal",
+              "amount": 85649
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 185001
+            },
+            {
+              "resource": "bloom",
+              "amount": 185001
+            },
+            {
+              "resource": "crystal",
+              "amount": 92501
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 199801
+            },
+            {
+              "resource": "bloom",
+              "amount": 199801
+            },
+            {
+              "resource": "crystal",
+              "amount": 99901
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 215786
+            },
+            {
+              "resource": "bloom",
+              "amount": 215786
+            },
+            {
+              "resource": "crystal",
+              "amount": 107893
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 233048
+            },
+            {
+              "resource": "bloom",
+              "amount": 233048
+            },
+            {
+              "resource": "crystal",
+              "amount": 116524
+            },
+            {
+              "resource": "hunt_cave",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_altar_ridge",
+      "formula": "exp_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 108000
+            },
+            {
+              "resource": "bloom",
+              "amount": 108000
+            },
+            {
+              "resource": "crystal",
+              "amount": 54000
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 116640
+            },
+            {
+              "resource": "bloom",
+              "amount": 116640
+            },
+            {
+              "resource": "crystal",
+              "amount": 58320
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 125972
+            },
+            {
+              "resource": "bloom",
+              "amount": 125972
+            },
+            {
+              "resource": "crystal",
+              "amount": 62986
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 136049
+            },
+            {
+              "resource": "bloom",
+              "amount": 136049
+            },
+            {
+              "resource": "crystal",
+              "amount": 68025
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 146933
+            },
+            {
+              "resource": "bloom",
+              "amount": 146933
+            },
+            {
+              "resource": "crystal",
+              "amount": 73467
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 158688
+            },
+            {
+              "resource": "bloom",
+              "amount": 158688
+            },
+            {
+              "resource": "crystal",
+              "amount": 79344
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 171383
+            },
+            {
+              "resource": "bloom",
+              "amount": 171383
+            },
+            {
+              "resource": "crystal",
+              "amount": 85692
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 185094
+            },
+            {
+              "resource": "bloom",
+              "amount": 185094
+            },
+            {
+              "resource": "crystal",
+              "amount": 92547
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 199901
+            },
+            {
+              "resource": "bloom",
+              "amount": 199901
+            },
+            {
+              "resource": "crystal",
+              "amount": 99951
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 215893
+            },
+            {
+              "resource": "bloom",
+              "amount": 215893
+            },
+            {
+              "resource": "crystal",
+              "amount": 107947
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 233164
+            },
+            {
+              "resource": "bloom",
+              "amount": 233164
+            },
+            {
+              "resource": "crystal",
+              "amount": 116582
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 12,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 251818
+            },
+            {
+              "resource": "bloom",
+              "amount": 251818
+            },
+            {
+              "resource": "crystal",
+              "amount": 125909
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 13,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 271963
+            },
+            {
+              "resource": "bloom",
+              "amount": 271963
+            },
+            {
+              "resource": "crystal",
+              "amount": 135982
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 14,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 293720
+            },
+            {
+              "resource": "bloom",
+              "amount": 293720
+            },
+            {
+              "resource": "crystal",
+              "amount": 146860
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 15,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 317217
+            },
+            {
+              "resource": "bloom",
+              "amount": 317217
+            },
+            {
+              "resource": "crystal",
+              "amount": 158609
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 16,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 342595
+            },
+            {
+              "resource": "bloom",
+              "amount": 342595
+            },
+            {
+              "resource": "crystal",
+              "amount": 171298
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 17,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 370002
+            },
+            {
+              "resource": "bloom",
+              "amount": 370002
+            },
+            {
+              "resource": "crystal",
+              "amount": 185001
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "n": 18,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 399602
+            },
+            {
+              "resource": "bloom",
+              "amount": 399602
+            },
+            {
+              "resource": "crystal",
+              "amount": 199801
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 19,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 431571
+            },
+            {
+              "resource": "bloom",
+              "amount": 431571
+            },
+            {
+              "resource": "crystal",
+              "amount": 215786
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "n": 20,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 466096
+            },
+            {
+              "resource": "bloom",
+              "amount": 466096
+            },
+            {
+              "resource": "crystal",
+              "amount": 233048
+            },
+            {
+              "resource": "hunt_ridge",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_module_meadow",
+      "formula": "linear_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 200
+            },
+            {
+              "resource": "bloom",
+              "amount": 200
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 210
+            },
+            {
+              "resource": "bloom",
+              "amount": 210
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 220
+            },
+            {
+              "resource": "bloom",
+              "amount": 220
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 230
+            },
+            {
+              "resource": "bloom",
+              "amount": 230
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 240
+            },
+            {
+              "resource": "bloom",
+              "amount": 240
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 250
+            },
+            {
+              "resource": "bloom",
+              "amount": 250
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 260
+            },
+            {
+              "resource": "bloom",
+              "amount": 260
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 270
+            },
+            {
+              "resource": "bloom",
+              "amount": 270
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 280
+            },
+            {
+              "resource": "bloom",
+              "amount": 280
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 290
+            },
+            {
+              "resource": "bloom",
+              "amount": 290
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 300
+            },
+            {
+              "resource": "bloom",
+              "amount": 300
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_module_forest",
+      "formula": "linear_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2000
+            },
+            {
+              "resource": "bloom",
+              "amount": 2000
+            },
+            {
+              "resource": "crystal",
+              "amount": 500
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2100
+            },
+            {
+              "resource": "bloom",
+              "amount": 2100
+            },
+            {
+              "resource": "crystal",
+              "amount": 525
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2200
+            },
+            {
+              "resource": "bloom",
+              "amount": 2200
+            },
+            {
+              "resource": "crystal",
+              "amount": 550
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2300
+            },
+            {
+              "resource": "bloom",
+              "amount": 2300
+            },
+            {
+              "resource": "crystal",
+              "amount": 575
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2400
+            },
+            {
+              "resource": "bloom",
+              "amount": 2400
+            },
+            {
+              "resource": "crystal",
+              "amount": 600
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2500
+            },
+            {
+              "resource": "bloom",
+              "amount": 2500
+            },
+            {
+              "resource": "crystal",
+              "amount": 625
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2600
+            },
+            {
+              "resource": "bloom",
+              "amount": 2600
+            },
+            {
+              "resource": "crystal",
+              "amount": 650
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2700
+            },
+            {
+              "resource": "bloom",
+              "amount": 2700
+            },
+            {
+              "resource": "crystal",
+              "amount": 675
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2800
+            },
+            {
+              "resource": "bloom",
+              "amount": 2800
+            },
+            {
+              "resource": "crystal",
+              "amount": 700
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 2900
+            },
+            {
+              "resource": "bloom",
+              "amount": 2900
+            },
+            {
+              "resource": "crystal",
+              "amount": 725
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 3000
+            },
+            {
+              "resource": "bloom",
+              "amount": 3000
+            },
+            {
+              "resource": "crystal",
+              "amount": 750
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_module_cave",
+      "formula": "linear_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 10000
+            },
+            {
+              "resource": "bloom",
+              "amount": 10000
+            },
+            {
+              "resource": "crystal",
+              "amount": 5000
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 10500
+            },
+            {
+              "resource": "bloom",
+              "amount": 10500
+            },
+            {
+              "resource": "crystal",
+              "amount": 5250
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 11000
+            },
+            {
+              "resource": "bloom",
+              "amount": 11000
+            },
+            {
+              "resource": "crystal",
+              "amount": 5500
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 11500
+            },
+            {
+              "resource": "bloom",
+              "amount": 11500
+            },
+            {
+              "resource": "crystal",
+              "amount": 5750
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 12000
+            },
+            {
+              "resource": "bloom",
+              "amount": 12000
+            },
+            {
+              "resource": "crystal",
+              "amount": 6000
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 12500
+            },
+            {
+              "resource": "bloom",
+              "amount": 12500
+            },
+            {
+              "resource": "crystal",
+              "amount": 6250
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 13000
+            },
+            {
+              "resource": "bloom",
+              "amount": 13000
+            },
+            {
+              "resource": "crystal",
+              "amount": 6500
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 13500
+            },
+            {
+              "resource": "bloom",
+              "amount": 13500
+            },
+            {
+              "resource": "crystal",
+              "amount": 6750
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 14000
+            },
+            {
+              "resource": "bloom",
+              "amount": 14000
+            },
+            {
+              "resource": "crystal",
+              "amount": 7000
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 14500
+            },
+            {
+              "resource": "bloom",
+              "amount": 14500
+            },
+            {
+              "resource": "crystal",
+              "amount": 7250
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 15000
+            },
+            {
+              "resource": "bloom",
+              "amount": 15000
+            },
+            {
+              "resource": "crystal",
+              "amount": 7500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink_module_ridge",
+      "formula": "linear_ceil_capped",
+      "rows": [
+        {
+          "n": 1,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 150000
+            },
+            {
+              "resource": "bloom",
+              "amount": 180000
+            },
+            {
+              "resource": "crystal",
+              "amount": 120000
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 157500
+            },
+            {
+              "resource": "bloom",
+              "amount": 189000
+            },
+            {
+              "resource": "crystal",
+              "amount": 126000
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 165000
+            },
+            {
+              "resource": "bloom",
+              "amount": 198000
+            },
+            {
+              "resource": "crystal",
+              "amount": 132000
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 172500
+            },
+            {
+              "resource": "bloom",
+              "amount": 207000
+            },
+            {
+              "resource": "crystal",
+              "amount": 138000
+            }
+          ]
+        },
+        {
+          "n": 5,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 180000
+            },
+            {
+              "resource": "bloom",
+              "amount": 216000
+            },
+            {
+              "resource": "crystal",
+              "amount": 144000
+            }
+          ]
+        },
+        {
+          "n": 6,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 187500
+            },
+            {
+              "resource": "bloom",
+              "amount": 225000
+            },
+            {
+              "resource": "crystal",
+              "amount": 150000
+            }
+          ]
+        },
+        {
+          "n": 7,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 195000
+            },
+            {
+              "resource": "bloom",
+              "amount": 234000
+            },
+            {
+              "resource": "crystal",
+              "amount": 156000
+            }
+          ]
+        },
+        {
+          "n": 8,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 202500
+            },
+            {
+              "resource": "bloom",
+              "amount": 243000
+            },
+            {
+              "resource": "crystal",
+              "amount": 162000
+            }
+          ]
+        },
+        {
+          "n": 9,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 210000
+            },
+            {
+              "resource": "bloom",
+              "amount": 252000
+            },
+            {
+              "resource": "crystal",
+              "amount": 168000
+            }
+          ]
+        },
+        {
+          "n": 10,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 217500
+            },
+            {
+              "resource": "bloom",
+              "amount": 261000
+            },
+            {
+              "resource": "crystal",
+              "amount": 174000
+            }
+          ]
+        },
+        {
+          "n": 11,
+          "costs": [
+            {
+              "resource": "dew",
+              "amount": 225000
+            },
+            {
+              "resource": "bloom",
+              "amount": 270000
+            },
+            {
+              "resource": "crystal",
+              "amount": 180000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

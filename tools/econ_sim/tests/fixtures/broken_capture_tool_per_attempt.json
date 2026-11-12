@@ -1,0 +1,14 @@
+{
+  "description": "시도당 도구 소비 0(무소비) → RULE_CAPTURE_TOOL",
+  "expect_codes": [
+    "RULE_CAPTURE_TOOL"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/capture_tool/per_attempt",
+      "value": 0
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "description": "약화 등급 차 배율이 등급 차가 클수록 줄어듦(+3이 +2보다 작음)",
+  "expect_codes": [
+    "RULE_WEAKEN_PARAMS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "capture",
+      "path": "/weaken/grade_gap_mult_bps/6/bps",
+      "value": 9000
+    }
+  ]
+}
