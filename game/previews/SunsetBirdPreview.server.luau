@@ -1,0 +1,17 @@
+-- 試作確認用: ゲーム開始時に「노을새」を1体スポーンさせる
+-- 置き場所: Rojo では同期しない（game/previews/ は default.project.json に写像していない）。
+--   使うときだけ Studio で ServerScriptService 直下（Server フォルダの外）に Script として手で置く。
+--   ServerScriptService.Server は Rojo の $path 管理下なので、そこに置くと同期で消える。
+-- モジュール: Rojo 配置の ReplicatedStorage.Shared.SpiritVisuals.SunsetBird を使う
+-- 注意: 確認用に Lighting.ClockTime を夜(21)に変える。確認が終わったら Script を消すこと。
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+
+local SunsetBird = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("SpiritVisuals"):WaitForChild("SunsetBird"))
+
+-- 光り方が分かりやすいように夜にする(確認用)
+Lighting.ClockTime = 21
+
+-- スポーン地点の少し前方・空中に出し、顔(前方 = -Z)を原点(スポーン地点)へ向ける
+SunsetBird.create(workspace, CFrame.lookAt(Vector3.new(0, 5, -10), Vector3.new(0, 5, 0)))

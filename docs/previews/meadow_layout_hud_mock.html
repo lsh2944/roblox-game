@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meadow 배치·HUD 목업</title>
+<style>
+  :root{--bg:#f6f4fb;--ink:#2b2540;--muted:#6d6785;--card:#fff;--line:#d9d3ea;
+    --dew:#8fd8ff;--bloom:#ffb3d1;--wick:#ffd77a;--hunt:#b7e3a1;--accent:#9b7bff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 16px}
+  main{max-width:1100px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:17px;margin:32px 0 8px}
+  p.note{color:var(--muted);margin:0 0 12px}
+  .wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+  svg text{font-family:system-ui,-apple-system,sans-serif}
+  /* HUD 목업: 16:9 휴대폰 가로 화면 */
+  .phone{position:relative;width:100%;max-width:960px;aspect-ratio:16/9;margin:0 auto;border-radius:22px;overflow:hidden;
+    background:linear-gradient(#bfe6ff 0 38%,#a6dd8f 38% 100%);border:6px solid #2b2540}
+  .phone .grass-deco{position:absolute;inset:auto 0 0 0;height:30%;background:radial-gradient(circle at 30% 20%,#c7f0b1 0 18%,transparent 19%),radial-gradient(circle at 70% 60%,#c7f0b1 0 14%,transparent 15%)}
+  .hud{position:absolute;font-size:clamp(9px,1.4vw,13px)}
+  .pill{background:rgba(255,255,255,.92);border-radius:999px;padding:.35em .8em;display:inline-flex;align-items:center;gap:.4em;box-shadow:0 2px 6px rgba(43,37,64,.15);font-weight:600}
+  .dot{width:.9em;height:.9em;border-radius:50%;display:inline-block}
+  .wallet{top:3%;left:2%;display:flex;flex-direction:column;gap:.35em}
+  .daily{top:3%;right:2%;display:flex;flex-direction:column;gap:.35em;align-items:flex-end}
+  .menu{top:30%;left:2%;display:flex;flex-direction:column;gap:.6em}
+  .menu .btn{width:4.6em;height:4.6em;border-radius:1.2em;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:.9em;box-shadow:0 3px 8px rgba(43,37,64,.18)}
+  .menu .btn i{font-style:normal;font-size:1.5em}
+  .travel{top:30%;right:2%;display:flex;flex-direction:column;gap:.5em}
+  .encounter{top:4%;left:50%;transform:translateX(-50%);width:36%;background:rgba(255,255,255,.95);border-radius:1.1em;padding:.7em .9em;box-shadow:0 4px 12px rgba(43,37,64,.2)}
+  .encounter .t{display:flex;justify-content:space-between;font-weight:700}
+  .bar{height:.7em;border-radius:999px;background:#ece7f8;margin:.45em 0;overflow:hidden}
+  .bar b{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--accent),#ff9ccf)}
+  .odds{display:flex;gap:.5em;font-weight:700}
+  .odds span{flex:1;text-align:center;border-radius:.6em;padding:.25em}
+  .ok{background:#e3f8d8}.flee{background:#ffe1e6}
+  .chip{bottom:5%;left:50%;transform:translateX(-50%)}
+  .toast{top:26%;left:50%;transform:translateX(-50%);background:#2b2540;color:#fff;border-radius:.8em;padding:.4em .9em;font-weight:600}
+  .avoid{position:absolute;border:2px dashed rgba(200,40,80,.7);border-radius:50%;color:rgba(200,40,80,.9);font-size:clamp(8px,1.1vw,11px);display:flex;align-items:center;justify-content:center;text-align:center}
+  .spirit{position:absolute;left:58%;top:52%;width:6%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff 0 20%,#dff6ff 21% 55%,#8fd8ff 56%);box-shadow:0 0 22px 8px rgba(143,216,255,.7)}
+  .prompt{position:absolute;left:55%;top:40%;background:rgba(43,37,64,.85);color:#fff;border-radius:.6em;padding:.25em .6em;font-size:clamp(8px,1.1vw,11px)}
+  ul{margin:8px 0 0 18px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Meadow 배치·HUD 목업 (제안)</h1>
+  <p class="note">docs/world_hud_design_20261112.md의 시각 보조 자료입니다. 임시 도형 기준 근사이고 Studio에서 확인한 화면이 아닙니다. 수치(studs)는 임시값입니다.</p>
+
+  <h2>1. 월드 배치도 (위에서 본 모습)</h2>
+  <div class="wrap">
+  <svg viewBox="0 0 900 620" width="900" height="620" role="img" aria-label="meadow 월드 배치도">
+    <rect x="0" y="0" width="900" height="620" fill="#eef9e6"/>
+    <!-- 숲 관문 -->
+    <rect x="410" y="18" width="80" height="34" rx="8" fill="#d8d2e6" stroke="#8a81a8"/>
+    <text x="450" y="40" text-anchor="middle" font-size="12" fill="#4b4466">숲 관문 (잠김)</text>
+    <line x1="450" y1="52" x2="450" y2="80" stroke="#c9bfa0" stroke-width="10"/>
+    <!-- 필드 -->
+    <rect x="200" y="80" width="500" height="230" rx="40" fill="#c9efb4" stroke="#8fcf74" stroke-width="2"/>
+    <text x="220" y="104" font-size="14" font-weight="700" fill="#3c6b2a">이슬 초원 (meadow)</text>
+    <circle cx="300" cy="190" r="40" fill="#bfe8ff" stroke="#6cbfe8"/>
+    <circle cx="300" cy="190" r="60" fill="none" stroke="#6cbfe8" stroke-dasharray="5 5"/>
+    <text x="300" y="194" text-anchor="middle" font-size="12" fill="#1f5a7a">이슬 연못</text>
+    <text x="300" y="268" text-anchor="middle" font-size="11" fill="#1f5a7a">meadow_dew · 반경 12</text>
+    <circle cx="600" cy="190" r="40" fill="#ffd6e7" stroke="#e98bb3"/>
+    <circle cx="600" cy="190" r="60" fill="none" stroke="#e98bb3" stroke-dasharray="5 5"/>
+    <text x="600" y="194" text-anchor="middle" font-size="12" fill="#7a2550">꽃밭</text>
+    <text x="600" y="268" text-anchor="middle" font-size="11" fill="#7a2550">meadow_bloom · 반경 12</text>
+    <ellipse cx="450" cy="170" rx="70" ry="50" fill="#f3e9ff" stroke="#9b7bff" stroke-dasharray="6 4"/>
+    <text x="450" y="166" text-anchor="middle" font-size="12" fill="#4b3a8a">야생 출현 구역</text>
+    <text x="450" y="182" text-anchor="middle" font-size="11" fill="#4b3a8a">포획 대상 1마리/인 + 장식 정령 무리(W2)</text>
+    <!-- 길 -->
+    <line x1="450" y1="310" x2="450" y2="400" stroke="#e3d6aa" stroke-width="16"/>
+    <!-- 광장 -->
+    <circle cx="450" cy="440" r="48" fill="#fff4cf" stroke="#d9bf6a" stroke-width="2"/>
+    <text x="450" y="436" text-anchor="middle" font-size="13" font-weight="700" fill="#6b5418">광장</text>
+    <text x="450" y="452" text-anchor="middle" font-size="11" fill="#6b5418">게시판(일일 의뢰)</text>
+    <!-- 부지 8개: 광장 둘레 반원 -->
+    <g font-size="11" fill="#2b2540">
+      <g transform="translate(70,370)"><rect width="110" height="90" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 1</text></g>
+      <g transform="translate(70,490)"><rect width="110" height="90" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 2</text></g>
+      <g transform="translate(200,520)"><rect width="110" height="90" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 3</text></g>
+      <g transform="translate(330,530)"><rect width="110" height="80" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 4</text></g>
+      <g transform="translate(460,530)"><rect width="110" height="80" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 5</text></g>
+      <g transform="translate(590,520)"><rect width="110" height="90" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 6</text></g>
+      <g transform="translate(720,490)"><rect width="110" height="90" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 7</text></g>
+      <g transform="translate(720,370)"><rect width="110" height="90" rx="12" fill="#fff" stroke="#b9b0d6"/><text x="8" y="16" font-weight="700">부지 8</text></g>
+    </g>
+    <!-- 부지 상세 (확대) -->
+    <g transform="translate(40,90)">
+      <rect width="140" height="200" rx="14" fill="#fff" stroke="#9b7bff" stroke-width="2"/>
+      <text x="10" y="20" font-size="12" font-weight="700" fill="#4b3a8a">부지 확대 (≈64×64)</text>
+      <rect x="45" y="30" width="50" height="38" rx="8" fill="#ffe9c7" stroke="#d9a95a"/><text x="70" y="54" text-anchor="middle" font-size="10">집</text>
+      <circle cx="35" cy="96" r="16" fill="#bfe8ff" stroke="#6cbfe8"/><text x="35" y="126" text-anchor="middle" font-size="9">이슬 샘</text>
+      <circle cx="105" cy="96" r="16" fill="#ffd6e7" stroke="#e98bb3"/><text x="105" y="126" text-anchor="middle" font-size="9">꽃빛 정원</text>
+      <circle cx="70" cy="140" r="14" fill="#f2f2f2" stroke="#aaa" stroke-dasharray="3 3"/><text x="70" y="166" text-anchor="middle" font-size="9" fill="#777">예약: 결정 공방</text>
+      <g fill="#f2f2f2" stroke="#aaa" stroke-dasharray="3 3"><rect x="22" y="174" width="26" height="14" rx="3"/><rect x="57" y="174" width="26" height="14" rx="3"/><rect x="92" y="174" width="26" height="14" rx="3"/></g>
+      <text x="70" y="198" text-anchor="middle" font-size="9" fill="#777">예약: 전시대 3칸</text>
+    </g>
+    <text x="890" y="610" text-anchor="end" font-size="10" fill="#8a81a8">서버 8인 = 부지 8개(W1 권장안)</text>
+  </svg>
+  </div>
+
+  <h2>2. HUD 목업 (휴대폰 가로, 조우 중 화면)</h2>
+  <div class="phone" aria-label="HUD 목업">
+    <div class="grass-deco"></div>
+    <div class="spirit" title="야생 정령(예: 이슬방울)"></div>
+    <div class="prompt">[E] Use Lantern</div>
+
+    <div class="hud wallet">
+      <span class="pill"><span class="dot" style="background:var(--dew)"></span>Dew 1.2K</span>
+      <span class="pill"><span class="dot" style="background:var(--bloom)"></span>Bloom 860</span>
+      <span class="pill"><span class="dot" style="background:var(--wick)"></span>Wick 18</span>
+      <span class="pill"><span class="dot" style="background:var(--hunt)"></span>Materials 4</span>
+    </div>
+    <div class="hud daily">
+      <span class="pill">✔ Daily claimed</span>
+      <span class="pill">Reset in 05:12:40</span>
+    </div>
+    <div class="hud menu">
+      <div class="btn"><i>✦</i>Spirits</div>
+      <div class="btn"><i>⌂</i>Home</div>
+      <div class="btn"><i>⚒</i>Craft</div>
+      <div class="btn"><i>❖</i>Book</div>
+    </div>
+    <div class="hud travel">
+      <span class="pill">→ Meadow</span>
+      <span class="pill">→ Home</span>
+    </div>
+    <div class="hud encounter">
+      <div class="t"><span>Dewdrop ★1</span><span>Wick 18</span></div>
+      <div style="font-size:.9em;color:var(--muted)">Weakening… → Attempt 2</div>
+      <div class="bar"><b></b></div>
+      <div class="odds"><span class="ok">Catch 62%</span><span class="flee">Flee 8%</span></div>
+    </div>
+    <div class="hud toast">Storage is full</div>
+    <div class="hud chip"><span class="pill" style="opacity:.55">(조우 중에는 채집 칩 숨김)</span></div>
+
+    <div class="avoid" style="left:3%;bottom:6%;width:16%;aspect-ratio:1">이동 조이스틱<br>(비움)</div>
+    <div class="avoid" style="right:3%;bottom:6%;width:11%;aspect-ratio:1">점프 버튼<br>(비움)</div>
+  </div>
+  <ul>
+    <li>성공률·다음 도망 확률은 조우 중 항상 보입니다(I1 결정). 수치는 목업용 예시입니다.</li>
+    <li>점선 원은 Roblox 모바일 기본 컨트롤 자리라 HUD를 두지 않습니다.</li>
+    <li>문구는 영어 기본(Text.luau)이고, 둥근 모서리·파스텔은 정령 외형 방향(귀엽게, 10~20대)과 맞춥니다.</li>
+  </ul>
+</main>
+</body>
+</html>

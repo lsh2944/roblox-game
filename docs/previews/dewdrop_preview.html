@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이슬방울 미리보기</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1026; overflow: hidden; font-family: system-ui, sans-serif; }
+  #cap { position: fixed; left: 16px; top: 12px; color: #e8ecff; font-size: 14px; line-height: 1.5; text-shadow: 0 1px 2px #000; }
+  #cap b { font-size: 18px; }
+  #cap small { color: #9aa3c7; }
+</style>
+</head>
+<body>
+<div id="cap"><b>이슬방울 ★1</b> (dewdrop · 초원)<br>
+<small>Roblox 코드 조합 방식(Neon 파츠 + 파티클 + 라이트) 시안을 브라우저로 흉내 낸 미리보기입니다. 실제 Roblox 화면과는 다릅니다.</small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Roblox 版 Dewdrop.luau と同じ構成・寸法・色・動きをブラウザで近似する
+// 座標は Roblox と同じ(前方 = -Z)。カメラを -Z 側に置いて顔を見る
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0b1026, 6, 22);
+const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+camera.position.set(0.8, 2.2, -5.4); camera.lookAt(0, 1.5, 0);
+// 表示後に窓の大きさが変わっても(ヘッドレス撮影など)追従する
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+const C = { body: 0x96dcff, core: 0xd7f5ff, gloss: 0xffffff, eye: 0x283454, cheek: 0xffa0be, drop: 0xaae6ff };
+
+// CFrame 相当の行列ヘルパー(Euler 'XYZ' = Roblox の CFrame.Angles と同じ順)
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const T = (x, y, z) => new THREE.Matrix4().makeTranslation(x, y, z);
+const A = (x, y, z) => new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(x, y, z, 'XYZ'));
+const mul = (...ms) => { const r = new THREE.Matrix4(); ms.forEach(m => r.multiply(m)); return r; };
+const rad = d => d * Math.PI / 180;
+function onSurface(r, x, y, lift) {
+  const k = 1 - (x / r.x) ** 2 - (y / r.y) ** 2, z = -r.z * Math.sqrt(Math.max(k, 0));
+  const p = V(x, y, z), n = V(x / r.x ** 2, y / r.y ** 2, z / r.z ** 2).normalize();
+  const e = p.clone().addScaledVector(n, lift);
+  const m = new THREE.Matrix4().lookAt(e, p.clone().addScaledVector(n, lift + 1), V(0, 1, 0)); m.setPosition(e); return m;
+}
+const SPH = new THREE.SphereGeometry(0.5, 40, 30);
+function part(color, opacity) {
+  const m = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity, depthWrite: opacity >= 1 }));
+  m.matrixAutoUpdate = false; scene.add(m); return m;
+}
+const place = (m, cf, size) => { m.matrix.copy(cf).multiply(new THREE.Matrix4().makeScale(size.x, size.y, size.z)); };
+
+// 放射グラデーションの光テクスチャ
+function glowTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+const soft = glowTex();
+const addMat = (col, op) => new THREE.SpriteMaterial({ map: soft, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
+
+// 地面・星・地面の光
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: 0x0f2a22 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const gg = new THREE.Mesh(new THREE.CircleGeometry(1.2, 48), new THREE.MeshBasicMaterial({ map: soft, color: C.drop, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }));
+gg.rotation.x = -Math.PI / 2; gg.position.y = 0.01; scene.add(gg);
+const sg = new THREE.BufferGeometry(), sp = [];
+for (let i = 0; i < 400; i++) sp.push((Math.random() - 0.5) * 60, 4 + Math.random() * 20, 10 + Math.random() * 20);
+sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, fog: false })));
+
+// 精霊(Dewdrop.luau と同じ値)
+const BODY = V(1.1, 1.0, 1.1), RADII = BODY.clone().multiplyScalar(0.5);
+const core = part(C.core, 0.5);
+const body = part(C.body, 0.6);
+const items = [];
+const add = (m, cf, size) => items.push({ m, cf, size });
+add(part(C.body, 0.6), mul(T(0, 0.5, 0.04), A(rad(15), 0, 0)), V(0.32, 0.55, 0.32)); // とんがり
+add(core, T(0, -0.18, 0.12), V(0.4, 0.4, 0.4));
+add(part(C.gloss, 0.85), onSurface(RADII, -0.27, 0.2, 0), V(0.14, 0.22, 0.05)); // つや
+const eyes = [], shines = [];
+for (const s of [-1, 1]) {
+  const e = { m: part(C.eye, 1), cf: onSurface(RADII, s * 0.18, 0, 0), size: V(0.15, 0.2, 0.08) }; items.push(e); eyes.push(e);
+  const h = part(C.gloss, 1); add(h, onSurface(RADII, s * 0.18 - 0.03, 0.05, 0.04), V(0.06, 0.06, 0.03)); shines.push(h);
+  add(part(C.cheek, 0.75), onSurface(RADII, s * 0.32, -0.13, 0), V(0.17, 0.09, 0.04));
+}
+// PointLight と Neon の発光の代わり
+const glow1 = new THREE.Sprite(addMat(C.drop, 0.35)); glow1.scale.set(2.0, 2.0, 1); scene.add(glow1);
+const glow2 = new THREE.Sprite(addMat(C.drop, 0.1)); glow2.scale.set(4.2, 4.2, 1); scene.add(glow2);
+
+// 下へ落ちる水滴
+const parts = [];
+function emit(pos) {
+  const p = new THREE.Sprite(addMat(C.drop, 1)); p.position.copy(pos);
+  const a = Math.random() * Math.PI * 2, sp = rad(20) * Math.random(), v = 0.3 + Math.random() * 0.3;
+  parts.push({ p, v: V(Math.cos(a) * Math.sin(sp) * v, -Math.cos(sp) * v, Math.sin(a) * Math.sin(sp) * v), life: 0, max: 0.6 + Math.random() * 0.4 }); scene.add(p);
+}
+function stepParts(dt) {
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const q = parts[i]; q.life += dt; q.v.y -= 3 * dt; q.p.position.addScaledVector(q.v, dt);
+    const k = q.life / q.max, s = (0.18 + (0.06 - 0.18) * k) * 1.6;
+    q.p.scale.set(s, s, 1); q.p.material.opacity = 0.9 * (1 - k);
+    if (k >= 1) { scene.remove(q.p); parts.splice(i, 1); }
+  }
+}
+
+// ?t=秒 で開始時刻をずらせる。&freeze で時刻を止める(撮影用)
+const Q = new URLSearchParams(location.search), T0 = +(Q.get('t') || 0), FREEZE = Q.has('freeze');
+const clock = new THREE.Clock(); let last = T0, acc = 0, warmed = false;
+function frame(t, dt) {
+  const h = Math.sin(Math.PI * (((t / 1.6) % 1 + 1) % 1));
+  const s = 0.14 * (1 - h) ** 6;
+  const scale = V(1 + s * 0.7, 1 - s, 1 + s * 0.7);
+  const root = mul(T(0, 1.5, 0), T(0, 0.35 * h - RADII.y * s, 0), A(0, Math.sin(t * 0.5) * 0.4, 0));
+  place(body, root, BODY.clone().multiply(scale));
+  items.forEach(it => {
+    const pos = new THREE.Vector3().setFromMatrixPosition(it.cf).multiply(scale);
+    const rot = new THREE.Matrix4().extractRotation(it.cf);
+    place(it.m, mul(root, T(pos.x, pos.y, pos.z), rot), it.size);
+  });
+  const blink = ((t % 3.4 + 3.4) % 3.4) < 0.12;
+  eyes.forEach(e => e.m.matrix.multiply(new THREE.Matrix4().makeScale(1, blink ? 0.15 : 1, 1)));
+  shines.forEach(m => m.visible = !blink);
+  const c = new THREE.Vector3().setFromMatrixPosition(root);
+  glow1.position.copy(c); glow2.position.copy(c);
+  glow1.material.opacity = 0.32 + 0.08 * Math.sin(t * 2.5);
+  acc += dt * 6; while (acc >= 1) { acc -= 1; emit(new THREE.Vector3(0, -RADII.y + 0.05, 0).applyMatrix4(root)); }
+  stepParts(dt);
+}
+function tick() {
+  const t = FREEZE ? T0 : T0 + clock.getElapsedTime(), dt = FREEZE ? 0 : t - last; last = t;
+  if (!warmed) { warmed = true; for (let k = 0; k < 60; k++) frame(T0 - 2 + k / 30, 1 / 30); } // 撮影時に粒子が見えるよう先に流す
+  frame(t, dt);
+  renderer.render(scene, camera); requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

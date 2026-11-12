@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>노을새 미리보기</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1026; overflow: hidden; font-family: system-ui, sans-serif; }
+  #cap { position: fixed; left: 16px; top: 12px; color: #e8ecff; font-size: 14px; line-height: 1.5; text-shadow: 0 1px 2px #000; }
+  #cap b { font-size: 18px; }
+  #cap small { color: #9aa3c7; }
+</style>
+</head>
+<body>
+<div id="cap"><b>노을새 ★2</b> (sunset_bird · 초원)<br>
+<small>Roblox 코드 조합 방식(Neon 파츠 + Beam + 파티클 + 라이트) 시안을 브라우저로 흉내 낸 미리보기입니다. 실제 Roblox 화면과는 다릅니다.</small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Roblox 版 SunsetBird.luau と同じ構成・寸法・色・動きをブラウザで近似する
+// 座標は Roblox と同じ(前方 = -Z)。尾の光の帯も見えるよう斜め前から見る
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0b1026, 7, 24);
+const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+camera.position.set(-3.3, 2.7, -4.6); camera.lookAt(0, 1.6, 0.3);
+// 表示後に窓の大きさが変わっても(ヘッドレス撮影など)追従する
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+const C = { body: 0xffa870, belly: 0xffc4d2, wing: 0xff8caa, tail: 0xff78aa, beak: 0xffd678, shine: 0xffffff, eye: 0x3c2234, cheek: 0xff6e8c, trail0: 0xffb46e, trail1: 0xff78be };
+
+// CFrame 相当の行列ヘルパー(Euler 'XYZ' = Roblox の CFrame.Angles と同じ順)
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const T = (x, y, z) => new THREE.Matrix4().makeTranslation(x, y, z);
+const A = (x, y, z) => new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(x, y, z, 'XYZ'));
+const mul = (...ms) => { const r = new THREE.Matrix4(); ms.forEach(m => r.multiply(m)); return r; };
+const rad = d => d * Math.PI / 180;
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+function onSurface(r, x, y, lift) {
+  const k = 1 - (x / r.x) ** 2 - (y / r.y) ** 2, z = -r.z * Math.sqrt(Math.max(k, 0));
+  const p = V(x, y, z), n = V(x / r.x ** 2, y / r.y ** 2, z / r.z ** 2).normalize();
+  const e = p.clone().addScaledVector(n, lift);
+  const m = new THREE.Matrix4().lookAt(e, p.clone().addScaledVector(n, lift + 1), V(0, 1, 0)); m.setPosition(e); return m;
+}
+const SPH = new THREE.SphereGeometry(0.5, 40, 30);
+function part(color, opacity) {
+  const m = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity, depthWrite: opacity >= 1 }));
+  m.matrixAutoUpdate = false; scene.add(m); return m;
+}
+const place = (m, cf, size) => { m.matrix.copy(cf).multiply(new THREE.Matrix4().makeScale(size.x, size.y, size.z)); };
+
+function glowTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+const soft = glowTex();
+const addMat = (col, op) => new THREE.SpriteMaterial({ map: soft, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: 0x0f2a22 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const gg = new THREE.Mesh(new THREE.CircleGeometry(1.5, 48), new THREE.MeshBasicMaterial({ map: soft, color: C.trail0, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }));
+gg.rotation.x = -Math.PI / 2; gg.position.y = 0.01; scene.add(gg);
+const sg = new THREE.BufferGeometry(), sp = [];
+for (let i = 0; i < 400; i++) sp.push((Math.random() - 0.5) * 60, 4 + Math.random() * 20, 10 + Math.random() * 20);
+sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, fog: false })));
+
+// 精霊(SunsetBird.luau と同じ値)
+const BODY = V(1.15, 1.05, 1.2), R = BODY.clone().multiplyScalar(0.5);
+const WING = V(0.55, 0.1, 0.42), WING_HINGE_X = 0.5, WING_REST = rad(-10), FLAP_AMP = rad(40), FLAP_SPEED = 18, FLAP_CYCLE = 3.0;
+const TAIL = V(0.45, 0.1, 0.5), TAIL_POS = T(0, 0.05, 0.62), TAIL_TILT = A(rad(-25), 0, 0);
+const body = part(C.body, 1);
+const items = [], eyes = [], shines = [];
+items.push({ m: part(C.belly, 1), cf: T(0, -0.16, -0.31), size: V(0.82, 0.72, 0.6) });
+items.push({ m: part(C.tail, 1), cf: mul(T(0, 0.6, -0.1), A(rad(-25), 0, 0)), size: V(0.1, 0.32, 0.2) }); // 飾り羽
+items.push({ m: part(C.beak, 1), cf: onSurface(R, 0, 0, 0.04), size: V(0.2, 0.13, 0.22) });
+for (const s of [-1, 1]) {
+  const e = { m: part(C.eye, 1), cf: onSurface(R, s * 0.22, 0.12, 0), size: V(0.16, 0.21, 0.08) }; items.push(e); eyes.push(e);
+  const h = { m: part(C.shine, 1), cf: onSurface(R, s * 0.22 - 0.03, 0.17, 0.04), size: V(0.06, 0.06, 0.03) }; items.push(h); shines.push(h.m);
+  items.push({ m: part(C.cheek, 0.75), cf: onSurface(R, s * 0.36, -0.04, 0), size: V(0.16, 0.08, 0.04) });
+}
+const wings = [-1, 1].map(s => ({ m: part(C.wing, 0.9), s }));
+const tail = part(C.tail, 1);
+const glow1 = new THREE.Sprite(addMat(C.trail0, 0.35)); glow1.scale.set(2.4, 2.4, 1); scene.add(glow1);
+const glow2 = new THREE.Sprite(addMat(C.trail0, 0.1)); glow2.scale.set(5.0, 5.0, 1); scene.add(glow2);
+const c0 = new THREE.Color(C.trail0), c1 = new THREE.Color(C.trail1);
+
+// 尾の光の帯(Beam 近似): 根元 → 先の 3 次ベジェ。制御点は尾の X 軸方向へ CurveSize だけずらす
+const NB = 24;
+const streamers = [-1, 1].map(s => {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array((NB + 1) * 2 * 3), 3));
+  const col = [];
+  for (let i = 0; i <= NB; i++) { const u = i / NB, c = c0.clone().lerp(c1, u).multiplyScalar(0.85 * (1 - u)); col.push(c.r, c.g, c.b, c.r, c.g, c.b); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const idx = []; for (let i = 0; i < NB; i++) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  g.setIndex(idx);
+  const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(mesh);
+  return { mesh, tip: V(s * 0.55, 0.15, 1.5), phase: s > 0 ? 0 : 1.6 };
+});
+function updateStreamer(st, tailCf, t) {
+  const p0 = V(0, 0, 0.2).applyMatrix4(tailCf), p3 = st.tip.clone().applyMatrix4(tailCf);
+  const axis = V(1, 0, 0).transformDirection(tailCf);
+  const p1 = p0.clone().addScaledVector(axis, 0.5 * Math.sin(t * 2.4 + st.phase));
+  const p2 = p3.clone().addScaledVector(axis, 0.4 * Math.sin(t * 2.0 + st.phase)); // CurveSize1 = -0.4 sin(...)
+  const pos = st.mesh.geometry.attributes.position;
+  for (let i = 0; i <= NB; i++) {
+    const u = i / NB, v = 1 - u;
+    const p = p0.clone().multiplyScalar(v * v * v).addScaledVector(p1, 3 * v * v * u).addScaledVector(p2, 3 * v * u * u).addScaledVector(p3, u * u * u);
+    const tan = p1.clone().sub(p0).multiplyScalar(3 * v * v).addScaledVector(p2.clone().sub(p1), 6 * v * u).addScaledVector(p3.clone().sub(p2), 3 * u * u).normalize();
+    const n = new THREE.Vector3().crossVectors(tan, camera.position.clone().sub(p).normalize()).normalize().multiplyScalar((0.32 + (0.04 - 0.32) * u) / 2);
+    pos.setXYZ(i * 2, p.x + n.x, p.y + n.y, p.z + n.z); pos.setXYZ(i * 2 + 1, p.x - n.x, p.y - n.y, p.z - n.z);
+  }
+  pos.needsUpdate = true; st.mesh.geometry.computeBoundingSphere();
+}
+
+// 体からこぼれる暖色のきらきら(体の箱の中から)
+const parts = [];
+function emit(center) {
+  const p = new THREE.Sprite(addMat(Math.random() < 0.5 ? C.trail0 : C.trail1, 1));
+  p.position.copy(center).add(V((Math.random() - 0.5) * BODY.x, (Math.random() - 0.5) * BODY.y, (Math.random() - 0.5) * BODY.z));
+  const v = V(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(0.3 + Math.random() * 0.4);
+  parts.push({ p, v, life: 0, max: 0.8 + Math.random() * 0.6 }); scene.add(p);
+}
+function stepParts(dt) {
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const q = parts[i]; q.life += dt; q.v.y -= 0.4 * dt; q.p.position.addScaledVector(q.v, dt);
+    const k = q.life / q.max, s = 0.22 * (1 - k) * 1.6;
+    q.p.scale.set(s, s, 1); q.p.material.opacity = 0.85 * (1 - k);
+    if (k >= 1) { scene.remove(q.p); parts.splice(i, 1); }
+  }
+}
+
+function frame(t, dt) {
+  const burst = clamp(Math.sin(t * 2 * Math.PI / FLAP_CYCLE) * 2, 0, 1);
+  const wave = Math.sin(t * FLAP_SPEED);
+  const bob = 0.15 * Math.sin(t * 1.6) + 0.04 * burst * wave;
+  const root = mul(T(0, 1.6, 0), T(0, bob, 0), A(rad(5) * Math.sin(t * 0.9), Math.sin(t * 0.5) * 0.4, rad(7) * Math.sin(t * 0.7)));
+  place(body, root, BODY);
+  items.forEach(it => place(it.m, mul(root, it.cf), it.size));
+  const angle = WING_REST + FLAP_AMP * burst * wave + rad(10) * (1 - burst);
+  wings.forEach(w => place(w.m, mul(root, T(w.s * WING_HINGE_X, 0, 0.08), A(0, 0, w.s * angle), T(w.s * WING.x / 2, 0, 0)), WING));
+  const tailCf = mul(root, TAIL_POS, A(0, rad(10) * Math.sin(t * 2.2), 0), TAIL_TILT);
+  place(tail, tailCf, TAIL);
+  streamers.forEach(st => updateStreamer(st, tailCf, t));
+  const blink = ((t % 3.5 + 3.5) % 3.5) < 0.12;
+  eyes.forEach(e => e.m.matrix.multiply(new THREE.Matrix4().makeScale(1, blink ? 0.15 : 1, 1)));
+  shines.forEach(m => m.visible = !blink);
+  const lc = c0.clone().lerp(c1, 0.5 + 0.5 * Math.sin(t * 0.6)), c = V(0, 0, 0).applyMatrix4(root);
+  glow1.position.copy(c); glow2.position.copy(c);
+  glow1.material.color.copy(lc); glow2.material.color.copy(lc); gg.material.color.copy(lc);
+  acc += dt * 8; while (acc >= 1) { acc -= 1; emit(c); }
+  stepParts(dt);
+}
+// ?t=秒 で開始時刻をずらせる。&freeze で時刻を止める(撮影用)
+const Q = new URLSearchParams(location.search), T0 = +(Q.get('t') || 0), FREEZE = Q.has('freeze');
+const clock = new THREE.Clock(); let last = T0, acc = 0, warmed = false;
+function tick() {
+  const t = FREEZE ? T0 : T0 + clock.getElapsedTime(), dt = FREEZE ? 0 : t - last; last = t;
+  if (!warmed) { warmed = true; for (let k = 0; k < 60; k++) frame(T0 - 2 + k / 30, 1 / 30); } // 撮影時に粒子が見えるよう先に流す
+  frame(t, dt);
+  renderer.render(scene, camera); requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

@@ -333,3 +333,42 @@
 - 반복 수익 상품 우선순위: **외형 시즌 패스**(무료 트랙 + 프리미엄 트랙, 보상은 외형·칭호·집 꾸미기만)를 월간 멤버십보다 우선. 외형 비축 뒤 하나만 운영.
 - 참고 조사(유사 장르: Pet Simulator 99, Grow a Garden, Steal a Brainrot, Adopt Me!, Loomian Legacy, Bee Swarm, Creatures of Sonaria): 유료 알·행운/확률·생산 배율·한정 크리처 판매는 원칙 위반으로 제외, 시즌 패스·외형/하우징·비공개 서버·보상 광고는 외형·편의로 변형해 적용. 시간 스킵·자동 파밍·배치 칸 판매는 사실상 버프로 제외. 가격 출처는 대부분 팬 위키(신뢰도 낮음).
 - 제거 반영(2026-11-11): products.json에서 두 상품 삭제, kind 두 개는 금지 목록으로 이동, 기본 재료 purchasable=false(유료 기본 재료→성장→포획 간접 경로 소멸, 공식 분류 확인 불필요), balanced_paid는 외형·편의 구매자(외형·프리셋 1일차, 보관함 +10을 4~13일차 하루 1개)로 재정의. quick `outputs/20261111_no_material_products_q`: approved 불변, paid 해금 단축 0.000/0.000/−0.018. 후속 정리 권장안 일괄 수용(포획 비용의 기본 재료 직접 투입 금지 규칙 추가 안 함, purchasable 재설정 금지 규칙 추가 안 함, 휴면 코드·pass_claims_cum 열은 다음 CSV 변경 때 정리, 보관함 구매 일정 유지).
+
+## 규정 재조사 (2026-11-12, 공식 문서·DevForum 공지, 읽기 전용 조사)
+확인일은 모두 2026-11-12. 11/11 본문과 다른 사실은 이 절이 우선한다. 사용자 결정은 아직 없다(아래 "결정 대기").
+
+### 11/11 대비 정정·신규 확인
+1. 유료 비공개 서버 개발자 몫 **70%** 확인. Plus 구독자 무료 이용 시 보상은 "구독자당 월 최대 100"이 아니라 **서버당 최대 100, 30일 내 60분 이상 머문 상위 5개 서버**(2026-04-30~). [roblox-plus](https://create.roblox.com/docs/production/monetization/roblox-plus), [공지](https://devforum.roblox.com/t/upcoming-updates-to-private-servers-new-tools-and-new-earning-opportunities/4590482)
+2. 보상형 광고 보상은 **상점에서 Robux로 파는 개발자 상품**이어야 함(추측 → 공식 확인). 랜덤 금지, 권장 가치 3~10 Robux, 진행 관문 강제 금지, 시청 전 보상 고지. 시청자 13+만(U13 전면 불가, 2026-05-04~), 게시자 13+·2FA·ID 인증, 게임은 public·unrestricted·월 방문 2,000·성숙도 설문 승인. 자체 구현 보상 광고 금지. [rewarded-video-ads](https://create.roblox.com/docs/production/promotion/rewarded-video-ads), [ad-integrations](https://create.roblox.com/docs/production/promotion/ad-integrations), [광고 정책 공지](https://devforum.roblox.com/t/new-advertising-policies-standards/4527365)
+3. 게임패스 환불 시 Roblox가 소유를 **자동 회수**. 개발자 상품은 개발자가 회수해야 하며 환불 webhook(2026-09-23)은 외부 endpoint 필요. [공지](https://devforum.roblox.com/t/new-transaction-refunded-webhook-notifies-when-a-purchase-is-cancelled/4890339)
+4. cross-game 판매 폐지(2026-05-29 공지/05-30 문서). 개발자 상품을 Unlisted로 두면 게임 밖 판매 차단(결제 계획서 미확인 항목 해소). [developer-products](https://create.roblox.com/docs/production/monetization/developer-products)
+5. 패스 지역 가격 기본 켜짐(2026-03-30, 패스별 해제 가능). 상점 가격은 `GetProductInfoAsync`로 동적 표시해야 Plus 할인·지역 가격과 어긋나지 않음. [공지](https://devforum.roblox.com/t/enabling-regional-prices-for-all-passes-to-grow-your-global-audience/4471199)
+6. Paid random items 명확화(2026-05-26): 랜덤이 하나라도 섞인 번들은 전체가 PRI, 손실만 있는 결과 금지. [공지](https://devforum.roblox.com/t/clarifying-requirements-for-paid-random-items/4654622)
+7. US 18+ DevEx 0.0054 USD/Robux(2026-06-08~, 게임 요건 있음). [18-plus-devex](https://create.roblox.com/docs/production/monetization/18-plus-devex-rate)
+8. 전 연령 공개 조건: 문서는 "Plus 2개월 또는 1,000 Robux, 60일 내 고참여 100명이면 환급"(Premium 언급 없음), 공지(5/19)는 "3개월 후 환급" — 문서끼리 충돌. 11/11의 "Plus/Premium 2개월"은 정정 필요. [publishing](https://create.roblox.com/docs/en-us/production/publishing/publish-experiences-and-places.md)
+9. Robux 구독: 최저 49, 70%, 지역 가격 강제, 가격 변경 60일 간격, Robux 구독 환불 불가, 혜택은 구독 기간 내내 유지(결제 뒤 추가 조건으로 잠금 금지, battle pass 예외). [subscriptions](https://create.roblox.com/docs/production/monetization/subscriptions)
+10. 전시 꾸미기: "정해진 3D 에셋을 배치하는 건축"은 free-form user creation에서 제외(해석). 자유 텍스트·이미지 업로드를 넣으면 해당될 수 있음(추측). [content-maturity](https://create.roblox.com/docs/en-us/production/promotion/content-maturity.md)
+
+### BM 구성별 판정
+| 상품 | 판정 | 조건 |
+|---|---|---|
+| 확정형 외형·칭호·서포터 | 문제 없음 | 번들에 랜덤 요소를 넣지 않는다 |
+| 보관함 게임패스 10단계 | 조건부 | 지역 가격·Plus 할인 때문에 가격은 동적 조회. 환불 자동 회수는 결제 계획서의 "소유 false → 권한 해제"와 일치 |
+| 유료 비공개 서버 | 조건부 | 게임 public, paid access와 병용 불가. 가격 변경 시 구독 취소 여부는 문서·공지 충돌 |
+| 전시 꾸미기 | 조건부 | 정해진 에셋 배치만(자유 텍스트·이미지 금지) |
+| 보상형 광고(외형) | 조건부 | 보상 외형을 상점에서도 판매, 13+ 시청자만, 16+ 공개 게임이 "unrestricted"에 들어가는지 미확인 |
+| 외형 시즌 패스 | 조건부 | 보상은 확정형만(랜덤 상자 넣으면 PRI) |
+| 구독(로직만) | 출시 시 조건부 | 구독자 전용 트랙이 "잠금 금지"의 battle pass 예외인지 해석 필요 |
+| 외형 선물(보류) | 문제 가능 | 공식 판단 없음. 도입 시 양쪽 `IsPaidItemTradingAllowed` true만 + 서면 문의 |
+| 16+ 먼저 공개 | 문제 없음 | 설문에 PRI·거래 정책 준수 문항 있음 |
+
+### 여전히 미확인
+개발자 상품 생성 비용, 이미지·메시 업로드 비용, 게임패스 생성 무료(Help 원문 403), 외형 선물의 거래 제한 해당 여부, 16+ 게임의 광고 자격, Advertising Standards 원문(403), 비공개 서버 가격 변경 시 구독 취소(충돌), 텍스처 최대 해상도(4096/1024 충돌), 미성년자 결제의 개발자 의무, 시즌 패스 전용 규정. 출시 직전 재확인은 계속 필요하다.
+
+### 결정 대기 (권장안, 결제 기반 착수 = MVP1 S10 뒤에 확정)
+1. 광고 보상 외형은 같은 개발자 상품으로 상점에서도 3~10 Robux에 판다. 광고 전용 외형은 만들지 않는다.
+2. 외부 webhook 서버는 두지 않는다. 값이 큰 상품은 게임패스(자동 회수), 개발자 상품은 광고 보상·저가 외형에만 쓴다.
+3. 외형 선물은 계속 보류한다.
+4. 시즌 패스는 시즌마다 새 게임패스로 판다(자동 회수, 매 시즌 사용자가 생성).
+5. 보관함 패스는 지역 가격을 유지하고 가격을 동적으로 표시한다.
+6. 구독은 로직만 유지한다. 출시 시 전용 트랙은 즉시 지급으로 바꾸거나 시즌 패스로 통합한다.
