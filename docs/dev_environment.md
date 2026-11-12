@@ -7,7 +7,7 @@
 1. **OS 확인**: Claude Code는 환경 정보의 Platform(`darwin` / `win32`)을 먼저 보고, 애매하면 `uname -s`(Git Bash) 또는 `$env:OS`(PowerShell)로 확인한다. 아래 표에서 그 OS의 명령을 쓴다.
 2. **최신 상태 받기**: `git pull` 후 작업한다. 다른 PC에서 push하지 않은 변경이 있으면 먼저 그쪽에서 커밋·push한다(두 PC에서 같은 파일을 동시에 고치지 않는다).
 3. **도구 확인**: `.tools/bin`의 Rojo·Lune 버전이 아래 기준과 같은지 확인한다(`--version`).
-4. 작업을 마치면 커밋·push한다. push는 사용자가 한다(외부 업로드).
+4. 작업을 마치면 커밋·push한다. 사용자가 요청하면 Claude가 커밋·push까지 한다(2026-11-12 결정. force push·원격 브랜치 삭제는 별도 승인).
 
 ## 2. OS별 차이
 

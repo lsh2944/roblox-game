@@ -4,7 +4,7 @@
 
 ## 작업 시작 시 (필수)
 - **먼저 OS를 확인한다**(환경 정보 Platform `darwin`/`win32`, 애매하면 `uname -s`). 회사 = macOS(Apple Silicon, zsh), 집 = Windows(Git Bash 권장). Python 명령(`python3` vs `py -3.12`), 도구 바이너리(`.tools/bin/*` vs `*.exe`), 경로·셸 문법이 다르다. OS별 명령과 새 PC 준비는 `docs/dev_environment.md`.
-- `git pull`로 다른 PC의 변경을 받은 뒤 작업한다. commit은 사용자 요청 시, push는 사용자가 한다.
+- `git pull`로 다른 PC의 변경을 받은 뒤 작업한다. commit·push는 사용자 요청 시 Claude가 한다(2026-11-12 사용자 결정, origin = GitHub 비공개 저장소에 한함. force push·원격 브랜치 삭제·히스토리 재작성은 별도 승인).
 
 ## 사용자에게 선택지를 제안할 때 (사용자 요청 2026-11-12)
 - 선택지마다 **안정성 관점**을 함께 적는다: 버그가 생길 가능성(중간 상태·부분 실패·경합·번호/순서 어긋남 등 구체적 원인), 서버·네트워크·Roblox API 장애·저장 실패가 났을 때의 영향(데이터 손실·중복 지급·진행 차단 여부, 조용히 저장되는지), 테스트로 고정할 수 있는지, 범용성(다른 필드·기능·나중 확장에 그대로 쓸 수 있는지).
