@@ -37,6 +37,10 @@ cd ../.. && .tools/bin/lune run game/tests/lune_run.luau
 1. Git for Windows 설치(Git Bash 포함), Python 3.12 설치("Add to PATH"), Roblox Studio 설치·로그인.
 2. Claude Code 설치. 회사 Mac의 개인 전역 지침(`~/.claude/CLAUDE.md`, 한국어 응답 등)은 PC마다 따로라서 필요하면 같은 내용을 Windows의 사용자 폴더 `.claude/CLAUDE.md`에 둔다. 회사 업무 관련 지침·도구는 옮기지 않는다.
 3. 저장소 받기: `git clone <비공개 저장소 URL> roblox-game` → `cd roblox-game` → `git config user.email "<개인 이메일 또는 GitHub noreply>"`.
+   - GitHub 인증은 PC마다 따로 한다. 다른 PC의 토큰을 옮기지 않는다(GitHub에서는 토큰 값을 다시 볼 수 없고, 토큰을 옮기면 유출 위험이 있다).
+   - 권장: Git for Windows에 포함된 Git Credential Manager를 쓴다. 처음 clone/push할 때 브라우저 창이 뜨면 GitHub에 로그인한다. 인증 정보는 그 PC의 Windows 자격 증명 관리자에 저장된다.
+   - 브라우저 로그인이 안 되면 GitHub ⟩ Settings ⟩ Developer settings에서 fine-grained token을 그 PC 전용으로 새로 만든다(이 저장소만, Contents read/write, 만료일 지정). 처음 push할 때 비밀번호 칸에 넣는다. PC를 잃어버리면 그 토큰만 폐기한다.
+   - 회사 Mac은 macOS 키체인(`credential.helper=osxkeychain`)에 저장되어 있어 다시 입력할 필요가 없다(2026-11-12 확인).
 4. `.tools/bin/`에 Rojo 7.7.1·Lune 0.11.1 Windows용 zip을 GitHub 공식 릴리스에서 받아 푼다(`.tools/`는 저장소에 없다).
 5. Studio 플러그인: `.tools/bin/rojo plugin install` (Studio를 한 번 실행한 뒤).
 6. 확인: 2절 공통 명령 중 unittest·validate·lune run이 통과하면 준비 완료.

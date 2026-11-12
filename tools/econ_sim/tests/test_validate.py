@@ -20,9 +20,33 @@ class RealDataTest(unittest.TestCase):
         issues = validate(load_data(DATA_DIR))
         self.assertFalse(has_errors(issues), "\n".join(i.format() for i in issues if i.level == "ERROR"))
 
-    def test_dominance_is_warning_only(self):
+    def test_dominance_is_info_only(self):
+        # 2026-11-12 ユーザー決定: 上位互換禁止を廃止。支配は参考情報（INFO）で、警告・エラーにしない
         issues = validate(load_data(DATA_DIR))
-        self.assertTrue(all(i.level == "WARN" for i in issues if i.code == "WARN_DOMINANCE"))
+        self.assertFalse(any(i.code == "WARN_DOMINANCE" for i in issues))
+        self.assertTrue(all(i.level == "INFO" for i in issues if i.code == "INFO_DOMINANCE"))
+
+    def test_forced_dominance_reported_as_info_and_kept_in_table(self):
+        # 高等級を全次元で突出させて支配を必ず起こす。合否は変わらず、支配表（dominance.csv の元）には残る
+        ops = [{"op": "set", "file": "spirits", "path": "/spirits/id:aurora_deer/aptitude",
+                "value": {"dew": "S", "bloom": "S", "crystal": "S"}},
+               {"op": "set", "file": "spirits", "path": "/spirits/id:aurora_deer/combat", "value": 99},
+               {"op": "set", "file": "spirits", "path": "/spirits/id:aurora_deer/gather", "value": 99}]
+        gd = load_data(DATA_DIR, ops)
+        issues = validate(gd)
+        self.assertFalse(has_errors(issues))
+        dom = [i for i in issues if i.path == "spirits/aurora_deer" and "DOMINANCE" in i.code]
+        self.assertTrue(dom)
+        self.assertEqual({(i.level, i.code) for i in dom}, {("INFO", "INFO_DOMINANCE")})
+        from econ_sim.dominance import dominance_rows
+        from econ_sim.model import Model
+        self.assertTrue(any(r["spirit_a"] == "aurora_deer" and r["higher_grade_dominates"]
+                            for r in dominance_rows(Model(gd))))
+
+    def test_cli_info_does_not_fail(self):
+        out = io.StringIO()
+        self.assertEqual(cli.main(["validate"], out=out), 0)
+        self.assertIn("INFO", out.getvalue().splitlines()[-1])
 
 
 class BrokenFixtureTest(unittest.TestCase):

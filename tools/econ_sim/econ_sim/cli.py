@@ -24,11 +24,14 @@ from .validate import has_errors, validate
 
 
 def _print_issues(issues: list[Issue], out: TextIO) -> None:
-    for i in sorted(issues, key=lambda x: (x.level != "ERROR", x.code, x.path)):
+    rank = {"ERROR": 0, "WARN": 1}
+    for i in sorted(issues, key=lambda x: (rank.get(x.level, 2), x.code, x.path)):
         print(i.format(), file=out)
     n_err = sum(1 for i in issues if i.level == "ERROR")
     n_warn = sum(1 for i in issues if i.level == "WARN")
-    print(f"검증 결과: ERROR {n_err}건, WARN {n_warn}건 → {'FAIL' if n_err else 'OK'}", file=out)
+    n_info = sum(1 for i in issues if i.level == "INFO")
+    # INFO は参考情報で合否・WARN 件数に含めない
+    print(f"검증 결과: ERROR {n_err}건, WARN {n_warn}건, INFO {n_info}건 → {'FAIL' if n_err else 'OK'}", file=out)
 
 
 def _load(args: argparse.Namespace):
@@ -205,7 +208,9 @@ def do_converge(args: argparse.Namespace, out: TextIO, out_dir: Path) -> int:
     if "allocation.csv" not in manifest["outputs"]:
         manifest["outputs"].append("allocation.csv")
     _write_manifest(out_dir, manifest)
-    print(f"converge: {sum(1 for r in rows if r[5] == 'exact_subset_dp')}개 대표 상태, {elapsed:.1f}초 → {out_dir / 'allocation.csv'}", file=out)
+    n_cases = sum(1 for r in rows if r[4] == "one_of_each_available" and r[5] == "heuristic_greedy_2swap")
+    n_exact = sum(1 for r in rows if r[5] == "exact_subset_dp")
+    print(f"converge: {n_cases}개 대표 상태(1마리씩 정확 해 {n_exact}개), {elapsed:.1f}초 → {out_dir / 'allocation.csv'}", file=out)
     return 0
 
 

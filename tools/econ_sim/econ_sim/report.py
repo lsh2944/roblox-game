@@ -90,7 +90,11 @@ def build(rd: RunData, result: dict[str, Any], ser: dict[str, Any], manifest: di
         body.append("<h2>수렴 분석(대표 상태 정확 탐색, 종 복제 무제한 재고)</h2>")
         crow = [[sp, str(i["used_cases"]), f"{i['max_loss']:.2f}", str(i["cases"])] for sp, i in conv["species"].items()]
         body.append(H.table(["species", "최적 배치 사용 사례 수", "제외 시 최대 손실 %", "평가 사례 수"], crow))
-        body.append(f'<p class="note">대표 상태 {conv["cases"]}개, 휴리스틱 최대 gap {conv["max_gap"]:.4f}. 동행(파티)은 대상 외.</p>')
+        skipped = conv.get("gap_skipped", 0)
+        skip_note = f" gap 미측정 {skipped}건(정령 수가 정확 탐색 상한 초과)." if skipped else ""
+        # 実測 0 件なら gap は「未測定」と書き、0.0000（差なし）と区別する
+        gap_txt = f"{conv['max_gap']:.4f}" if conv.get("gap_measured", 0) else "미측정"
+        body.append(f'<p class="note">대표 상태 {conv["cases"]}개, 휴리스틱 최대 gap {gap_txt}.{skip_note} 동행(파티)은 대상 외.</p>')
     body.append("<h2>가정</h2><ul>" + "".join(f"<li>{H.esc(a)}</li>" for a in manifest.get("assumptions", [])) + "</ul>")
     body.append(f"<h2>placeholder</h2><p>{len(manifest.get('placeholders', []))}건(manifest.json 참조)</p>")
     return H.page("econ_sim report", body)

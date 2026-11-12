@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "notes": "필드 4개 가안(2주판: meadow·forest, 4주판: +cave·ridge). gather_nodes.base_per_hour는 직접 채집 1시간당 기본량, hunt.drops는 추천 전투력에서 1시간당 드롭. unlock.costs의 사냥 재료는 길표(key_*, atomic, crafting.json)로 표기한다(2026-11-10 단계 3, 해금 순간 원자적으로 제작·소비, 전개하면 이전 비용과 같음). capture.table은 조우 시 종 선택 가중치(출현 표)만 둔다. 성공률·시도 비용·조우 시간은 전역 규칙 capture.json으로 옮겼다(2026-11-10 단계 2, 필드별 성공률 덮어쓰기는 검증기 RULE_CAPTURE_NO_PITY로 금지). 채집 노드량은 직접 채집 R 최대 3배 결정에 맞춰 조정(큰 결정 노드 포함).",
+  "notes": "필드 4개 가안(2주판: meadow·forest, 4주판: +cave·ridge). gather_nodes.base_per_hour는 직접 채집 1시간당 기본량, hunt.drops는 추천 전투력에서 1시간당 드롭. unlock.costs의 사냥 재료는 길표(key_*, atomic, crafting.json)로 표기한다(2026-11-10 단계 3, 해금 순간 원자적으로 제작·소비, 전개하면 이전 비용과 같음). capture.table은 조우 시 종 선택 가중치(출현 표)만 둔다. 성공률·시도 비용·조우 시간은 전역 규칙 capture.json으로 옮겼다(2026-11-10 단계 2, 필드별 성공률 덮어쓰기는 검증기 RULE_CAPTURE_NO_PITY로 금지). 채집 노드량은 직접 채집 R 최대 3배 결정에 맞춰 조정(큰 결정 노드 포함). 2026-11-12 정령 20종 확장: forest·cave·ridge 출현표에 새 종을 넣되 지역별 등급 가중치 합(등급 출현 비율)은 그대로 두고, 같은 등급 안에서 새 종은 등급 평균 몫·기존 종은 비례 축소로 나눔(정수 반올림은 최대 잉여, 동률은 그 필드 고유 종 우선). meadow는 변경 없음.",
   "fields": [
     {"id": "meadow", "name": "이슬 초원", "order": 1,
      "unlock": {"requires_fields": [], "costs": []},
@@ -26,11 +26,15 @@
      "hunt": {"recommended_power": 25, "drops": [{"resource": "hunt_forest", "base_per_hour": 24}]},
      "capture": {
        "table": [
-         {"spirit_id": "sparkle", "weight": 20, "availability": "always"},
-         {"spirit_id": "dewdrop", "weight": 20, "availability": "always"},
-         {"spirit_id": "flower_lamp", "weight": 30, "availability": "always"},
-         {"spirit_id": "shard_light", "weight": 15, "availability": "always"},
-         {"spirit_id": "sunset_bird", "weight": 15, "availability": "always"},
+         {"spirit_id": "sparkle", "weight": 12, "availability": "always"},
+         {"spirit_id": "dewdrop", "weight": 12, "availability": "always"},
+         {"spirit_id": "flower_lamp", "weight": 18, "availability": "always"},
+         {"spirit_id": "moss_puff", "weight": 14, "availability": "always"},
+         {"spirit_id": "mushroom_lamp", "weight": 14, "availability": "always"},
+         {"spirit_id": "shard_light", "weight": 7, "availability": "always"},
+         {"spirit_id": "sunset_bird", "weight": 7, "availability": "always"},
+         {"spirit_id": "leaf_bunny", "weight": 8, "availability": "always"},
+         {"spirit_id": "firefly_squirrel", "weight": 8, "availability": "always"},
          {"spirit_id": "rainbow_butterfly", "weight": 6, "availability": "always"}]},
      "placeholder": true},
     {"id": "cave", "name": "결정 동굴", "order": 3,
@@ -44,8 +48,10 @@
      "capture": {
        "table": [
          {"spirit_id": "sparkle", "weight": 20, "availability": "always"},
-         {"spirit_id": "shard_light", "weight": 25, "availability": "always"},
-         {"spirit_id": "sunset_bird", "weight": 10, "availability": "always"},
+         {"spirit_id": "shard_light", "weight": 12, "availability": "always"},
+         {"spirit_id": "sunset_bird", "weight": 5, "availability": "always"},
+         {"spirit_id": "crystal_turtle", "weight": 9, "availability": "always"},
+         {"spirit_id": "starlight_bat", "weight": 9, "availability": "always"},
          {"spirit_id": "rainbow_butterfly", "weight": 4, "availability": "always"},
          {"spirit_id": "lighthouse_bear", "weight": 8, "availability": "always"},
          {"spirit_id": "moon_fox", "weight": 6, "availability": "always"},
@@ -62,12 +68,16 @@
        "table": [
          {"spirit_id": "dewdrop", "weight": 15, "availability": "always"},
          {"spirit_id": "flower_lamp", "weight": 15, "availability": "always"},
-         {"spirit_id": "sunset_bird", "weight": 15, "availability": "always"},
-         {"spirit_id": "rainbow_butterfly", "weight": 8, "availability": "always"},
-         {"spirit_id": "lighthouse_bear", "weight": 8, "availability": "always"},
-         {"spirit_id": "moon_fox", "weight": 8, "availability": "always"},
-         {"spirit_id": "shadow_lantern", "weight": 5, "availability": "always"},
-         {"spirit_id": "aurora_deer", "weight": 5, "availability": "always"}]},
+         {"spirit_id": "sunset_bird", "weight": 5, "availability": "always"},
+         {"spirit_id": "snow_penguin", "weight": 5, "availability": "always"},
+         {"spirit_id": "cloud_sheep", "weight": 5, "availability": "always"},
+         {"spirit_id": "rainbow_butterfly", "weight": 6, "availability": "always"},
+         {"spirit_id": "lighthouse_bear", "weight": 6, "availability": "always"},
+         {"spirit_id": "moon_fox", "weight": 6, "availability": "always"},
+         {"spirit_id": "wind_hawk", "weight": 6, "availability": "always"},
+         {"spirit_id": "shadow_lantern", "weight": 3, "availability": "always"},
+         {"spirit_id": "aurora_deer", "weight": 4, "availability": "always"},
+         {"spirit_id": "star_whale", "weight": 3, "availability": "always"}]},
      "placeholder": true}
   ]
 }

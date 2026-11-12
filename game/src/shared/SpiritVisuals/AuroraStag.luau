@@ -1,29 +1,61 @@
--- 光の精霊「오로라 사슴(aurora_stag)」★4 の見た目サンプル(未確定案, 第3版: かわいい子鹿寄り)
--- 3D モデルを使わず、楕円体と管(円柱+球)の組み合わせで作る
---   頭を大きく丸く・大きな目とハイライト・短い鼻先・頬の赤み・大きな耳・短く太い脚・背中の白い斑点・ふわふわの尾
---   角は第2版の曲線・先細り・色の流れを維持(頭の大きさに合わせて縮小)
--- 座標は足元中央が原点、前方 = -Z。試作のため全パーツ Anchored で毎フレーム CFrame を更新する
+--!strict
+-- 光の精霊「오로라 사슴(aurora_stag)」★4 の見た目(第4版 A+B: ちびっこ体型 + にっこり閉じた三日月目)
+-- 2026-11-12 ユーザー決定。形・数値は docs/previews/aurora_stag_v4ab_preview.html と同じ
+--   2 頭身(頭 ≒ 胴+脚)・首なし・丸い胴・短く太い脚・短く先が丸い光の角・頭の後ろの後光
+--   目は表面に沿う円弧(管 3 本)の閉じ目で固定(まばたきなし)。★4 の神秘感はオーロラの帯・後光・粒子で出す
+-- 3D モデルを使わず、楕円体と管(円柱+球)・Beam・パーティクル・ライトで組む
+-- 配置: ReplicatedStorage.Shared.SpiritVisuals.AuroraStag(Rojo: game/src/shared/SpiritVisuals/AuroraStag.luau)
+-- 利用: クライアント専用の見た目(判定・報酬には使わない)。依存モジュール: なし(RunService のみ)
+-- 構成: パーツ 51 / Beam 3 / ParticleEmitter 1 / PointLight 1 / Attachment 6(帯の端点は既存パーツに付ける)
+-- 座標は足元中央が原点、前方 = -Z。寸法は SCALE = 1 の値で書き、生成時に SCALE 倍する
+-- 全パーツ Anchored で Heartbeat ごとに CFrame を更新する
 
 local RunService = game:GetService("RunService")
 
 local AuroraStag = {}
 
-local DEFAULT_PALETTE = {
-	body = Color3.fromRGB(206, 242, 236), -- 体: 淡いミント
-	cream = Color3.fromRGB(246, 255, 250), -- 鼻先・斑点・尾: クリーム白
-	pink = Color3.fromRGB(255, 176, 196), -- 頬・耳の内側
-	dark = Color3.fromRGB(44, 46, 66), -- 目・鼻・蹄
-	aurora = { -- 角・帯のグラデーション(緑 → 水色 → 紫)
+-- 全体の倍率(位置・大きさ・Beam 幅/曲がり・粒子の大きさ/速さ・光の範囲に一律でかける)
+-- 1.3 で高さ約 4 スタッド。Studio で見て決める
+local SCALE = 1.3
+
+-- 配色(外見スキン商品はこの表の差し替えで作れる)。キーは第3版から変えていない
+export type Palette = {
+	body: Color3, -- 体: 淡いミント
+	cream: Color3, -- 鼻先・斑点・尾: クリーム白
+	pink: Color3, -- 頬・耳の内側
+	dark: Color3, -- 目・鼻・蹄
+	aurora: { Color3 }, -- 角・帯・後光のグラデーション(緑 → 水色 → 紫)の 3 色
+}
+
+local DEFAULT_PALETTE: Palette = {
+	body = Color3.fromRGB(206, 242, 236),
+	cream = Color3.fromRGB(246, 255, 250),
+	pink = Color3.fromRGB(255, 176, 196),
+	dark = Color3.fromRGB(44, 46, 66),
+	aurora = {
 		Color3.fromRGB(107, 255, 184),
 		Color3.fromRGB(90, 215, 255),
 		Color3.fromRGB(180, 140, 255),
 	},
 }
 
-local HEAD_PIVOT = CFrame.new(0, 2.4, -0.9) -- 首の付け根(頭の回転軸)
-local LOOK_UP = math.rad(10) -- 少し上を見上げる姿勢
+-- 寸法(SCALE = 1 の値)
+local BODY_SIZE = Vector3.new(1.25, 1.0, 1.45)
+local BODY_CENTER = Vector3.new(0, 0.95, 0.05)
+local HEAD_SIZE = Vector3.new(1.3, 1.2, 1.15)
+local HEAD_CENTER = Vector3.new(0, 1.95, -0.35)
+local HEAD_RADII = HEAD_SIZE / 2
+local HEAD_PIVOT = Vector3.new(0, 1.5, -0.3) -- 首の付け根(頭の回転軸)
+local LEG_SIZE = Vector3.new(0.34, 0.62, 0.36)
+local HOOF_SIZE = Vector3.new(0.32, 0.14, 0.34)
+local EYE_WIDTH = 0.05 -- 閉じ目の線の太さ
+local HALO_SIZE = Vector3.new(0.04, 2.1, 2.1)
 
-local function auroraAt(pal, u)
+type Group = "body" | "head"
+type Item = { part: BasePart, group: Group, cf: CFrame, antlerU: number? } -- cf はグループ基準(SCALE 済み)
+type Ribbon = { beam: Beam, phase: number }
+
+local function auroraAt(pal: Palette, u: number): Color3
 	u = math.clamp(u, 0, 1)
 	if u < 0.5 then
 		return pal.aurora[1]:Lerp(pal.aurora[2], u * 2)
@@ -31,15 +63,35 @@ local function auroraAt(pal, u)
 	return pal.aurora[2]:Lerp(pal.aurora[3], (u - 0.5) * 2)
 end
 
-local function bezier(p0, p1, p2, u)
+local function bezier(p0: Vector3, p1: Vector3, p2: Vector3, u: number): Vector3
 	local v = 1 - u
 	return p0 * (v * v) + p1 * (2 * v * u) + p2 * (u * u)
 end
 
-local function basePart(name, size, color, material, transparency, parent)
+-- SCALE = 1 の CFrame を SCALE 倍の位置へ(向きはそのまま)
+local function scaled(cf: CFrame): CFrame
+	return CFrame.new(cf.Position * SCALE) * cf.Rotation
+end
+
+-- 楕円体(半径 radii)の前面(-Z 側)の点 (x, y) と外向きの法線
+local function surfacePoint(radii: Vector3, x: number, y: number): (Vector3, Vector3)
+	local k = 1 - (x / radii.X) ^ 2 - (y / radii.Y) ^ 2
+	local z = -radii.Z * math.sqrt(math.max(k, 0))
+	local p = Vector3.new(x, y, z)
+	return p, Vector3.new(x / radii.X ^ 2, y / radii.Y ^ 2, z / radii.Z ^ 2).Unit
+end
+
+-- 楕円体の前面の点 (x, y) に表面へ沿わせて置く CFrame(-Z が外向き、lift だけ外へ浮かせる)
+local function onSurface(radii: Vector3, x: number, y: number, lift: number): CFrame
+	local p, n = surfacePoint(radii, x, y)
+	return CFrame.lookAt(p + n * lift, p + n * (lift + 1))
+end
+
+-- 当たり判定・影なしの装飾パーツを作る(size は SCALE = 1 の値)
+local function basePart(name: string, size: Vector3, color: Color3, material: Enum.Material, transparency: number, parent: Instance): Part
 	local p = Instance.new("Part")
 	p.Name = name
-	p.Size = size
+	p.Size = size * SCALE
 	p.Color = color
 	p.Material = material
 	p.Transparency = transparency
@@ -52,22 +104,27 @@ local function basePart(name, size, color, material, transparency, parent)
 	return p
 end
 
-function AuroraStag.create(parent, origin, palette)
-	palette = palette or DEFAULT_PALETTE
+function AuroraStag.create(parent: Instance, origin: CFrame, palette: Palette?): (Model, () -> ())
+	local pal: Palette = palette or DEFAULT_PALETTE
+	-- 多数が同時に出ても動きがそろわないよう、開始位相をずらす(見た目だけの乱数)
+	local rng = Random.new()
+	local timeOffset = rng:NextNumber(0, 10)
 
 	local model = Instance.new("Model")
 	model.Name = "AuroraStag"
 
-	local items = {} -- { part, group("body"|"head"), cf(ローカル), antlerU }
-	local function add(part, group, cf, antlerU)
-		table.insert(items, { part = part, group = group, cf = cf, antlerU = antlerU })
+	local MAT = Enum.Material.SmoothPlastic
+	local NEON = Enum.Material.Neon
+	local items: { Item } = {}
+
+	-- cf・座標はすべて SCALE = 1 で渡す
+	local function add(part: BasePart, group: Group, cf: CFrame, antlerU: number?): BasePart
+		table.insert(items, { part = part, group = group, cf = scaled(cf), antlerU = antlerU })
 		return part
 	end
 
-	local MAT = Enum.Material.SmoothPlastic
-
 	-- 楕円体(SpecialMesh Sphere)
-	local function ell(name, size, color, group, cf, material, transparency)
+	local function ell(name: string, size: Vector3, color: Color3, group: Group, cf: CFrame, material: Enum.Material?, transparency: number?): BasePart
 		local p = basePart(name, size, color, material or MAT, transparency or 0, model)
 		local m = Instance.new("SpecialMesh")
 		m.MeshType = Enum.MeshType.Sphere
@@ -75,105 +132,109 @@ function AuroraStag.create(parent, origin, palette)
 		return add(p, group, cf)
 	end
 
-	local function ball(name, p, w, color, material, group, antlerU)
+	local function ball(name: string, pos: Vector3, w: number, color: Color3, material: Enum.Material, group: Group, antlerU: number?): BasePart
 		local b = basePart(name, Vector3.new(w, w, w), color, material, 0, model)
 		b.Shape = Enum.PartType.Ball
-		return add(b, group, CFrame.new(p), antlerU)
+		return add(b, group, CFrame.new(pos), antlerU)
 	end
 
-	-- 点 a→b の円柱 + 終端の球(管)
-	local function tube(name, a, b, w, color, material, group, antlerU)
+	-- 点 a→b の管(円柱、endBall なら終端に球)
+	local function tube(name: string, a: Vector3, b: Vector3, w: number, color: Color3, material: Enum.Material, group: Group, antlerU: number?, endBall: boolean)
 		local d = b - a
-		local up = math.abs(d.Unit.Y) > 0.99 and Vector3.zAxis or Vector3.yAxis
+		local up = if math.abs(d.Unit.Y) > 0.99 then Vector3.zAxis else Vector3.yAxis
 		local cyl = basePart(name, Vector3.new(d.Magnitude, w, w), color, material, 0, model)
 		cyl.Shape = Enum.PartType.Cylinder
 		add(cyl, group, CFrame.lookAt((a + b) / 2, b, up) * CFrame.Angles(0, math.rad(90), 0), antlerU) -- 円柱の軸(X)を進行方向へ
-		ball(name, b, w, color, material, group, antlerU)
-	end
-
-	-- 角用: 2次ベジェ曲線に沿って管を並べ、太さ w0→w1、色はオーロラ(u0→u1)
-	local function antler(p0, p1, p2, n, w0, w1, u0, u1)
-		ball("Antler", p0, w0, auroraAt(palette, u0), Enum.Material.Neon, "head", u0)
-		for i = 0, n - 1 do
-			local k = (i + 0.5) / n
-			local u = u0 + (u1 - u0) * k
-			tube("Antler", bezier(p0, p1, p2, i / n), bezier(p0, p1, p2, (i + 1) / n), w0 + (w1 - w0) * k, auroraAt(palette, u), Enum.Material.Neon, "head", u)
+		if endBall then
+			ball(name, b, w, color, material, group, antlerU)
 		end
 	end
 
-	-- 胴体: 丸くて短い(胸 + 胴)
-	local body = ell("Body", Vector3.new(1.3, 1.2, 1.8), palette.body, "body", CFrame.new(0, 1.7, 0.15))
-	ell("Chest", Vector3.new(1.1, 1.15, 1.0), palette.body, "body", CFrame.new(0, 1.85, -0.55))
+	local headCf = CFrame.new(HEAD_CENTER)
 
-	-- 背中の白い斑点(子鹿の模様)
-	for _, sp in ipairs({ { -0.3, 2.25, -0.1 }, { 0.3, 2.25, -0.1 }, { 0, 2.3, 0.35 }, { -0.35, 2.2, 0.6 }, { 0.35, 2.2, 0.6 }, { 0.15, 2.3, -0.4 } }) do
-		ell("Spot", Vector3.new(0.2, 0.06, 0.2), palette.cream, "body", CFrame.new(sp[1], sp[2], sp[3]))
+	-- 胴・背中の斑点・尾
+	local body = ell("Body", BODY_SIZE, pal.body, "body", CFrame.new(BODY_CENTER))
+	for _, sp in { Vector3.new(-0.25, 1.4, 0.3), Vector3.new(0.25, 1.4, 0.3), Vector3.new(0, 1.32, 0.62) } do
+		ell("Spot", Vector3.new(0.2, 0.06, 0.2), pal.cream, "body", CFrame.new(sp))
+	end
+	ell("Tail", Vector3.new(0.34, 0.38, 0.3), pal.cream, "body", CFrame.new(0, 1.15, 0.8) * CFrame.Angles(math.rad(-30), 0, 0))
+
+	-- 脚: 短く太い楕円体 + 蹄
+	for _, s in { -1, 1 } do
+		for _, z in { -0.35, 0.42 } do
+			ell("Leg", LEG_SIZE, pal.body, "body", CFrame.new(s * 0.33, 0.38, z))
+			ell("Hoof", HOOF_SIZE, pal.dark, "body", CFrame.new(s * 0.33, 0.08, z))
+		end
 	end
 
-	-- ふわふわの尾(上向き)
-	ell("Tail", Vector3.new(0.32, 0.4, 0.3), palette.cream, "body", CFrame.new(0, 2.0, 1.05) * CFrame.Angles(math.rad(-40), 0, 0))
+	-- 頭・鼻先・鼻
+	local head = ell("Head", HEAD_SIZE, pal.body, "head", headCf)
+	ell("Muzzle", Vector3.new(0.52, 0.36, 0.34), pal.cream, "head", headCf * onSurface(HEAD_RADII, 0, -0.27, -0.07))
+	ell("Nose", Vector3.new(0.14, 0.09, 0.07), pal.dark, "head", headCf * onSurface(HEAD_RADII, 0, -0.17, 0.06))
 
-	-- 脚: 太さ一定のカプセル(段差なし)+ 後脚の太もも + 蹄
-	for _, s in ipairs({ -1, 1 }) do
-		tube("Leg", Vector3.new(s * 0.35, 1.4, -0.55), Vector3.new(s * 0.35, 0.22, -0.55), 0.28, palette.body, MAT, "body")
-		tube("Leg", Vector3.new(s * 0.38, 1.5, 0.72), Vector3.new(s * 0.38, 0.22, 0.75), 0.28, palette.body, MAT, "body")
-		ell("Thigh", Vector3.new(0.45, 0.75, 0.7), palette.body, "body", CFrame.new(s * 0.38, 1.45, 0.7))
-		ell("Hoof", Vector3.new(0.3, 0.16, 0.34), palette.dark, "body", CFrame.new(s * 0.35, 0.1, -0.55))
-		ell("Hoof", Vector3.new(0.3, 0.16, 0.34), palette.dark, "body", CFrame.new(s * 0.38, 0.1, 0.75))
-	end
-
-	-- 首: 短く太い
-	tube("Neck", Vector3.new(0, 2.0, -0.75), Vector3.new(0, 2.55, -0.95), 0.45, palette.body, MAT, "body")
-
-	-- 頭: 大きく丸い頭 + 短い鼻先 + 小さな鼻
-	ell("Head", Vector3.new(1.1, 1.0, 1.0), palette.body, "head", CFrame.new(0, 2.95, -1.15))
-	ell("Muzzle", Vector3.new(0.5, 0.4, 0.45), palette.cream, "head", CFrame.new(0, 2.75, -1.6))
-	ell("Nose", Vector3.new(0.14, 0.1, 0.08), palette.dark, "head", CFrame.new(0, 2.82, -1.83))
-
-	for _, s in ipairs({ -1, 1 }) do
-		-- 大きな目 + ハイライト
-		ell("Eye", Vector3.new(0.26, 0.3, 0.12), palette.dark, "head", CFrame.new(s * 0.28, 3.05, -1.58) * CFrame.Angles(0, s * math.rad(-20), 0))
-		ell("EyeShine", Vector3.new(0.08, 0.08, 0.04), Color3.new(1, 1, 1), "head", CFrame.new(s * 0.24, 3.12, -1.65), Enum.Material.Neon)
+	for _, s in { -1, 1 } do
+		-- にっこり閉じた三日月目: 表面上の円弧(∩)を管 3 本でつなぐ
+		local pts: { Vector3 } = {}
+		for _, deg in { 160, 113, 67, 20 } do
+			local a = math.rad(deg)
+			local p, n = surfacePoint(HEAD_RADII, s * 0.26 + 0.12 * math.cos(a), 0.09 * math.sin(a))
+			table.insert(pts, HEAD_CENTER + p + n * 0.015)
+		end
+		ball("Eye", pts[1], EYE_WIDTH, pal.dark, MAT, "head")
+		for i = 1, 3 do
+			tube("Eye", pts[i], pts[i + 1], EYE_WIDTH, pal.dark, MAT, "head", nil, true)
+		end
 		-- 頬の赤み
-		ell("Cheek", Vector3.new(0.2, 0.12, 0.06), palette.pink, "head", CFrame.new(s * 0.4, 2.85, -1.5) * CFrame.Angles(0, s * math.rad(-30), 0), MAT, 0.25)
-		-- 大きな耳(外側へ寝かせる)+ 内側のピンク
-		local earCf = CFrame.new(s * 0.6, 3.25, -1.0) * CFrame.Angles(0, 0, s * math.rad(-60))
-		ell("Ear", Vector3.new(0.22, 0.65, 0.4), palette.body, "head", earCf)
-		ell("EarInner", Vector3.new(0.12, 0.45, 0.25), palette.pink, "head", earCf * CFrame.new(0, 0, -0.08))
+		ell("Cheek", Vector3.new(0.2, 0.1, 0.04), pal.pink, "head", headCf * onSurface(HEAD_RADII, s * 0.42, -0.14, 0), MAT, 0.25)
+		-- 耳(外へ寝かせる)+ 内側の桃色
+		local earCf = headCf * CFrame.new(s * 0.62, 0.28, 0.1) * CFrame.Angles(0, 0, s * math.rad(-65))
+		ell("Ear", Vector3.new(0.22, 0.55, 0.36), pal.body, "head", earCf)
+		ell("EarInner", Vector3.new(0.12, 0.38, 0.22), pal.pink, "head", earCf * CFrame.new(0, 0, -0.08))
 	end
 
-	-- 角(第2版の形を頭に合わせて縮小)と帯の端点
-	local ribbonEnds = {}
-	for _, s in ipairs({ -1, 1 }) do
-		local p0, p1, p2 = Vector3.new(s * 0.25, 3.4, -1.15), Vector3.new(s * 0.75, 4.0, -1.1), Vector3.new(s * 0.7, 4.9, -0.5)
-		antler(p0, p1, p2, 8, 0.14, 0.06, 0, 1)
-		local b1 = bezier(p0, p1, p2, 0.35)
-		antler(b1, b1 + Vector3.new(0, 0.4, -0.4), b1 + Vector3.new(s * -0.08, 0.64, -0.6), 3, 0.09, 0.045, 0.35, 0.6)
-		local b2 = bezier(p0, p1, p2, 0.65)
-		antler(b2, b2 + Vector3.new(s * 0.32, 0.24, -0.16), b2 + Vector3.new(s * 0.56, 0.48, -0.08), 3, 0.08, 0.04, 0.65, 0.9)
-
-		local a = add(basePart("RibbonStart", Vector3.new(0.1, 0.1, 0.1), palette.body, MAT, 1, model), "head", CFrame.new(p2))
-		local b = add(basePart("RibbonEnd", Vector3.new(0.1, 0.1, 0.1), palette.body, MAT, 1, model), "body", CFrame.new(s * 1.2, 3.6, 2.8))
-		table.insert(ribbonEnds, { a = a, b = b, phase = s > 0 and 0 or 1.7, w0 = 0.6 })
+	-- 角: 短い 2 節 + 先の丸い光の玉、途中から小枝 1 本(先も玉)。色はオーロラが流れる
+	local antlerTips: { BasePart } = {}
+	for _, s in { -1, 1 } do
+		local p0 = HEAD_CENTER + Vector3.new(s * 0.24, 0.5, 0)
+		local p1 = HEAD_CENTER + Vector3.new(s * 0.4, 0.8, 0)
+		local p2 = HEAD_CENTER + Vector3.new(s * 0.5, 0.95, 0.1)
+		ball("Antler", p0, 0.18, auroraAt(pal, 0), NEON, "head", 0)
+		local m1 = bezier(p0, p1, p2, 0.5)
+		tube("Antler", p0, m1, 0.17, auroraAt(pal, 0.3), NEON, "head", 0.3, true)
+		tube("Antler", m1, p2, 0.15, auroraAt(pal, 0.7), NEON, "head", 0.7, false)
+		table.insert(antlerTips, ball("AntlerTip", p2, 0.24, auroraAt(pal, 1), NEON, "head", 1))
+		local bt = m1 + Vector3.new(s * 0.17, 0.1, -0.12)
+		tube("Antler", m1, bt, 0.11, auroraAt(pal, 0.6), NEON, "head", 0.6, false)
+		ball("AntlerTip", bt, 0.17, auroraAt(pal, 0.9), NEON, "head", 0.9)
 	end
-	local maneA = add(basePart("RibbonStart", Vector3.new(0.1, 0.1, 0.1), palette.body, MAT, 1, model), "body", CFrame.new(0, 2.6, -0.8))
-	local maneB = add(basePart("RibbonEnd", Vector3.new(0.1, 0.1, 0.1), palette.body, MAT, 1, model), "body", CFrame.new(0, 2.4, 2.6))
-	table.insert(ribbonEnds, { a = maneA, b = maneB, phase = 0.9, w0 = 0.45 })
 
-	-- オーロラの帯(Beam)。CurveSize を時間で揺らして波打たせる
-	local beams = {}
-	for _, r in ipairs(ribbonEnds) do
-		local a0 = Instance.new("Attachment")
-		a0.Parent = r.a
-		local a1 = Instance.new("Attachment")
-		a1.Parent = r.b
+	-- 後光: 頭の後ろの薄い円盤(円柱の軸を前後に向ける)
+	local halo = basePart("Halo", HALO_SIZE, pal.aurora[2], NEON, 0.86, model)
+	halo.Shape = Enum.PartType.Cylinder
+	add(halo, "head", headCf * CFrame.new(0, 0.3, 0.6) * CFrame.Angles(0, math.rad(90), 0))
+
+	-- オーロラの帯(Beam)。端点は既存パーツの Attachment(角の先の玉 → 胴、頭の後ろ → 胴)
+	local function attach(part: BasePart, localPos: Vector3): Attachment
+		local a = Instance.new("Attachment")
+		a.Position = localPos * SCALE
+		a.Parent = part
+		return a
+	end
+	-- 胴の Attachment は胴の中心からの相対位置で置く
+	local ribbonDefs = {
+		{ a = attach(antlerTips[1], Vector3.zero), b = attach(body, Vector3.new(-1.0, 2.3, 1.9) - BODY_CENTER), phase = 1.7, w0 = 0.45 },
+		{ a = attach(antlerTips[2], Vector3.zero), b = attach(body, Vector3.new(1.0, 2.3, 1.9) - BODY_CENTER), phase = 0, w0 = 0.45 },
+		{ a = attach(head, Vector3.new(0, 0.3, 0.45)), b = attach(body, Vector3.new(0, 1.25, 1.9) - BODY_CENTER), phase = 0.9, w0 = 0.35 },
+	}
+	local ribbons: { Ribbon } = {}
+	for _, r in ribbonDefs do
 		local beam = Instance.new("Beam")
-		beam.Attachment0 = a0
-		beam.Attachment1 = a1
+		beam.Attachment0 = r.a
+		beam.Attachment1 = r.b
 		beam.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, palette.aurora[1]),
-			ColorSequenceKeypoint.new(0.5, palette.aurora[2]),
-			ColorSequenceKeypoint.new(1, palette.aurora[3]),
+			ColorSequenceKeypoint.new(0, pal.aurora[1]),
+			ColorSequenceKeypoint.new(0.5, pal.aurora[2]),
+			ColorSequenceKeypoint.new(1, pal.aurora[3]),
 		})
 		beam.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 0.25),
@@ -181,31 +242,31 @@ function AuroraStag.create(parent, origin, palette)
 		})
 		beam.LightEmission = 1
 		beam.LightInfluence = 0
-		beam.Width0 = r.w0
-		beam.Width1 = 0.1
+		beam.Width0 = r.w0 * SCALE
+		beam.Width1 = 0.08 * SCALE
 		beam.FaceCamera = true
 		beam.Segments = 24
-		beam.Parent = r.a
-		table.insert(beams, { beam = beam, phase = r.phase })
+		beam.Parent = r.a.Parent
+		table.insert(ribbons, { beam = beam, phase = r.phase })
 	end
 
-	-- 体から立ちのぼる光の粒
+	-- 胴から立ちのぼる光の粒
 	local pe = Instance.new("ParticleEmitter")
 	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
 	pe.LightEmission = 1
 	pe.LightInfluence = 0
-	pe.Color = ColorSequence.new(palette.aurora[1], palette.aurora[3])
-	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) })
+	pe.Color = ColorSequence.new(pal.aurora[1], pal.aurora[3])
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3 * SCALE), NumberSequenceKeypoint.new(1, 0) })
 	pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) })
 	pe.Lifetime = NumberRange.new(1.5, 2.5)
 	pe.Rate = 8
-	pe.Speed = NumberRange.new(0.2, 0.5)
+	pe.Speed = NumberRange.new(0.2 * SCALE, 0.5 * SCALE)
 	pe.SpreadAngle = Vector2.new(180, 180)
-	pe.Acceleration = Vector3.new(0, 0.3, 0)
+	pe.Acceleration = Vector3.new(0, 0.3 * SCALE, 0)
 	pe.Parent = body
 
 	local light = Instance.new("PointLight")
-	light.Range = 16
+	light.Range = 16 * SCALE
 	light.Brightness = 1.5
 	light.Shadows = false
 	light.Parent = body
@@ -213,38 +274,44 @@ function AuroraStag.create(parent, origin, palette)
 	model.PrimaryPart = body
 	model.Parent = parent
 
-	-- アニメーション: わずかに浮遊・見上げたままゆっくり首をかしげる・角の色が流れる・帯が波打つ
-	local t0 = os.clock()
-	local conn
+	-- アニメーション: わずかに浮遊・ゆっくりうなずき・首かしげ・角の色が流れる・帯が波打つ・後光の明滅
+	local pivot = CFrame.new(HEAD_PIVOT * SCALE)
+	local pivotInv = pivot:Inverse()
+	local t0 = os.clock() - timeOffset
+	local conn: RBXScriptConnection? = nil
 	conn = RunService.Heartbeat:Connect(function()
 		if not model.Parent then
-			conn:Disconnect()
+			if conn then
+				conn:Disconnect()
+			end
 			return
 		end
 		local t = os.clock() - t0
-		local root = origin * CFrame.new(0, 0.12 * math.sin(t * 1.2), 0)
-		local nod = LOOK_UP + math.rad(4) * math.sin(t * 0.8)
-		local tilt = math.rad(6) * math.sin(t * 0.5)
-		local headRoot = root * HEAD_PIVOT * CFrame.Angles(nod, 0, tilt) * HEAD_PIVOT:Inverse()
+		local root = origin * CFrame.new(0, 0.1 * SCALE * math.sin(t * 1.2), 0)
+		local headRoot = root * pivot * CFrame.Angles(math.rad(3) * math.sin(t * 0.8), 0, math.rad(6) * math.sin(t * 0.5)) * pivotInv
 
 		local flow = (t * 0.15) % 1
-		for _, it in ipairs(items) do
-			it.part.CFrame = (it.group == "head" and headRoot or root) * it.cf
-			if it.antlerU then
+		for _, it in items do
+			it.part.CFrame = (if it.group == "head" then headRoot else root) * it.cf
+			local u0 = it.antlerU
+			if u0 then
 				-- 三角波で 緑→紫→緑 と循環させる
-				local u = (it.antlerU + flow) % 1
-				it.part.Color = auroraAt(palette, u < 0.5 and u * 2 or (1 - u) * 2)
+				local u = (u0 + flow) % 1
+				it.part.Color = auroraAt(pal, if u < 0.5 then u * 2 else (1 - u) * 2)
 			end
 		end
-		for _, b in ipairs(beams) do
-			b.beam.CurveSize0 = 1.2 * math.sin(t * 1.3 + b.phase)
-			b.beam.CurveSize1 = -1.0 * math.sin(t * 1.1 + b.phase)
+		for _, r in ribbons do
+			r.beam.CurveSize0 = 1.0 * SCALE * math.sin(t * 1.3 + r.phase)
+			r.beam.CurveSize1 = -0.8 * SCALE * math.sin(t * 1.1 + r.phase)
 		end
-		light.Color = auroraAt(palette, 0.5 + 0.5 * math.sin(t * 0.6))
+		halo.Transparency = 0.86 + 0.03 * math.sin(t * 1.5)
+		light.Color = auroraAt(pal, 0.5 + 0.5 * math.sin(t * 0.6))
 	end)
 
 	local function destroy()
-		conn:Disconnect()
+		if conn then
+			conn:Disconnect()
+		end
 		model:Destroy()
 	end
 	return model, destroy

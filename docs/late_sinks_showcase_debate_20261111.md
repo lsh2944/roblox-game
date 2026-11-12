@@ -329,3 +329,6 @@
 - 도구 econ_sim 반영 완료(상세 `docs/sinks_capture_handoff.md`, `sinks_capture_impl_plan.md` 13절). 최종 200시드 `outputs/20261111_tool_on_final200`(전원 star4)은 approved가 off(`20261111_wick_final200`)와 동일, 심지 부족 동일, balanced ★4 획득/일(ridge 해금 후) 1.49→1.59, D60 사냥 재료 잔고 cave 132→82·ridge 154→98(meadow·forest는 거의 그대로, 수용).
 - 코드 리뷰 반영: 도구 재고 하한 설정 추가(기본 0), 도구 on일 때 심지 제작이 유한 외형용 사냥 재료를 피하는 정책 보정.
 - hardcore 유한 외형 완료 지연(off D52 → on D56, INFO)은 **수용**. 레시피 사냥 재료 1 → 도구 3을 quick으로 시험(`outputs/20261111_tool_on_q3`: hardcore D51→D54, balanced cave·ridge 적체 감소 약 24%)했으나 **레시피는 1 → 2 유지**(적체 해소 효과 우선).
+
+## 사용자 결정 (2026-11-12)
+- **상위호환 금지 원칙 폐지**(11/11 "종 단위 역할 보존만"을 대체). 도감·외형 수집 플레이어가 있고, 쓰지 않는 하위 종은 나중에 교배 등 새 시스템으로 활용을 검토한다(미설계). 정령 20종 확장 초안은 `docs/spirit_roster_expansion_20261112.md`.

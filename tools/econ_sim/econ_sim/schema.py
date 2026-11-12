@@ -14,7 +14,7 @@ META_KEYS = {"placeholder": "bool", "notes": "str"}
 
 @dataclass(frozen=True)
 class Issue:
-    level: str  # "ERROR" | "WARN"
+    level: str  # "ERROR" | "WARN" | "INFO"（INFO は合否・警告件数に数えない参考情報）
     code: str
     path: str
     message: str
@@ -29,6 +29,11 @@ def err(out: list[Issue], code: str, path: str, message: str) -> None:
 
 def warn(out: list[Issue], code: str, path: str, message: str) -> None:
     out.append(Issue("WARN", code, path, message))
+
+
+def info(out: list[Issue], code: str, path: str, message: str) -> None:
+    """参考情報。ERROR・WARN と違い合否や警告件数に影響しない."""
+    out.append(Issue("INFO", code, path, message))
 
 
 def _type_name(v: Any) -> str:

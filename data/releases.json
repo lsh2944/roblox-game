@@ -3,9 +3,12 @@
   "notes": "출시 단계별 필드·정령 범위. spirit_ids의 각 정령은 field_ids 합집합 중 어딘가에서 상시(availability=always) 획득 가능해야 한다(검증기 검사).",
   "releases": [
     {"id": "week2", "name": "2주판", "field_ids": ["meadow", "forest"],
-     "spirit_ids": ["sparkle", "dewdrop", "flower_lamp", "shard_light", "sunset_bird", "rainbow_butterfly"],
-     "placeholder": true, "notes": "2주판 정령 목록은 가안"},
+     "spirit_ids": ["sparkle", "dewdrop", "flower_lamp", "shard_light", "sunset_bird", "rainbow_butterfly",
+                    "moss_puff", "mushroom_lamp", "leaf_bunny", "firefly_squirrel"],
+     "placeholder": true, "notes": "2주판 정령 목록은 가안(2026-11-12 숲 새 종 4종 추가로 10종)"},
     {"id": "week4", "name": "4주판", "field_ids": ["meadow", "forest", "cave", "ridge"],
-     "spirit_ids": ["sparkle", "dewdrop", "flower_lamp", "shard_light", "sunset_bird", "rainbow_butterfly", "lighthouse_bear", "moon_fox", "shadow_lantern", "aurora_deer"]}
+     "spirit_ids": ["sparkle", "dewdrop", "flower_lamp", "shard_light", "sunset_bird", "rainbow_butterfly", "lighthouse_bear", "moon_fox", "shadow_lantern", "aurora_deer",
+                    "moss_puff", "mushroom_lamp", "leaf_bunny", "firefly_squirrel", "crystal_turtle", "starlight_bat",
+                    "snow_penguin", "cloud_sheep", "wind_hawk", "star_whale"]}
   ]
 }

@@ -3,7 +3,9 @@
 代表状態 = config/static_reference.json の g2_states（フィールド × 入口/出口）× ボトルネック重み 4 種。
 在庫モード（レベルは状態の staff.spirit_level）:
 - one_of_each_available: そのフィールドまでの捕獲表に出る種 + 開始精霊を各 1 体。部分集合 DP で厳密、ヒューリスティックとの差も記録。
-  枠が余ると全種が自動的に使われるため、収束判定には使わない（参考）。
+  枠が余ると全種が自動的に使われるため、収束判定には使わない（参考）。部分集合 DP は placement.EXACT_MAX_SPIRITS 体までで、
+  それを超える状態（2026-11-12 の 20 種拡張後の cave・ridge）は厳密解・除外損失を省き、ヒューリスティック行だけを
+  gap 空欄・proven_optimal=false で出す（gap 集計の対象外）。
 - unlimited_copies: 同じ種を何体でも使える（重複所持が進んだ状態）。施設間で在庫を共有しないので
   施設ごとの重複組合せ全列挙で厳密。収束判定（使用・除外損失）はこのモードだけで行う。
 同行（パーティ）は対象外（施設配置のみ）。
@@ -90,10 +92,18 @@ def analyze(econ: Economy, ref: dict[str, Any], start_species: list[str]) -> lis
     rows: list[list[str]] = []
     for case in representative_cases(model, ref, start_species):
         spirits = [(sp, min(case["level"], econ.max_spirit_level(sp))) for sp in case["species"]]
+        base = [case["case_id"], case["state_id"], case["field_id"], case["mode"], "one_of_each_available"]
+        if len(spirits) > placement.EXACT_MAX_SPIRITS:
+            # 部分集合 DP の対応数を超える: 厳密解なしでヒューリスティックだけ記録（gap は空欄＝集計対象外）
+            heur = placement.heuristic(econ, case["facs"], spirits, case["weights"])
+            h_used = sorted({spirits[i][0] for idxs in heur.assign.values() for i in idxs}, key=model.spirit_order.index)
+            rows.append(base + ["heuristic_greedy_2swap", _fmt(heur.value), "", "", "false", "", "",
+                                ";".join(h_used), json.dumps(placement.describe(heur.assign, spirits), sort_keys=True, ensure_ascii=False)])
+            rows.extend(_unlimited(econ, case, spirits))
+            continue
         best = placement.exact(econ, case["facs"], spirits, case["weights"])
         heur = placement.heuristic(econ, case["facs"], spirits, case["weights"])
         used = sorted({spirits[i][0] for idxs in best.assign.values() for i in idxs}, key=model.spirit_order.index)
-        base = [case["case_id"], case["state_id"], case["field_id"], case["mode"], "one_of_each_available"]
         rows.append(base + ["exact_subset_dp", _fmt(best.value), _fmt(best.value), "0.0000", "true", "", "",
                             ";".join(used), json.dumps(placement.describe(best.assign, spirits), sort_keys=True, ensure_ascii=False)])
         gap = 1 - heur.value / best.value if best.value > 0 else 0.0

@@ -42,7 +42,7 @@ roblox-game/
 │   │   ├── schema.py             # 표준 라이브러리 mini 스키마 검증기
 │   │   ├── data_load.py          # manifest 기반 로더, 패치(ops), placeholder 수집
 │   │   ├── model.py              # 데이터 인덱스·요구 비용 열거(검증·static·2단계 sim 공용)
-│   │   ├── validate.py           # 스키마·참조·게임 규칙·표 최신 여부·지배 경고
+│   │   ├── validate.py           # 스키마·참조·게임 규칙·표 최신 여부·지배 참고(INFO)
 │   │   ├── formulas.py           # 순수 공식(Luau Formulas 모듈로 1:1 이식 대상)
 │   │   ├── tables.py             # 곡선 → 정수표 생성 + sha256
 │   │   ├── rng.py                # sha256 기반 난수 파생
@@ -113,7 +113,7 @@ python3 -m unittest discover -s tests        # 전체 테스트
 | `spirit_daily.csv` | 페르소나×일×종의 반복 평균(보유 수·평균 레벨·시설 배치 분·동행 분·놓아주기) |
 | `capture_stats.csv` | 종별 첫 획득률(D14/D30/기간), 미획득률, 첫 획득일 p10~p99(미도달을 +∞로 포함, 공란=기간 내 미도달), p99 표본 부족 표시, 완료자 조우 수, 해석식 조우 수 |
 | `checks.csv` | 판정: `estimate`·`draft_evaluation`(PASS/WARN/FAIL/INCONCLUSIVE/INFO)·`approval_state`·`evidence_status` |
-| `allocation.csv` | 대표 상태 32개(필드 진입/종료 8 × 병목 가중 4) × 재고 2모드의 정확 최적 배치·종 제외 손실. `one_of_each_available`(종별 1마리, 부분집합 DP, 휴리스틱 gap 기록)은 칸이 남으면 모든 종이 자동으로 쓰여 참고용이고, 수렴 판정은 `unlimited_copies`(종 복제 무제한, 시설별 중복조합 전수)만 쓴다. 동행(파티) 역할은 대상 외 |
+| `allocation.csv` | 대표 상태 32개(필드 진입/종료 8 × 병목 가중 4) × 재고 2모드의 정확 최적 배치·종 제외 손실. `one_of_each_available`(종별 1마리, 부분집합 DP, 휴리스틱 gap 기록)은 칸이 남으면 모든 종이 자동으로 쓰여 참고용이고, 수렴 판정은 `unlimited_copies`(종 복제 무제한, 시설별 중복조합 전수)만 쓴다. 부분집합 DP는 정령 14마리(`placement.EXACT_MAX_SPIRITS`)까지라, 이를 넘는 상태(20종 data의 cave·ridge)는 1마리씩 정확 해·종 제외 손실을 생략하고 휴리스틱 행만 `upper_bound`·`gap` 빈칸, `proven_optimal=false`로 남긴다. 빈 gap은 "차이 0"이 아니라 "정확 해가 없어 미측정"이며, `convergence_heuristic_gap` 판정(INFO)의 n은 gap을 실측한 건수, 미측정 건수는 reason에 적는다(실측 0건이면 estimate 빈칸). 동행(파티) 역할은 대상 외 |
 | `manifest.json` | run_id, 입력 데이터·설정 해시, master_seed·반복 수·일수, 난수 키 정의, 단계별 실행 시간, 가정·placeholder·검증 경고 |
 | `report.html` | 판정 요약(상단) → 해금 곡선 → 직접/방치 비중 → 정령 사용 분포 → 포획 CDF → 보관함 → 과금 비교 → 수렴 분석 |
 
@@ -269,7 +269,8 @@ python3 -m unittest discover -s tests        # 전체 테스트
 - 유지비 없음(`upkeep` 빈 배열), `max_owned`=0(무제한), 오프라인 상한 최대 24시간
 - 참조 오류(`REF_UNKNOWN`), 해금 순환·도달 불가, 슬롯 해금 목록, 사냥 재료 드롭원
 - 개체값 재추첨(리롤)·생산 슬롯 확장 유료 효과 금지(`RULE_FORBIDDEN_PRODUCT`), 보유 상한 합계 > `max_capacity`(`RULE_STORAGE_CAP`), 고유 필드 포획표에 없는 종·드롭 없는 고유 필드(`RULE_HOME_FIELD`), 개체값 min>max
-- 경고(WARN): 고등급이 저등급을 특성 보호 없이 지배(`WARN_DOMINANCE`), 일일 의뢰로 얻을 수 없는 사냥 재료, 릴리스 목록 밖 정령 출현, 시뮬 미구현 데이터(`RULE_SIM_UNSUPPORTED`)
+- 경고(WARN): 일일 의뢰로 얻을 수 없는 사냥 재료, 릴리스 목록 밖 정령 출현, 시뮬 미구현 데이터(`RULE_SIM_UNSUPPORTED`)
+- 참고(INFO): 합격 여부와 WARN 건수에 넣지 않는 참고 정보(`validate` 마지막 줄에 건수만 표시). 고등급이 저등급을 특성 보호 없이 지배(`INFO_DOMINANCE`) — 2026-11-12 상위호환 금지 원칙 폐지로 WARN에서 INFO로 낮췄다. 지배표는 `static`의 `dominance.csv`와 리포트에 그대로 나온다
 
 ### broken fixture
 
@@ -293,7 +294,7 @@ python3 -m unittest discover -s tests        # 전체 테스트
 | F 규칙 수치 | rules.json | 특수재화 하루량, 도감 보너스 1%·상한 10% |
 | 일일 의뢰 | daily_quests.json | 필드별 사냥 재료 지급량(3/3/3/2). 건설 요구량(시설 게이트·슬롯·거점 등급·오프라인 상한)은 단계별 지급량×3(9/9/9/6)으로 통일, 필드 해금 비용은 대상 외 |
 | 상품 | products.json | 상품 4종(외형·보관함·배치 프리셋·구독)의 가격·수량·한도. 재료 상자·초심자 패스는 2026-11-11 제거 |
-| 릴리스 | releases.json | 2주판 정령 목록(★1 3종·★2 2종·★3 무지개 나비) |
-| 정령 | spirits.json | 적성(고등급 특화: 달빛 여우 이슬 S/D/D, 오로라 사슴 D/S/D, 무지개 나비 C/C/B — 지배 경고 0건), 놓아주기 연구 포인트, 무지개 나비 혼합 보너스(+10%, 3종 이상), 달빛 여우 밤 보너스(효과 0) |
+| 릴리스 | releases.json | 2주판(meadow+forest) 10종, 4주판 20종(2026-11-12 확장) |
+| 정령 | spirits.json | 20종(2026-11-12 숲·동굴·능선에 10종 추가, 초원 5종 유지). 상위호환 금지 원칙은 2026-11-12 폐지(지배는 `INFO_DOMINANCE` 참고 정보). 적성(고등급 특화: 달빛 여우 이슬 S/D/D, 오로라 사슴 D/S/D, 무지개 나비 C/C/B), 놓아주기 연구 포인트, 무지개 나비 혼합 보너스(+10%, 3종 이상), 달빛 여우 밤 보너스(효과 0) |
 | static 기준 상태 | config/static_reference.json | `*_entry`는 해금 순간(unlock 직전, 직전 필드 상한 이하)의 balanced 관측 상태를 실제 종·레벨로 지정(`facility_levels_by_resource`·`staff_members_by_resource`·`companion_members_by_resource`, 관측 도구 docs/stage4_tools/observe_entry.py). `*_exit`는 가상 기준 정령. 하루 포획 30분, 하루 직접 채집 60분 |
 | 판정 초안 | config/criteria.json | G2 WARN 하한 1.5·필드별 R 대역 1.5~2.5, G3 WARN 대역 5~90분, 일일 의뢰 대기 3일, 하드코어 선행 2일, 사용 분포·보관함·소진 기준(sim 블록) |

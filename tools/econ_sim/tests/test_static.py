@@ -1,6 +1,7 @@
 """static 出力: 生成物・バイト決定性・外部 URL なし・要件どおりの値."""
 import csv
 import io
+import json
 import re
 import tempfile
 import unittest
@@ -67,7 +68,11 @@ class StaticOutputTest(unittest.TestCase):
             self.assertLessEqual(int(r["encounters_p50"]), int(r["encounters_p90"]))
             self.assertLessEqual(int(r["encounters_p90"]), int(r["encounters_p99"]))
         week2 = [r for r in rows if r["scope"] == "release:week2"]
-        self.assertEqual(len(week2), 6)
+        # 2026-11-12 20 種拡張: week2（meadow+forest）は 10 種。releases.json の一覧と 1 対 1 で出る
+        with open(DATA_DIR / "releases.json", encoding="utf-8") as fh:
+            rel = {r["id"]: r for r in json.load(fh)["releases"]}
+        self.assertEqual(len(rel["week2"]["spirit_ids"]), 10)
+        self.assertEqual(sorted(r["spirit_id"] for r in week2), sorted(rel["week2"]["spirit_ids"]))
         self.assertTrue(all(r["method"] != "unavailable" for r in week2))
         self.assertTrue(all(r["field_id"] in ("meadow", "forest") for r in week2))
 

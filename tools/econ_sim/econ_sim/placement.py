@@ -144,8 +144,11 @@ def heuristic(econ: Economy, facs: list[Slot], spirits: list[tuple[str, int]], w
     return Placement({f.fid: sorted(groups[k]) for k, f in enumerate(facs)}, total, "heuristic_greedy_2swap", False)
 
 
+EXACT_MAX_SPIRITS = 14  # 部分集合 DP（3^n）の実用上限
+
+
 def exact(econ: Economy, facs: list[Slot], spirits: list[tuple[str, int]], weights: dict[str, float],
-          night: bool = False, max_spirits: int = 14) -> Placement:
+          night: bool = False, max_spirits: int = EXACT_MAX_SPIRITS) -> Placement:
     n = len(spirits)
     if n > max_spirits:
         raise ValueError(f"정확 탐색은 정령 {max_spirits}마리 이하만 지원(현재 {n})")

@@ -623,8 +623,9 @@ def compute(rd: RunData, crit: dict[str, Any], ref: dict[str, Any], validation_e
                f"사용≥1 또는 손실≥{sc['convergence_min_exclusion_loss_pct']}%", "PASS" if ok else "WARN", appr,
                "exact_representative_states(proven)", "복제 무제한 재고 대표 상태의 시설 배치만(동행 제외), 해당 종이 등장하는 상태만")
     if conv["cases"]:
-        ck.add("convergence_heuristic_gap", "representative_states", "placement_gap", "max_gap", f(conv["max_gap"], 4), conv["cases"],
-               "", "", "", "INFO", appr, "exact_representative_states(proven)", "휴리스틱 대비 정확 해 차이(시뮬 배치의 오차 참고)")
+        est, n, note = heuristic_gap_summary(conv)
+        ck.add("convergence_heuristic_gap", "representative_states", "placement_gap", "max_gap", est, n,
+               "", "", "", "INFO", appr, "exact_representative_states(proven)", note)
 
     return {"checks": ck.rows, "unlock": unlock_summary, "usage": usage, "paid": paid_rows, "convergence": conv,
             "capture_sink": capture_sink,
@@ -838,10 +839,16 @@ def convergence_summary(rd: RunData) -> dict[str, Any]:
     species: dict[str, dict[str, Any]] = {}
     max_gap = 0.0
     cases = 0
+    gap_measured = 0  # 厳密解と比べて gap を測れた代表ケース数
+    gap_skipped = 0  # 厳密解を省いた（精霊数が部分集合 DP の上限超え）ため gap を測れなかった代表ケース数
     for r in rd.allocation:
         if r["inventory_mode"] != "unlimited_copies":
-            if r["method"] == "heuristic_greedy_2swap" and r["gap"]:
-                max_gap = max(max_gap, float(r["gap"]))
+            if r["method"] == "heuristic_greedy_2swap":
+                if r["gap"]:
+                    max_gap = max(max_gap, float(r["gap"]))
+                    gap_measured += 1
+                else:
+                    gap_skipped += 1
             continue
         if r["method"] == "exact_enumeration":
             cases += 1
@@ -852,7 +859,18 @@ def convergence_summary(rd: RunData) -> dict[str, Any]:
             info["cases"] += 1
             info["max_loss"] = max(info["max_loss"], float(r["exclusion_loss_pct"]))
     order = rd.model.spirit_order
-    return {"species": {sp: species[sp] for sp in order if sp in species}, "max_gap": max_gap, "cases": cases}
+    return {"species": {sp: species[sp] for sp in order if sp in species}, "max_gap": max_gap, "cases": cases,
+            "gap_measured": gap_measured, "gap_skipped": gap_skipped}
+
+
+def heuristic_gap_summary(conv: dict[str, Any]) -> tuple[str, int, str]:
+    """convergence_heuristic_gap 行の (推定値, n, 理由)。n は gap を実測したケース数で、0 件なら推定値は空欄（0 と区別）."""
+    measured = conv.get("gap_measured", 0)
+    est = format(conv["max_gap"], ".4f") if measured else ""
+    note = "휴리스틱 대비 정확 해 차이(시뮬 배치의 오차 참고)"
+    if conv.get("gap_skipped"):
+        note += f"; 정령 수가 정확 탐색 상한을 넘어 gap 미측정 {conv['gap_skipped']}건 제외"
+    return est, measured, note
 
 
 def capture_columns(rd: RunData, sc: dict[str, Any]) -> list[str]:

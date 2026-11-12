@@ -13,7 +13,7 @@ from . import formulas, tables
 from .data_load import GameData
 from .dominance import dominance_rows
 from .model import Model, sim_unsupported
-from .schema import ID, AnyValue, Arr, Bool, Int, Issue, MapOf, Num, Obj, Str, err, warn
+from .schema import ID, AnyValue, Arr, Bool, Int, Issue, MapOf, Num, Obj, Str, err, info, warn
 
 APT_LETTERS = ["S", "A", "B", "C", "D", "X"]
 TRAIT_TYPES = [
@@ -1200,9 +1200,11 @@ def _check_tables(m: Model, issues: list[Issue]) -> None:
 
 
 def _check_dominance(m: Model, issues: list[Issue]) -> None:
+    # 2026-11-12 ユーザー決定: 上位互換禁止の原則を廃止。支配関係は参考情報（INFO）として報告だけ残す
+    # （dominance.csv・レポートの支配表はそのまま出力する）
     for row in dominance_rows(m):
         if row["higher_grade_dominates"]:
-            warn(issues, "WARN_DOMINANCE", f"spirits/{row['spirit_a']}",
+            info(issues, "INFO_DOMINANCE", f"spirits/{row['spirit_a']}",
                  f"★{row['grade_a']} {row['spirit_a']}가 ★{row['grade_b']} {row['spirit_b']}를 모든 기여 차원에서 지배(고유 특성 보호 없음)")
 
 

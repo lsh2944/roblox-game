@@ -56,7 +56,28 @@ class AllQuickSmokeTest(unittest.TestCase):
         rule = next(r for r in rows if r["check_id"] == "rule_validation")
         self.assertEqual(rule["draft_evaluation"], "PASS")
         with open(self.out / "capture_stats.csv", encoding="utf-8", newline="") as fh:
-            self.assertEqual(sum(1 for _ in csv.DictReader(fh)), 6 * 10)  # 6 ペルソナ（研究比較群 2 を追加）× 10 種
+            self.assertEqual(sum(1 for _ in csv.DictReader(fh)), 6 * 20)  # 6 ペルソナ（研究比較群 2 を追加）× 20 種（2026-11-12 拡張）
+
+    def test_converge_skips_exact_for_large_states(self):
+        # 20 種データでは cave・ridge の代表状態が部分集合 DP の上限を超える: 1 体ずつの厳密解を省き gap は空欄
+        with open(self.out / "allocation.csv", encoding="utf-8", newline="") as fh:
+            alloc = list(csv.DictReader(fh))
+        one = [r for r in alloc if r["inventory_mode"] == "one_of_each_available"]
+        heur = [r for r in one if r["method"] == "heuristic_greedy_2swap"]
+        for fid in ("cave", "ridge"):
+            rows = [r for r in heur if r["stage_field"] == fid]
+            self.assertTrue(rows, fid)
+            self.assertTrue(all(r["gap"] == "" and r["upper_bound"] == "" and r["proven_optimal"] == "false" for r in rows), fid)
+            self.assertFalse([r for r in one if r["stage_field"] == fid and r["method"] != "heuristic_greedy_2swap"], fid)
+            # 無制限在庫（収束判定用）の厳密行は残る
+            self.assertTrue([r for r in alloc if r["stage_field"] == fid and r["method"] == "exact_enumeration"], fid)
+        measured = sum(1 for r in heur if r["gap"])
+        skipped = sum(1 for r in heur if not r["gap"])
+        with open(self.out / "checks.csv", encoding="utf-8", newline="") as fh:
+            gap_row = next(r for r in csv.DictReader(fh) if r["check_id"] == "convergence_heuristic_gap")
+        self.assertIn(f"미측정 {skipped}건", gap_row["reason"])
+        self.assertEqual(int(gap_row["n"]), measured)
+        self.assertEqual(gap_row["draft_evaluation"], "INFO")
 
     def test_capture_state_columns(self):
         # 段階 2: 捕獲の状態機械・活力の列があり、1 日の使用秒は予算秒以下（時間の保存）
