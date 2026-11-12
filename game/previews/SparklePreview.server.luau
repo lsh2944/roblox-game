@@ -13,5 +13,5 @@ local Sparkle = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("S
 -- 光り方が分かりやすいように夜にする(確認用)
 Lighting.ClockTime = 21
 
--- スポーン地点の少し前方・空中に出す
-Sparkle.create(workspace, CFrame.new(0, 5, -10))
+-- スポーン地点の少し前方・空中に出し、顔(前方 = -Z)を原点(スポーン地点)へ向ける
+Sparkle.create(workspace, CFrame.lookAt(Vector3.new(0, 5, -10), Vector3.new(0, 5, 0)))

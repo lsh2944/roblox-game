@@ -2,18 +2,31 @@
 -- 3D モデルを使わず、Neon パーツ・パーティクル・ライトの組み合わせで表現する
 -- 試作のため全パーツを Anchored にして Heartbeat で毎フレーム CFrame を更新する
 -- (本番ではクライアント側で動かし、workspace:BulkMoveTo などで最適化する想定)
+-- 顔は meadow 4 種(Dewdrop 等)と同じ方式: 縦長の目 + 白いハイライト + 半透明の頬の赤み、
+--   まばたきは目を線につぶして表す(2026-11-12 決定)
+-- 配置: ReplicatedStorage.Shared.SpiritVisuals.Sparkle(Rojo: game/src/shared/SpiritVisuals/Sparkle.luau)
+-- 利用: クライアント専用の見た目(判定・報酬には使わない)。依存モジュール: なし(RunService のみ)
+-- 構成: パーツ 12 / ParticleEmitter 1 / PointLight 1
 
 local RunService = game:GetService("RunService")
 
 local Sparkle = {}
 
 -- 配色(外見スキン商品はこの値の差し替えで作れる)
+-- shine・cheek は 2026-11-12 追加。省いた palette を渡されたら既定色を使う
 local DEFAULT_PALETTE = {
 	core = Color3.fromRGB(255, 244, 194), -- 本体: 暖かい白
 	halo = Color3.fromRGB(255, 226, 122), -- 光輪: 金色
 	wing = Color3.fromRGB(143, 233, 255), -- 羽: 水色
 	eye = Color3.fromRGB(40, 32, 48), -- 目: 濃い紫
+	shine = Color3.fromRGB(255, 255, 255), -- 目のハイライト
+	cheek = Color3.fromRGB(255, 160, 180), -- 頬の赤み
 }
+
+local CORE_RADII = Vector3.new(0.5, 0.5, 0.5)
+local BLINK_PERIOD = 3.2
+local BLINK_TIME = 0.12
+local BLINK_SCALE = Vector3.new(1, 0.15, 1) -- まばたき中は目を細い線にする
 
 -- 当たり判定・影なしの装飾パーツを作る
 local function makePart(name, shape, size, color, material, transparency, parent)
@@ -31,6 +44,25 @@ local function makePart(name, shape, size, color, material, transparency, parent
 	p.CastShadow = false
 	p.Parent = parent
 	return p
+end
+
+-- 楕円体(SpecialMesh Sphere)。メッシュの Scale でまばたきを表す
+local function makeEllipsoid(name, size, color, material, transparency, parent)
+	local p = makePart(name, Enum.PartType.Block, size, color, material, transparency, parent)
+	local m = Instance.new("SpecialMesh")
+	m.MeshType = Enum.MeshType.Sphere
+	m.Parent = p
+	return p, m
+end
+
+-- 楕円体(半径 radii)の前面(-Z 側)の点 (x, y) に、表面の向きへ沿わせて置く CFrame を返す
+-- 返す CFrame の -Z が表面の外向き。lift だけ外へ浮かせる
+local function onSurface(radii, x, y, lift)
+	local k = 1 - (x / radii.X) ^ 2 - (y / radii.Y) ^ 2
+	local z = -radii.Z * math.sqrt(math.max(k, 0))
+	local p = Vector3.new(x, y, z)
+	local n = Vector3.new(x / radii.X ^ 2, y / radii.Y ^ 2, z / radii.Z ^ 2).Unit
+	return CFrame.lookAt(p + n * lift, p + n * (lift + 1))
 end
 
 -- きらきらの粒子(既定のスパークルテクスチャを使用)
@@ -61,6 +93,13 @@ end
 -- palette を渡すと配色を差し替えられる(スキン用)
 function Sparkle.create(parent, origin, palette)
 	palette = palette or DEFAULT_PALETTE
+	-- 追加キー(shine・cheek)が無い古い palette でも動くよう既定色で補う
+	local shineColor = palette.shine or DEFAULT_PALETTE.shine
+	local cheekColor = palette.cheek or DEFAULT_PALETTE.cheek
+	-- 多数が同時に出ても動きがそろわないよう、開始位相とまばたき位相をずらす(見た目だけの乱数)
+	local rng = Random.new()
+	local timeOffset = rng:NextNumber(0, 10)
+	local blinkOffset = rng:NextNumber(0, BLINK_PERIOD)
 
 	local model = Instance.new("Model")
 	model.Name = "Sparkle"
@@ -69,9 +108,20 @@ function Sparkle.create(parent, origin, palette)
 	local core = makePart("Core", Enum.PartType.Ball, Vector3.new(1, 1, 1), palette.core, Enum.Material.Neon, 0, model)
 	local halo = makePart("Halo", Enum.PartType.Ball, Vector3.new(1.8, 1.8, 1.8), palette.halo, Enum.Material.Neon, 0.85, model)
 
-	-- 目(前方 = -Z 側)
-	local eyeL = makePart("EyeL", Enum.PartType.Ball, Vector3.new(0.13, 0.13, 0.13), palette.eye, Enum.Material.SmoothPlastic, 0, model)
-	local eyeR = makePart("EyeR", Enum.PartType.Ball, Vector3.new(0.13, 0.13, 0.13), palette.eye, Enum.Material.SmoothPlastic, 0, model)
+	-- 顔(前方 = -Z 側): 縦長の目 + ハイライト + 頬の赤み。cf は本体中心からの相対
+	local faceItems = {}
+	local eyeMeshes = {}
+	local shines = {}
+	for _, s in ipairs({ -1, 1 }) do
+		local eye, eyeMesh = makeEllipsoid(s < 0 and "EyeL" or "EyeR", Vector3.new(0.15, 0.2, 0.08), palette.eye, Enum.Material.SmoothPlastic, 0, model)
+		table.insert(faceItems, { part = eye, cf = onSurface(CORE_RADII, s * 0.17, 0.06, 0) })
+		table.insert(eyeMeshes, eyeMesh)
+		local shine = makeEllipsoid("EyeShine", Vector3.new(0.06, 0.06, 0.03), shineColor, Enum.Material.Neon, 0, model)
+		table.insert(faceItems, { part = shine, cf = onSurface(CORE_RADII, s * 0.17 - 0.03, 0.11, 0.04) })
+		table.insert(shines, shine)
+		local cheek = makeEllipsoid("Cheek", Vector3.new(0.15, 0.08, 0.04), cheekColor, Enum.Material.SmoothPlastic, 0.25, model)
+		table.insert(faceItems, { part = cheek, cf = onSurface(CORE_RADII, s * 0.3, -0.1, 0) })
+	end
 
 	-- 羽: 薄い円柱 = 円盤。上の大きい羽と下の小さい羽を左右に1枚ずつ
 	local wings = {}
@@ -108,7 +158,8 @@ function Sparkle.create(parent, origin, palette)
 	model.Parent = parent
 
 	-- アニメーション: ふわふわ上下・ゆっくり左右を向く・羽ばたき・明滅・まばたき
-	local t0 = os.clock()
+	local t0 = os.clock() - timeOffset
+	local lastBlink = false
 	local conn
 	conn = RunService.Heartbeat:Connect(function()
 		if not model.Parent then
@@ -124,12 +175,20 @@ function Sparkle.create(parent, origin, palette)
 		halo.Transparency = 0.82 + 0.06 * math.sin(t * 3)
 		light.Brightness = 1.8 + 0.6 * math.sin(t * 3)
 
-		eyeL.CFrame = root * CFrame.new(-0.17, 0.08, -0.45)
-		eyeR.CFrame = root * CFrame.new(0.17, 0.08, -0.45)
-		-- 約3秒ごとに 0.12 秒だけ目を閉じる
-		local blink = (t % 3.2) < 0.12
-		eyeL.Transparency = blink and 1 or 0
-		eyeR.Transparency = blink and 1 or 0
+		for _, it in ipairs(faceItems) do
+			it.part.CFrame = root * it.cf
+		end
+		-- 約3秒ごとに 0.12 秒だけ目を閉じる(目を線につぶし、ハイライトを消す)
+		local blink = ((t + blinkOffset) % BLINK_PERIOD) < BLINK_TIME
+		if blink ~= lastBlink then
+			lastBlink = blink
+			for _, m in ipairs(eyeMeshes) do
+				m.Scale = blink and BLINK_SCALE or Vector3.one
+			end
+			for _, sh in ipairs(shines) do
+				sh.Transparency = blink and 1 or 0
+			end
+		end
 
 		local flap = math.rad(25) * math.sin(t * 14)
 		for _, w in ipairs(wings) do
