@@ -13,7 +13,8 @@
 --   j が埋まっていれば 2 体の位置を入れ替え、空き（> #assigned）なら B の末尾へ（A からは外して詰める）。
 --   枠番号の計算は planMove だけで行い、新しい配列を作って返す（検証が全部通るまで保存データに触れない）
 -- - 強化の上限 = 解禁済みフィールドのうち最も順位が高いフィールドまでの level_cap_by_field の最大（model.py level_cap_at_field）
--- - 強化の費用 = 生成表 + hunt_gates（Economy.facilityLevelCost）
+-- - 強化の費用 = 生成表 + hunt_gates（Economy.facilityLevelCost）に図鑑の強化費用減少（upgrade_cost_down、2026-11-12 決定）を
+--   項目ごとに掛けた値（Economy.dexCosts: cost − cost×r//10000、費用は切り上げ）
 
 local Net = require("./Net")
 local RosterRules = require("./RosterRules")
@@ -180,7 +181,7 @@ function FacilityRules.checkUpgrade(gd: any, econ: any, save: any, fid: any): ({
 	if f.level >= FacilityRules.levelCap(gd, save, fid) then
 		return nil, E.LEVEL_CAP
 	end
-	return econ:facilityLevelCost(fid, f.level), nil
+	return econ:dexCosts(save.dex, econ:facilityLevelCost(fid, f.level), "upgrade_cost_down"), nil
 end
 
 return table.freeze(FacilityRules)

@@ -120,7 +120,8 @@ class Economy:
     def facility_rate(self, fid: str, level: int, members: list[Member], night: bool = False, dex_bps: int = 0) -> int:
         """施設 1 つの放置生産（milli/時）。members は (種, Lv[, 採集個体値bps, 戦闘個体値bps]).
 
-        混合配置ボーナスと図鑑ボーナス（F5, dex_bps）は施設全体の生産に掛ける（混合 → 図鑑の順に切り捨て）。
+        混合配置ボーナスと図鑑ボーナスは施設全体の生産に掛ける（混合 → 図鑑の順に切り捨て）。dex_bps はその施設の生産資源の
+        図鑑ボーナス（dex_map(...)["resource_output"][produces]、2026-11-12 改編で資源別）。
         """
         if level <= 0 or not members:
             return 0
@@ -141,22 +142,22 @@ class Economy:
         rate = rate * max(0, BPS + self.mixed_bonus(members)) // BPS
         return rate * (BPS + dex_bps) // BPS
 
-    def dex_bps(self, registered: int) -> int:
-        """図鑑登録種数 → 生産ボーナス（F5、上限あり）."""
-        d = self.m.gd.docs["rules"]["dex_bonus"]
-        return min(d["max_bps"], d["per_species_bps"] * registered)
+    def dex_map(self, registered: Iterable[str]) -> dict:
+        """図鑑登録種の集合 → 種類別の図鑑ボーナス（formulas.dex_bonus_map、2026-11-12 改編）."""
+        return formulas.dex_bonus_map(registered, self.m.spirits, self.m.gd.docs["rules"]["dex_bonus"])
 
-    def home_material_per_day(self, members: Iterable[Member], dex_bps: int = 0) -> dict[str, int]:
+    def home_material_per_day(self, members: Iterable[Member], dex_res: dict[str, int] | None = None) -> dict[str, int]:
         """施設で働く精霊の固有フィールド狩り素材（milli/日、F1）.
 
-        個体値（採集倍率）・図鑑ボーナスは rules.home_material の apply_* フラグが true のときだけ掛ける（既定 false）。
+        個体値（採集倍率）は apply_individual_to_home_material、図鑑ボーナスは apply_dex_to_home_material が true のときだけ掛ける。
+        dex_res は資源別の図鑑ボーナス（dex_map(...)["resource_output"]）。その狩り素材の bps を (資源, 等級) 行ごとに掛ける。
         """
         out: dict[str, int] = {}
-        for (res, _), v in self.home_material_detail(members, dex_bps).items():
+        for (res, _), v in self.home_material_detail(members, dex_res).items():
             out[res] = out.get(res, 0) + v
         return out
 
-    def home_material_detail(self, members: Iterable[Member], dex_bps: int = 0) -> dict[tuple[str, int], int]:
+    def home_material_detail(self, members: Iterable[Member], dex_res: dict[str, int] | None = None) -> dict[tuple[str, int], int]:
         """(資源, 等級) 別の方置特殊財（milli/日）。等級別の比重報告用."""
         hm = self.m.gd.docs["rules"]["home_material"]
         out: dict[tuple[str, int], int] = {}
@@ -169,8 +170,8 @@ class Economy:
                 if hm["apply_individual_to_home_material"]:
                     v = v * g // BPS
                 out[(res, grade)] = out.get((res, grade), 0) + v
-        if hm["apply_dex_to_home_material"]:
-            out = {k: v * (BPS + dex_bps) // BPS for k, v in out.items()}
+        if hm["apply_dex_to_home_material"] and dex_res:
+            out = {k: formulas.dex_scaled_milli(v, dex_res.get(k[0], 0)) for k, v in out.items()}
         return out
 
     def facility_level_cost(self, fid: str, level: int) -> list[dict]:

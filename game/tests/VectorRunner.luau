@@ -61,6 +61,19 @@ local CALL: { [string]: (any, any) -> any } = {
 	idle_dex_research_milli = function(F, a)
 		return F.idleDexResearchMilli(a.raw_milli, a.dex_bps, a.research_bps)
 	end,
+	-- 図鑑ボーナス（2026-11-12 改編）
+	dex_bonus_map = function(F, a)
+		return F.dexBonusMap(a.registered, a.spirits, a.rule)
+	end,
+	dex_scaled_milli = function(F, a)
+		return F.dexScaledMilli(a.amount_milli, a.dex_bps)
+	end,
+	discounted_cost = function(F, a)
+		return F.discountedCost(a.amount, a.discount_bps)
+	end,
+	capture_bonus_attempt_bps = function(F, a)
+		return F.captureBonusAttemptBps(a.p_bps, a.bonus_bps)
+	end,
 	party_power_bps = function(F, a)
 		return F.partyPowerBps(a.members)
 	end,
@@ -117,7 +130,7 @@ local CALL: { [string]: (any, any) -> any } = {
 	end,
 	resolve_encounter_tool = function(F, a)
 		return encounterArray(
-			F.resolveEncounterTool(a.grade, a.rule, a.uniforms, a.wicks_available, a.weaken_s, a.tools_available),
+			F.resolveEncounterTool(a.grade, a.rule, a.uniforms, a.wicks_available, a.weaken_s, a.tools_available, a.capture_bonus_bps),
 			true
 		)
 	end,
@@ -158,7 +171,8 @@ local function show(v: any): string
 end
 VectorRunner.show = show
 
-VectorRunner.EXPECTED_COUNTS = table.freeze({ total = 130, skip = 30 })
+-- 2026-11-12 図鑑ボーナス改編で 23 件追加（130 → 153、SKIP は 30 のまま）
+VectorRunner.EXPECTED_COUNTS = table.freeze({ total = 153, skip = 30 })
 
 function VectorRunner.run(vectorsDoc: any, Formulas: any): Summary
 	local s: Summary = { pass = 0, skip = 0, fail = 0, failures = {}, byFn = {} }

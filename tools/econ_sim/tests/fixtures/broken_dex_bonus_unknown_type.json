@@ -1,0 +1,14 @@
+{
+  "description": "알 수 없는 도감 보너스 종류",
+  "expect_codes": [
+    "SCHEMA_ENUM"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:star_whale/dex_bonus/type",
+      "value": "luck_up"
+    }
+  ]
+}

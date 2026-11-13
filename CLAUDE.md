@@ -39,7 +39,7 @@ python3 -m econ_sim all --quick         # 20시드 빠른 일괄 실행
 ```
 Luau (cwd: `roblox-game`, 도구는 `.tools/bin/`, Windows는 `*.exe` — Git Bash에서는 아래 그대로 실행 가능, Python은 Windows에서 `py -3.12`):
 ```
-.tools/bin/lune run game/tests/lune_run.luau        # 벡터(PASS 100/SKIP 30 고정)·단위 테스트·매핑 검사
+.tools/bin/lune run game/tests/lune_run.luau        # 벡터(PASS 123/SKIP 30·합계 153 고정, 2026-11-13 도감 개편)·단위 테스트·매핑 검사
 .tools/bin/rojo build default.project.json -o <scratchpad>/test.rbxlx   # 프로젝트 유효성
 .tools/bin/rojo serve                                # Studio 동기화(사용자가 Studio에서 Connect)
 ```

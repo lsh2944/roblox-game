@@ -179,9 +179,84 @@ def research_scaled_milli(amount_milli: int, research_bps: int) -> int:
 
 
 def idle_dex_research_milli(raw_milli: int, dex_bps: int, research_bps: int) -> int:
-    """施設方置の適用順: 図鑑ボーナス → 切り捨て → 研究 → 切り捨て（乗算順序の黄金ベクトル用）."""
+    """適用順: 図鑑ボーナス（その資源の bps）→ 切り捨て → 研究 → 切り捨て（乗算順序の黄金ベクトル用）.
+
+    施設方置（資源別合計）と直接採集（2026-11-12 から図鑑も掛かる）が同じ順序を使う。
+    """
     _nonneg(raw_milli=raw_milli, dex_bps=dex_bps)
     return research_scaled_milli(raw_milli * (BPS + dex_bps) // BPS, research_bps)
+
+
+# ---- 図鑑ボーナス（2026-11-12 ユーザー決定、docs/spirit_roster_expansion_20261112.md 図鑑ボーナス改編） ----------
+# 種ごとに dex_bonus を 1 つ持ち、数値は rules.dex_bonus（等級・種類別）だけで決める。全経路がこの関数の結果を使う。
+
+DEX_RESOURCE = "resource_output"
+DEX_SPECIAL_TYPES = ("upgrade_cost_down", "craft_cost_down", "capture_attempt_up")
+DEX_COST_TYPES = ("upgrade_cost_down", "craft_cost_down")  # 費用減少として使える種類（それ以外を費用に掛けるのは誤り）
+
+
+def dex_bonus_map(registered: Iterable[str], spirits: dict[str, Any], rule: dict[str, Any]) -> dict[str, Any]:
+    """図鑑登録種の集合 → {"resource_output": {資源: bps}, "upgrade_cost_down": bps, "craft_cost_down": bps, "capture_attempt_up": bps}.
+
+    spirits は 種 → {"grade", "dex_bonus": {"type", "resource"?}}（spirits.json の項目でよい）。data に無い種は無視する
+    （保存データに残った削除済みの種で精算が止まらないように）。重複は 1 回だけ数える。合計してから種類別の上限 cap_bps で切る
+    （resource_output は資源別）。値が 0 の資源は含めない。
+    """
+    res: dict[str, int] = {}
+    out: dict[str, Any] = {DEX_RESOURCE: res, **{t: 0 for t in DEX_SPECIAL_TYPES}}
+    for sid in sorted(set(registered)):
+        s = spirits.get(sid)
+        if s is None:
+            continue
+        b = s["dex_bonus"]
+        t = b["type"]
+        if t == DEX_RESOURCE:
+            v = rule["grade_bps"].get(str(s["grade"]))
+            if v is None:
+                raise FormulaError(f"등급 {s['grade']}의 도감 보너스 수치가 없음: {sid}")
+            res[b["resource"]] = res.get(b["resource"], 0) + v
+        elif t in DEX_SPECIAL_TYPES:
+            out[t] += rule["special_bps"][t]
+        else:
+            raise FormulaError(f"알 수 없는 도감 보너스 종류: {t}")
+    cap = rule["cap_bps"]
+    for r in list(res):
+        res[r] = min(cap[DEX_RESOURCE], res[r])
+        if res[r] <= 0:
+            del res[r]
+    for t in DEX_SPECIAL_TYPES:
+        out[t] = min(cap[t], out[t])
+    return out
+
+
+def dex_scaled_milli(amount_milli: int, dex_bps: int) -> int:
+    """生産量に図鑑ボーナスを掛ける: amount × (10000 + dex) // 10000（切り捨て）."""
+    _nonneg(amount_milli=amount_milli, dex_bps=dex_bps)
+    _safe(amount_milli * (BPS + dex_bps))
+    return amount_milli * (BPS + dex_bps) // BPS
+
+
+def discounted_cost(amount: int, discount_bps: int) -> int:
+    """費用の割引: amount − amount × r // 10000（割引額を切り捨て = 費用は切り上げ）。r < 10000 なら amount ≥ 1 → 結果 ≥ 1."""
+    _nonneg(amount=amount, discount_bps=discount_bps)
+    if discount_bps > BPS:
+        raise FormulaError(f"discount_bps는 0..{BPS}: {discount_bps}")
+    _safe(amount * discount_bps)
+    return amount - amount * discount_bps // BPS
+
+
+def discounted_costs(costs: list[dict[str, Any]], discount_bps: int) -> list[dict[str, Any]]:
+    """費用の各項目に discounted_cost を掛けた新しいリスト（割引 0 なら写しだけ）."""
+    return [{**c, "amount": discounted_cost(c["amount"], discount_bps)} for c in costs]
+
+
+def capture_bonus_attempt_bps(p_bps: int, bonus_bps: int) -> int:
+    """図鑑の捕獲確率ボーナス: 道具適用後の成功率 p に加算する。p > 0 のときだけ min(10000, p + bonus)、p ≤ 0（散り）は 0 のまま."""
+    _safe(p_bps)
+    _nonneg(bonus_bps=bonus_bps)
+    if p_bps <= 0:
+        return p_bps
+    return min(BPS, p_bps + bonus_bps)
 
 
 def party_power_bps(members: Iterable[tuple[int, int]]) -> int:
@@ -492,8 +567,11 @@ def capture_tool_item(home_field: str, grade: int, unlocked_fields: list[str], d
 
 
 def resolve_encounter_tool(grade: int, rule: dict[str, Any], uniforms: list[float], wicks_available: int,
-                           weaken_s: int, tools_available: int) -> list[Any]:
+                           weaken_s: int, tools_available: int, capture_bonus_bps: int = 0) -> list[Any]:
     """簡易モード 1 遭遇の結果 [result, attempts, wicks_used, seconds, tools_used]（捕獲補助道具あり）.
+
+    capture_bonus_bps は図鑑の捕獲確率ボーナス（dex_bonus_map の capture_attempt_up）。道具の有無を決めた後の各試行の成功率に
+    capture_bonus_attempt_bps で加える（逃走・乱数の位置・道具の消費は変えない）。
 
     tools_available は使える道具の在庫（個、0 なら道具なし）。各試行の直前に在庫が per_attempt 個以上残っていればその試行で
     消費し、成功率を capture_tool_attempt_bps にする。残っていなければその試行は道具なしで進める（芯は別に 1 回分消費）。
@@ -505,8 +583,8 @@ def resolve_encounter_tool(grade: int, rule: dict[str, Any], uniforms: list[floa
     if len(uniforms) < 2 * k:
         raise FormulaError(f"uniforms는 {2 * k}개 필요")
     light = easy_attempt_light(grade, rule)
-    p = capture_attempt_bps(grade, light, rule)
-    pt = capture_tool_attempt_bps(grade, light, rule)
+    p = capture_bonus_attempt_bps(capture_attempt_bps(grade, light, rule), capture_bonus_bps)
+    pt = capture_bonus_attempt_bps(capture_tool_attempt_bps(grade, light, rule), capture_bonus_bps)
     tool_per = rule["capture_tool"]["per_attempt"] if tools_available > 0 and capture_tool_mult_bps(grade, rule) > BPS else 0
     per = sum(c["amount"] for c in rule["attempt_cost"])
     attempts = used = tools_used = 0
@@ -532,13 +610,16 @@ def resolve_encounter_tool(grade: int, rule: dict[str, Any], uniforms: list[floa
             t["encounter_base_seconds"] + weaken_s + t["attempt_seconds"] * attempts, tools_used]
 
 
-def encounter_expectation(grade: int, rule: dict[str, Any], with_tool: bool = False) -> tuple[Fraction, Fraction]:
+def encounter_expectation(grade: int, rule: dict[str, Any], with_tool: bool = False,
+                          capture_bonus_bps: int = 0) -> tuple[Fraction, Fraction]:
     """簡易モード・芯無制限での (遭遇あたり捕獲確率 Q, 期待試行数 E[A])（有理数で厳密）.
 
     with_tool=True は全試行で道具を使う（在庫無制限）ときの値（成功率 = capture_tool_attempt_bps、逃走は同じ）。
+    capture_bonus_bps は図鑑の捕獲確率ボーナス（道具の後に capture_bonus_attempt_bps で加える）。
     """
     light = easy_attempt_light(grade, rule)
-    p = Fraction(capture_tool_attempt_bps(grade, light, rule) if with_tool else capture_attempt_bps(grade, light, rule), BPS)
+    base = capture_tool_attempt_bps(grade, light, rule) if with_tool else capture_attempt_bps(grade, light, rule)
+    p = Fraction(capture_bonus_attempt_bps(base, capture_bonus_bps), BPS)
     k = capture_k_max(rule)
     q = ea = Fraction(0)
     alive = Fraction(1)
@@ -589,6 +670,10 @@ VECTOR_FUNCS: dict[str, Callable[..., Any]] = {
     "direct_rate_milli_per_hour": direct_rate_milli_per_hour,
     "research_scaled_milli": research_scaled_milli,
     "idle_dex_research_milli": idle_dex_research_milli,
+    "dex_bonus_map": dex_bonus_map,
+    "dex_scaled_milli": dex_scaled_milli,
+    "discounted_cost": discounted_cost,
+    "capture_bonus_attempt_bps": capture_bonus_attempt_bps,
     "party_power_bps": lambda members: party_power_bps([tuple(m) for m in members]),
     "hunt_rate_milli_per_hour": hunt_rate_milli_per_hour,
     "capture_success_per_encounter": capture_success_per_encounter,

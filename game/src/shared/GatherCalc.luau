@@ -6,7 +6,8 @@
 -- 計画書 4.3「채집 세션」:
 -- - 産出は directRate（milli/時）× 経過秒。秒単位の積算 total = rate·sec + carry、gained = total // 3600（Luau だけの補助関数）
 -- - 開始の検証順: ノードが存在 → ノードのフィールドが解禁済み → 距離 ≤ 半径 → 活動中でない（遭遇中は BUSY）
--- - 研究倍率 A（basic_gather_bps）は資源別 bps のフック（MVP1 は 0）。既存の採集率に 1 回だけ掛ける（sim.py direct_rate）
+-- - 図鑑ボーナス（2026-11-12 改編、その資源の bps）→ 研究倍率 A（basic_gather_bps、資源別 bps のフック、MVP1 は 0）の順に
+--   既存の採集率へ 1 回ずつ掛けて切り捨てる（sim.py direct_rate）
 -- 距離はキャラクター位置（クライアント所有）から呼び出し側が測る。最善努力の検査なので、産出はサーバー時間に縛る。
 
 local Formulas = require("./Formulas")
@@ -63,9 +64,10 @@ function GatherCalc.partyMembers(save: any): { any }
 	return out
 end
 
--- 採集率（milli/時）= Economy.directRate（道具 Lv・同行）× 研究フック
+-- 採集率（milli/時）= Economy.directRate（道具 Lv・同行）× 図鑑（save.dex、資源別）× 研究フック
 function GatherCalc.rate(econ: any, save: any, node: any, researchGatherBps: { [string]: number }?): number
 	local r = econ:directRate(node, GatherCalc.gatherToolId(econ.gd), save.tool_level, GatherCalc.partyMembers(save))
+	r = Formulas.dexScaledMilli(r, econ:dexMap(save.dex).resource_output[node.resource] or 0)
 	local a = if researchGatherBps ~= nil then researchGatherBps[node.resource] or 0 else 0
 	if a ~= 0 then
 		r = Formulas.researchScaledMilli(r, a)

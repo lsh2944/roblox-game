@@ -1,0 +1,17 @@
+{
+  "description": "★4 정령의 도감 보너스가 자원 생산(★4는 특수 종류만)",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:aurora_deer/dex_bonus",
+      "value": {
+        "type": "resource_output",
+        "resource": "bloom"
+      }
+    }
+  ]
+}

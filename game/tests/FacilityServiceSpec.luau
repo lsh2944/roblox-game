@@ -5,6 +5,7 @@
 -- 期待値の出典（cwd tools/econ_sim の python3 -c、2026-11-12 の data、シミュ実行なし）:
 --   Economy.facility_level_cost('dew_spring', 1) = dew 40・bloom 20、(…, 3) = dew 53・bloom 27・hunt_meadow 9、(…, 10) = dew 141・bloom 71
 --   Model.level_cap_at_field(dew_spring, 'meadow') = 10、'forest' = 20。計画書 S8 完了基準（1→2 が 40・20、3→4 に hunt_meadow 9）
+--   図鑑の強化費用減少（shadow_lantern、2026-11-13 ユーザー決定で −500bps）: discounted_cost(141, 500) = 134、(71, 500) = 68（python3 -c）
 
 local T = 1762819200
 
@@ -191,6 +192,18 @@ return {
 			t:eq(w.svc:upgrade(1, w.save, "dew_spring", T).ok, true, "forest 해금 후")
 			t:eq(w.svc:upgrade(1, w.save, "crystal_forge", T).code, E.NOT_UNLOCKED)
 			t:eq(w.svc:upgrade(1, w.save, 3, T).code, E.BAD_ARG)
+		end)
+
+		t:test("강화 비용 도감 감소(그림자 등불 −5%, 항목마다 내림 할인 = 비용 올림)", function()
+			local w = newWorld()
+			w.save.unlocked = { "meadow", "forest" }
+			w.save.facilities.dew_spring.level = 10
+			t:eq({ FR.checkUpgrade(deps.gd, deps.econ, w.save, "dew_spring") }, { { { resource = "dew", amount = 141 }, { resource = "bloom", amount = 71 } } })
+			w.save.dex.shadow_lantern = T
+			t:eq({ FR.checkUpgrade(deps.gd, deps.econ, w.save, "dew_spring") }, { { { resource = "dew", amount = 134 }, { resource = "bloom", amount = 68 } } })
+			w.save.wallet.dew, w.save.wallet.bloom = 134000, 68000
+			t:eq(w.svc:upgrade(1, w.save, "dew_spring", T).ok, true, "할인된 비용으로 강화")
+			t:eq({ w.save.wallet.dew, w.save.wallet.bloom, w.save.facilities.dew_spring.level }, { 0, 0, 11 })
 		end)
 	end,
 }

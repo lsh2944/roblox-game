@@ -103,6 +103,10 @@ FIELD_PROB_KEY = re.compile(r"success|bps|prob|rate", re.IGNORECASE)
 FIELD_TOOL_KEY = re.compile(r"tool|lure", re.IGNORECASE)
 # 捕獲補助道具の等級倍率の上限（2026-11-11 決定 ★4 ×1.20 が最大。超えるにはユーザー決定が要る）
 CAPTURE_TOOL_MULT_MAX_BPS = 12_000
+# 図鑑ボーナス（2026-11-12 ユーザー決定）。捕獲確率ボーナスの安全上限 +3%p（超えるにはユーザー決定が要る。RULE_DEX_BONUS）
+DEX_TYPES = [formulas.DEX_RESOURCE, *formulas.DEX_SPECIAL_TYPES]
+DEX_CAPTURE_CAP_MAX_BPS = 300
+DEX_RESOURCE_KINDS = {"basic", "hunt"}
 # 活力（vigor）を適用してよい活動。方置生産・保有（idle/home/production/storage 等）は不可（RULE_VIGOR_SCOPE）
 VIGOR_SCOPES = {"weaken", "hunt"}
 CAPTURE_K_MAX_LIMIT = 20  # 失敗後の逃走確率がこの試行数以内に 100% に達すること
@@ -138,7 +142,12 @@ SCHEMAS: dict[str, Obj] = {
         "individual_stats": Obj(req={"gather_bps_min": Int(min=1), "gather_bps_max": Int(min=1), "combat_bps_min": Int(min=1),
                                      "combat_bps_max": Int(min=1), "stream": Str(pattern=r"[a-z_]+"), "start_spirit_bps": Int(min=1),
                                      "roll_start_spirits": Bool()}),
-        "dex_bonus": Obj(req={"per_species_bps": Int(min=0), "max_bps": Int(min=0)}),
+        # 図鑑ボーナス（2026-11-12 改編）: 等級別（★1〜3 の資源生産）・特殊（★4）の bps と種類別の上限。意味の検査は RULE_DEX_BONUS
+        "dex_bonus": Obj(req={
+            "grade_bps": Obj(req={"1": Int(min=0), "2": Int(min=0), "3": Int(min=0)}),
+            "special_bps": Obj(req={k: Int(min=0) for k in formulas.DEX_SPECIAL_TYPES}),
+            "cap_bps": Obj(req={k: Int(min=0) for k in DEX_TYPES}),
+        }),
     }),
     "spirits": Obj(req={
         "schema_version": VERSION,
@@ -153,6 +162,8 @@ SCHEMAS: dict[str, Obj] = {
                 "params": Obj(opt={"node_kind": ID, "min_distinct_species": Int(min=2)}),
             })),
             "upkeep": COSTS,
+            # 図鑑ボーナス（種ごとに必ず 1 つ。resource は resource_output のときだけ、RULE_DEX_BONUS）
+            "dex_bonus": Obj(req={"type": Str(enum=DEX_TYPES)}, opt={"resource": ID}),
         }), min_items=1, unique_id=True),
     }),
     "curves": Obj(req={
@@ -342,6 +353,7 @@ def validate(gd: GameData, check_tables: bool = True) -> list[Issue]:
         return issues  # 参照が壊れていると規則検査で KeyError になるため止める
     _check_resource_rules(model, issues)
     _check_spirit_rules(model, issues)
+    _check_dex_bonus(model, issues)
     _check_curve_rules(model, issues)
     _check_facility_rules(model, issues)
     _check_unlock_graph(model, issues)
@@ -541,6 +553,34 @@ def _check_spirit_rules(m: Model, issues: list[Issue]) -> None:
                 if not kind or not holders:
                     err(issues, "RULE_NODE_TRAIT", f"fields/{f['id']}/gather_nodes/{n['id']}",
                         "requires_node_trait 노드에는 node_kind와 그것을 여는 special_node 특성 정령이 필요")
+
+
+def _check_dex_bonus(m: Model, issues: list[Issue]) -> None:
+    """図鑑ボーナス（2026-11-12 ユーザー決定）: ★1〜3 は resource_output（基本・狩り素材）、★4 は特殊（resource なし）、上限の範囲."""
+    code = "RULE_DEX_BONUS"
+    for sid, s in m.spirits.items():
+        p = f"spirits/{sid}/dex_bonus"
+        b = s["dex_bonus"]
+        t, res = b["type"], b.get("resource")
+        if s["grade"] <= 3:
+            if t != formulas.DEX_RESOURCE:
+                err(issues, code, p, f"★1~3은 {formulas.DEX_RESOURCE}만(현재 {t})")
+            elif res is None:
+                err(issues, code, p, f"{formulas.DEX_RESOURCE}에는 resource가 필요")
+            elif res not in m.resources or m.resources[res]["kind"] not in DEX_RESOURCE_KINDS:
+                err(issues, code, p, f"대상 자원은 기본 재료 또는 사냥 재료만: {res}")
+        else:
+            if t not in formulas.DEX_SPECIAL_TYPES:
+                err(issues, code, p, f"★4는 특수 종류({', '.join(formulas.DEX_SPECIAL_TYPES)})만(현재 {t})")
+            elif res is not None:
+                err(issues, code, p, "특수 종류에는 resource를 둘 수 없음")
+    cap = m.gd.docs["rules"]["dex_bonus"]["cap_bps"]
+    if cap["capture_attempt_up"] > DEX_CAPTURE_CAP_MAX_BPS:
+        err(issues, code, "rules/dex_bonus/cap_bps/capture_attempt_up",
+            f"포획 확률 보너스 상한은 안전 상한 {DEX_CAPTURE_CAP_MAX_BPS}bps(+3%p) 이하(2026-11-12 결정)")
+    for k in formulas.DEX_COST_TYPES:
+        if cap[k] >= formulas.BPS:
+            err(issues, code, f"rules/dex_bonus/cap_bps/{k}", f"비용 감소 상한은 {formulas.BPS} 미만(비용 ≥ 1 유지)")
 
 
 def _check_curve_rules(m: Model, issues: list[Issue]) -> None:

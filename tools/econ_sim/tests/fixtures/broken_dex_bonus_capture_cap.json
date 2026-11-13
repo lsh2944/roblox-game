@@ -1,0 +1,14 @@
+{
+  "description": "도감 포획 확률 보너스 상한이 안전 상한 +3%p(300bps) 초과",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "rules",
+      "path": "/dex_bonus/cap_bps/capture_attempt_up",
+      "value": 400
+    }
+  ]
+}

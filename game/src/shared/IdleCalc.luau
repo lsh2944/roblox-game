@@ -8,6 +8,7 @@
 -- - オンライン中は [settled, now] をそのまま認定。オフラインは [settled, min(now, 退出 + 上限時間)] を認定し、超過は失効
 -- - 認定区間を夜/昼境界（rules.night のゲーム内時計、UTC の通算分）で分け、区間ごとの生産率で accrue_milli（carry は資源別に持ち越す）
 -- - 施設で働く精霊の固有狩り素材は milli/日 を divmod(per_day × 分 + carry, 1440) で積む（(資源, 等級) 別の carry）
+-- - 図鑑ボーナス（2026-11-12 改編）は資源別: 施設はその生産資源の bps、家の素材はその狩り素材の bps（Economy.dexMap）
 -- - 研究倍率は資源別 bps のフック（MVP1 は 0）。図鑑ボーナス込みの資源別合計に 1 回だけ掛ける
 -- - 日境界での分割は行わない（carry 付き積算は区間を分けても合計が同じ。sim の日分割は日別集計のため）
 -- - 同行と施設配置は排他（計画書 Q3 決定）なので、sim の exclude（同行中の除外）は扱わない
@@ -38,7 +39,7 @@ export type SettleInput = {
 	offlineCapHours: number,
 	facilities: { [string]: FacilityRec },
 	roster: { [string]: SpiritRec },
-	dexCount: number, -- 図鑑登録種数（開始精霊を含む）
+	dex: { [string]: any }, -- 図鑑（save.dex = { [種] = 初登録時刻 }、開始精霊を含む）
 	researchIdleBps: { [string]: number }?, -- 資源別の研究倍率（MVP1 は nil = 0）
 }
 
@@ -92,13 +93,13 @@ end
 -- 資源別の放置生産率（milli/時）。研究倍率を資源別合計に 1 回だけ掛ける（sim.py idle_rates）
 function IdleCalc.idleRates(econ: any, input: SettleInput, night: boolean): { [string]: number }
 	local gd = econ.gd
-	local dex = econ:dexBps(input.dexCount)
+	local dexRes = econ:dexMap(input.dex).resource_output
 	local rates: { [string]: number } = {}
 	for _, fid in gd.facilityOrder do
 		local fac = input.facilities[fid]
 		if fac ~= nil then
 			local res = gd.facilities[fid].produces
-			local r = econ:facilityRate(fid, fac.level, facilityMembers(input, fac), night, dex)
+			local r = econ:facilityRate(fid, fac.level, facilityMembers(input, fac), night, dexRes[res] or 0)
 			rates[res] = (rates[res] or 0) + r
 		end
 	end
@@ -122,7 +123,7 @@ function IdleCalc.homeDetail(econ: any, input: SettleInput): { any }
 			end
 		end
 	end
-	return econ:homeMaterialDetail(members, econ:dexBps(input.dexCount))
+	return econ:homeMaterialDetail(members, econ:dexMap(input.dex).resource_output)
 end
 
 local function addGain(input: SettleInput, gained: { [string]: number }, res: string, milli: number)

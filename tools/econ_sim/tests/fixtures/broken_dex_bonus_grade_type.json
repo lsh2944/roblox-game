@@ -1,0 +1,16 @@
+{
+  "description": "★1~3 정령의 도감 보너스가 특수 종류(★1~3은 resource_output만, 2026-11-12 결정)",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:sparkle/dex_bonus",
+      "value": {
+        "type": "upgrade_cost_down"
+      }
+    }
+  ]
+}

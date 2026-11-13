@@ -5,6 +5,7 @@
 -- 期待値の出典: daily_quests.json（meadow = hunt_meadow 3・wick 40、forest = hunt_forest 3・wick 20）、Q12 決定（UTC 0 時）、
 --   crafting.json（wick_from_meadow = hunt_meadow 5 → wick 25、food_from_meadow は stock だが許可リスト外、key_meadow は atomic）、
 --   計画書 S9 完了基準（日付が変わったら 1 回だけ、hunt_meadow 5 → 芯 25）。開始状態の芯 21
+--   図鑑の制作材料減少（star_whale、2026-11-13 ユーザー決定で −500bps、総量に適用）: discounted_cost(5 × 20, 500) = 95、(5, 500) = 5
 
 local T = 1762819200 -- 2025-11-11 00:00 UTC（86400 の倍数）
 
@@ -66,6 +67,20 @@ return {
 			s.wallet.hunt_meadow = 500000
 			t:eq(craft:craft(1, s, "wick_from_meadow", 100, T).ok, true, "100회")
 			t:eq(s.wallet, { wick = 2546000, hunt_meadow = 0 })
+		end)
+
+		t:test("제작 재료 도감 감소(별무리 고래 −5%, 재료 × 횟수 총량에 적용)", function()
+			local s = newSave()
+			s.dex.star_whale = T
+			s.wallet.hunt_meadow = 95000
+			t:eq(craft:craft(1, s, "wick_from_meadow", 20, T).ok, true, "100 → 95")
+			t:eq(s.wallet, { wick = 521000, hunt_meadow = 0 })
+			s.wallet.hunt_meadow = 4000
+			t:eq(craft:craft(1, s, "wick_from_meadow", 1, T).code, E.INSUFFICIENT, "5개는 할인 0")
+			t:eq({ deps.CraftRules.check(deps.gd, "wick_from_meadow", 20, deps.Config.CRAFT_ALLOWED, 100) }, {
+				{ { resource = "hunt_meadow", amount = 100 } },
+				{ resource = "wick", amount = 500 },
+			}, "도감 생략 = 할인 없음")
 		end)
 
 		t:test("제작 거부: 횟수 범위·정수, 허용 목록 밖(stock·atomic), 없는 레시피", function()

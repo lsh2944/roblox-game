@@ -106,5 +106,40 @@ class BoundaryTest(unittest.TestCase):
         self.assertIsNone(formulas.g2_ratio(1000, 0))
 
 
+class DexBonusTest(unittest.TestCase):
+    """図鑑ボーナス（2026-11-12 決定）: 割引の丸め・入力範囲、種類の検査."""
+
+    RULE = {"grade_bps": {"1": 50, "2": 100, "3": 200},
+            "special_bps": {"upgrade_cost_down": 100, "craft_cost_down": 100, "capture_attempt_up": 50},
+            "cap_bps": {"resource_output": 1000, "upgrade_cost_down": 1000, "craft_cost_down": 1000, "capture_attempt_up": 300}}
+
+    def test_discount_never_below_one_and_rounds_cost_up(self):
+        for amount in range(1, 2000):
+            for r in (1, 50, 100, 333, 1000, 9999):
+                got = formulas.discounted_cost(amount, r)
+                self.assertGreaterEqual(got, 1)
+                # 費用 = ceil(amount × (1 − r/10000))（割引額の切り捨て = 費用の切り上げ）
+                self.assertEqual(got, -(-amount * (10000 - r) // 10000))
+
+    def test_discount_range(self):
+        with self.assertRaises(formulas.FormulaError):
+            formulas.discounted_cost(10, 10001)
+        with self.assertRaises(formulas.FormulaError):
+            formulas.discounted_cost(-1, 100)
+        self.assertEqual(formulas.discounted_costs([{"resource": "dew", "amount": 300}], 100), [{"resource": "dew", "amount": 297}])
+
+    def test_unknown_type_rejected(self):
+        with self.assertRaises(formulas.FormulaError):
+            formulas.dex_bonus_map(["x"], {"x": {"grade": 2, "dex_bonus": {"type": "luck_up"}}}, self.RULE)
+        with self.assertRaises(formulas.FormulaError):
+            formulas.dex_bonus_map(["x"], {"x": {"grade": 4, "dex_bonus": {"type": "resource_output", "resource": "dew"}}}, self.RULE)
+
+    def test_order_independent(self):
+        sp = {f"s{i}": {"grade": 1 + i % 3, "dex_bonus": {"type": "resource_output", "resource": ("dew", "bloom")[i % 2]}}
+              for i in range(12)}
+        ids = list(sp)
+        self.assertEqual(formulas.dex_bonus_map(ids, sp, self.RULE), formulas.dex_bonus_map(reversed(ids), sp, self.RULE))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,6 +7,8 @@
 -- - 採集率: cwd tools/econ_sim の python3 -c（2026-11-12 の data、シミュ実行なし）
 --   Economy(Model(load_data('../../data'))).direct_rate(meadow_dew, 'gather_tool', Lv, party) →
 --   同行なし Lv1 = 160000、Lv2 = 176000、開始 3 種（sparkle・dewdrop・flower_lamp Lv1）= 210560、sparkle 採集個体値 12000 単独 = 179200
+-- - 図鑑ボーナス（2026-11-12 改編）: 新規保存の図鑑 = 開始 3 種 → dew +50bps（dewdrop ★1）。GatherCalc.rate は
+--   formulas.dex_scaled_milli(上の値, 50) = 160800・176880・211612・180096（同じ python3 -c で確認）
 
 local T = 1762819200 -- 秒（60 の倍数）
 
@@ -57,15 +59,15 @@ return {
 		t:test("채집 배율: 도구 Lv·동행·개체값(Python direct_rate와 같음)", function()
 			local save = newWorld()
 			local node = deps.gd.nodes.meadow_dew.node
-			t:eq(GC.rate(deps.econ, save, node), 160000, "동행 없음 Lv1")
+			t:eq(GC.rate(deps.econ, save, node), 160800, "동행 없음 Lv1(도감 dew +0.5%)")
 			save.tool_level = 2
-			t:eq(GC.rate(deps.econ, save, node), 176000, "도구 Lv2")
+			t:eq(GC.rate(deps.econ, save, node), 176880, "도구 Lv2")
 			save.tool_level = 1
 			save.party = { "1", "2", "3" }
-			t:eq(GC.rate(deps.econ, save, node), 210560, "시작 3종 동행")
+			t:eq(GC.rate(deps.econ, save, node), 211612, "시작 3종 동행")
 			save.party = { "1" }
 			save.roster["1"].gather_bps = 12000
-			t:eq(GC.rate(deps.econ, save, node), 179200, "sparkle 개체값 12000")
+			t:eq(GC.rate(deps.econ, save, node), 180096, "sparkle 개체값 12000")
 		end)
 
 		t:test("시작 검증 순서: 인자 → 노드 → 필드 해금 → 거리 → 활동 중", function()
@@ -88,7 +90,7 @@ return {
 			act:clear(1)
 			local r = svc:start(1, save, "meadow_dew", R, T)
 			t:eq(r.ok, true)
-			t:eq(r.data.rate, 160000)
+			t:eq(r.data.rate, 160800)
 			t:eq(act:get(1), "gather")
 		end)
 
@@ -99,11 +101,11 @@ return {
 				local _, cont = svc:tick(1, save, T + s, true)
 				t:ok(cont)
 			end
-			t:eq(save.wallet.dew, 160000, "1시간 = 160/시")
+			t:eq(save.wallet.dew, 160800, "1시간 = 160.8/시")
 			t:eq(save.carry[GC.carryKey("dew")], 0)
 			local g, cont = svc:tick(1, save, T + 3601, false)
 			t:eq({ g, cont }, { 0, false })
-			t:eq(save.wallet.dew, 160000, "범위 밖 구간 미인정")
+			t:eq(save.wallet.dew, 160800, "범위 밖 구간 미인정")
 			t:eq(svc:session(1), nil)
 			t:eq(act:get(1), nil)
 		end)
@@ -117,7 +119,7 @@ return {
 			t:eq(save.wallet.dew, nil)
 			svc:start(1, save, "meadow_dew", 0, T)
 			svc:start(1, save, "meadow_bloom", 0, T + 90) -- tick が来ていない間は上限 3 秒だけ認定（settle・stop も tick と同じ上限）
-			t:eq(save.wallet.dew, (160000 * 3) // 3600, "간격 상한 3초만")
+			t:eq(save.wallet.dew, (160800 * 3) // 3600, "간격 상한 3초만")
 			t:eq(svc:session(1).resource, "bloom")
 		end)
 
@@ -128,10 +130,10 @@ return {
 			svc:settle(1, save, T + 2)
 			save.party = { "1", "2", "3" }
 			svc:refresh(1, save)
-			t:eq(svc:session(1).rate, 210560)
+			t:eq(svc:session(1).rate, 211612)
 			svc:tick(1, save, T + 3, true)
-			local g1, c1 = GC.accrueSeconds(160000, 2, 0)
-			local g2, c2 = GC.accrueSeconds(210560, 1, c1)
+			local g1, c1 = GC.accrueSeconds(160800, 2, 0)
+			local g2, c2 = GC.accrueSeconds(211612, 1, c1)
 			t:eq(save.wallet.dew, g1 + g2)
 			t:eq(save.carry[GC.carryKey("dew")], c2)
 		end)

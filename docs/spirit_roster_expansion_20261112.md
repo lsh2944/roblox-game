@@ -179,3 +179,32 @@
 - 포획 확률 +0.5%p ★4 = **오로라 사슴**. 그림자 등불은 시설 강화 비용 −1%, 별무리 고래는 제작 재료 −1%.
 - 제작 재료 할인은 **한 번에 제작하는 총량(재료 × 횟수)**에 적용한다.
 - `home_material`: 사냥 재료 생산 보너스를 집 방치 사냥 재료에 적용한다(R3 방치 적용의 귀결).
+
+## 도감 개편 구현 기록 (2026-11-12~13, roblox-feature)
+- 기준: `roblox-game` main `c6d2811` + 미커밋 작업트리(Git). 같은 작업트리의 `game/src/shared/SpiritVisuals/AuroraStag.luau`·`docs/previews/aurora_stag_v5_*`는 다른 작업의 변경이라 이 기록에 포함하지 않는다.
+
+### 사용자 결정 (2026-11-13)
+- 시설 강화 비용 감소(그림자 등불)와 제작 재료 감소(별무리 고래)를 **−1% → −5%**(`rules.json` `dex_bonus.special_bps` upgrade_cost_down·craft_cost_down 100 → 500, 상한 `cap_bps` 1000 유지)로 바꾼다.
+- 근거: −1%는 시설 강화 비용 항목 대부분이 100 미만이라 할인액이 내림으로 0이 되어 실효가 없다(예: dew_spring Lv10 dew 141 → 140, bloom 71 → 71). −5%면 141 → 134, 71 → 68, 제작 5×20=100 → 95.
+
+### 변경 요약
+- data: `spirits.json` 종마다 `dex_bonus`(배정표 그대로), `rules.json` `dex_bonus`를 `grade_bps`·`special_bps`·`cap_bps`로 교체(`per_species_bps`·`max_bps` 삭제), `home_material.apply_dex_to_home_material` = true. `test_vectors.json` 새 벡터 23건(dexMap 5·도감 배율 2·할인 7·포획 보정 5·포획 결합 4, 기존 벡터 변경 없음). 할인 벡터는 비율 r을 인자로 받으므로 −5% 결정의 영향이 없다.
+- econ_sim: `formulas.dex_bonus_map`(Python·Luau 같은 식)을 모든 경로가 쓴다. 검증기 `RULE_DEX_BONUS`(★1~3은 resource_output·대상은 기본/사냥 재료, ★4는 특수·resource 없음, 포획 상한 ≤300, 비용 감소 상한 <10000)와 스키마(종마다 필수·알 수 없는 type/키 거부), broken fixture 10개. 비용 감소는 `upgrade_cost_down`·`craft_cost_down`만 허용(그 밖은 오류).
+- Luau: `Formulas`(dexBonusMap·할인·포획 보정)·`Economy.dexMap/dexCosts`·`IdleCalc`(입력 `dex` = save.dex)·`GatherCalc.rate`·`CaptureLogic`(plan에 보정 저장, `EncounterEvent` attempt.bps는 최종값)·`CaptureService`(engage 시점 save.dex)·`FacilityRules`·`CraftRules/CraftService`. 저장 스키마는 이미 `dex = {[종]=첫 등록 시각}`이 있어 변경 없음.
+- 포획 확률 적합도: 보정이 걸린 조우는 `capture_rule_conformance`·`capture_tool_conformance`에서 빼고(제외 건수는 note), 도구 없는 조우를 `capture_dex_conformance`(등급×bps별, Q_dex = `encounter_expectation(capture_bonus_bps)`, Wilson CI, draft)로 따로 검사한다(리뷰 Minor 1).
+
+### 설계와 달라진 점·구현 판단
+1. 포획 보정 조우를 기존 적합도에서 빼고 bps별 적합도 행을 새로 둔 것(설계에 없음, 기존 Q와 섞이면 잘못된 WARN이 나기 때문).
+2. 사냥 드롭(sim)의 적용 순서는 **활력 축소 → 도감**(설계는 "직접 채집과 같은 방식"만 명시). policy의 계획용 사냥 효율에도 같은 식을 쓴다.
+3. 정책(sim 자동 플레이)의 정적 기대값(Q·심지 소요 추정)과 제작 횟수 계산에는 할인·포획 보정을 넣지 않았다(보수적). 실제 지불·판정만 반영한다.
+4. 강화 할인은 sim에서 시설 Lv 강화(hunt_gates 포함)와 칸 해금에, Luau는 MVP1에 칸 해금이 없어 Lv 강화에만 건다. 제작 할인은 stock 레시피만(atomic 제외).
+
+### 검증 (2026-11-13)
+- cwd `tools/econ_sim`: unittest 229건 OK, validate ERROR 0·WARN 0·INFO 15, gen-tables --check 최신.
+- cwd `roblox-game`: Lune 매핑 17개·오류 0, vectors PASS 123 / SKIP 30 / FAIL 0(합계 153), unit PASS 126 / FAIL 0(18 suites), rojo build 성공. Studio 미검증.
+- 돌연변이 확인(새 구현 사본): 상한 제거·할인 올림·흩어짐 보정·보정 무시·도구 앞 가산·중복 등록·시설 전체 dex·직접/집 방치 dex 누락·제작 단위 할인·강화 할인 누락·적합도 미제외·검증기 무력화 등 Python 14건·Luau 13건 모두 테스트가 검출.
+
+### quick run 비교
+- `20261112_roster20_q`(개편 전) → `20261112_dex_redesign_q`(개편, 할인 −1%): approved 36행 중 35행 판정 유지, `research_cap_shortening` cave→ridge PASS→INCONCLUSIVE(중앙값 0.106→0.122 ≤0.15, CI 상단 0.129→0.169, 20시드). balanced ★4 첫 포획 p99 그림자 등불 3→4·오로라 사슴 5→6·별무리 고래 6→6일(≤14 PASS). 시설 방치 생산 −4~7%, 직접 채집 증가, 하루 포획 거의 동일, 동굴 사냥 재료 공급 +12~30%, light_1h a3 완료율 0.20→0.45, balanced 연구 공급/소비 4,305/3,082 → 4,353/3,082, 심지 막힘 변화 없음(hardcore 4→5분).
+- `20261112_dex_redesign_q` → `20261113_dex_redesign_q2`(할인 −5%, 적합도 분리): approved 판정 변화 없음(PASS 24·INFO 10·INCONCLUSIVE 2). 새 `capture_dex_conformance` 4행(★1~4, +50bps) 모두 PASS. 시설 Lv 합 진행(D10·15·20·30, Lv 합 90 도달일)은 할인 전후 같다. 시설 레벨은 필드별 상한이 진행을 막아서 할인의 진행 효과는 작고, 절약분은 소비처 지출로 간다(hardcore 기본 재료 지출 +3~4%).
+- 200시드 full로 cave→ridge 판정을 확정하는 것은 메인이 실행한다.

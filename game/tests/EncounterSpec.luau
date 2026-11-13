@@ -10,6 +10,8 @@
 --   ★2 [0.9, 0.1, …, K+1:0.5] wicks21 wsec10 → success 2 試行 78 秒 / ★1 → success 1 試行 64 秒 /
 --   ★2 K+1:0.01 → flee 1 試行 74 秒 / ★2 wicks1 → wick_out 1 試行 74 秒 / ★2 灯籠 wsec12 → success 2 試行 80 秒
 --   夜: rules.night（周期 60 分・開始 30 分・30 分）→ 通算分 mod 60 が 30..59 なら夜
+--   図鑑の捕獲確率ボーナス（2026-11-12 決定）: resolve_encounter_tool(2, rule, [0.754, 0.5…], 21, 10, 0, 50) = success 1 試行 74 秒
+--   （ボーナス 0 なら success 2 試行 78 秒）。dex_bonus_map({aurora_deer}).capture_attempt_up = 50
 
 return {
 	name = "Encounter",
@@ -28,7 +30,7 @@ return {
 			return b
 		end
 
-		local function plan(b: { number }, party: { any }, wicks: number): any
+		local function plan(b: { number }, party: { any }, wicks: number, bonus: number?): any
 			return C.planEncounter({
 				field = gd.fields.meadow,
 				night = false,
@@ -37,6 +39,7 @@ return {
 				spirits = gd.spirits,
 				party = party,
 				wicksAvailable = wicks,
+				captureBonusBps = bonus,
 			})
 		end
 
@@ -85,6 +88,22 @@ return {
 			local a = plan(block({ [1] = 0.9, [2] = 0.9, [3] = 0.1 }), {}, 21)
 			t:eq({ a.attackerUid, a.weakenSeconds, a.vigorCostTicks, a.result.seconds }, { nil, 12, 0, 80 })
 			t:eq(C.encounterEvents(a, rule)[2], { phase = "weaken", at = 0, seconds = 12, assist = true })
+		end)
+
+		t:test("도감 포획 확률 보너스: 도감에서 값을 구하고, 결과 확정과 표시 bps에 같은 최종값", function()
+			t:eq(C.dexCaptureBps({}, gd.spirits, gd.rules.dex_bonus), 0)
+			t:eq(C.dexCaptureBps({ sparkle = 1, aurora_deer = 1, star_whale = 1 }, gd.spirits, gd.rules.dex_bonus), 50)
+			local b = block({ [1] = 0.9, [2] = 0.754 })
+			local base = plan(b, { sparkleFull }, 21)
+			t:eq({ base.captureBonusBps, base.result.result, base.result.attempts }, { 0, "success", 2 }, "보너스 없음: 0.754 ≥ 0.75 실패")
+			local p = plan(b, { sparkleFull }, 21, 50)
+			t:eq(p.captureBonusBps, 50)
+			t:eq(p.result, { result = "success", attempts = 1, wicksUsed = 1, seconds = 74, toolsUsed = 0 }, "0.754 < 0.755 성공")
+			t:eq(C.encounterEvents(p, rule)[3], { phase = "attempt", at = 10, attempt = 1, light = 20, bps = 7550, fleeBps = 300 })
+			-- ★1 は既に 100%: 上限 10000 のまま
+			local s = plan(block({ [1] = 0 }), { sparkleFull }, 21, 300)
+			t:eq(C.encounterEvents(s, rule)[2].bps, 10000)
+			t:eq(C.attemptBps(2, rule, 300), 7800)
 		end)
 
 		t:test("밤 판정: 게임 내 시계(매시 30~59분이 밤)", function()

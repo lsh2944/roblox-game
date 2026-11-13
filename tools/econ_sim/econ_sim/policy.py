@@ -160,6 +160,7 @@ class Policy:
         for fid in self.sim.state.unlocked:
             for d in self.m.fields[fid]["hunt"]["drops"]:
                 rate = self.econ.hunt_rate(fid, d, self.sim.members(self.hunt_party(fid, d)))
+                rate = formulas.dex_scaled_milli(rate, self.sim.dex_res(d["resource"]))  # 実産出（sim.hunt_rate_live）と同じく図鑑込み
                 hunt[d["resource"]] = max(hunt.get(d["resource"], 0), rate)
         return hunt
 
@@ -301,17 +302,19 @@ class Policy:
     def candidates(self) -> list[Candidate]:
         st, econ, m = self.sim.state, self.econ, self.m
         out: list[Candidate] = []
+        # 図鑑の強化費用減少（2026-11-12 決定）: 施設 Lv 強化・枠解禁の費用に項目ごとに掛ける（評価と支払いが同じ費用を使う）
+        up = lambda costs: self.sim.dex_costs(costs, "upgrade_cost_down")  # noqa: E731
         for fid in m.facility_order:
             if fid not in st.fac_level:
                 continue
             fac = m.facilities[fid]
             lv = st.fac_level[fid]
             if lv < self.level_cap(fac):
-                out.append(Candidate(f"facility:{fid}:lv{lv + 1}", econ.facility_level_cost(fid, lv),
+                out.append(Candidate(f"facility:{fid}:lv{lv + 1}", up(econ.facility_level_cost(fid, lv)),
                                      lambda fid=fid: st.fac_level.__setitem__(fid, st.fac_level[fid] + 1), frozenset({"idle"})))
             if st.fac_slots[fid] < fac["slots"]["max"]:
                 nxt = next(u for u in fac["slots"]["unlock"] if u["slot"] == st.fac_slots[fid] + 1)
-                out.append(Candidate(f"slot:{fid}:{nxt['slot']}", nxt["costs"], lambda fid=fid: self.sim.open_slot(fid),
+                out.append(Candidate(f"slot:{fid}:{nxt['slot']}", up(nxt["costs"]), lambda fid=fid: self.sim.open_slot(fid),
                                      frozenset({"idle", "direct"})))
         tool = m.tools[self.sim.tool_id]
         if st.tool_level < self.level_cap(tool):

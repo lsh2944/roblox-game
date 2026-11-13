@@ -1,0 +1,13 @@
+{
+  "description": "도감 보너스가 없는 종(종마다 정확히 1개)",
+  "expect_codes": [
+    "SCHEMA_REQUIRED"
+  ],
+  "ops": [
+    {
+      "op": "remove",
+      "file": "spirits",
+      "path": "/spirits/id:moss_puff/dex_bonus"
+    }
+  ]
+}

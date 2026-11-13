@@ -18,6 +18,42 @@ _PER_RUN = ("wick_blocked_min", "wick_procure_min", "capture_min", "weaken_count
 SOURCES_ALL = ("idle", "direct", "hunt", "quest", "paid", "release", "craft", "grant", "sink")
 
 
+def encode_dex_full(d: dict[tuple[int, int], list[int]]) -> str:
+    """図鑑ボーナス付き遭遇の (等級, bps) → [件数, 成功] を daily.csv の 1 列にする（"等級:bps:件数:成功" を ; で連結、空なら ""）."""
+    return ";".join(f"{g}:{b}:{v[0]}:{v[1]}" for (g, b), v in sorted(d.items()))
+
+
+def parse_dex_full(s: str) -> dict[tuple[int, int], list[int]]:
+    """encode_dex_full の逆."""
+    out: dict[tuple[int, int], list[int]] = {}
+    for part in (s or "").split(";"):
+        if part:
+            g, b, n, k = (int(x) for x in part.split(":"))
+            out[(g, b)] = [n, k]
+    return out
+
+
+def dex_conformance(dex_full: dict[str, dict[tuple[int, int], list[int]]], personas: list[str], rule: dict[str, Any],
+                    min_enc: int, wilson: Any) -> list[dict[str, Any]]:
+    """図鑑の捕獲確率ボーナス付き遭遇の適合度（等級 × bps 別）。Q = encounter_expectation(等級, rule, capture_bonus_bps=bps)."""
+    tot: dict[tuple[int, int], list[int]] = {}
+    for p in personas:
+        for key, (n, k) in dex_full.get(p, {}).items():
+            v = tot.setdefault(key, [0, 0])
+            v[0] += n
+            v[1] += k
+    rows = []
+    for (gr, bps), (n, k) in sorted(tot.items()):
+        q, _ = formulas.encounter_expectation(gr, rule, capture_bonus_bps=bps)
+        lo, hi = wilson(k, n) if n else (None, None)
+        if n < min_enc or lo is None:
+            ev = "INCONCLUSIVE"
+        else:
+            ev = "PASS" if lo - 1e-9 <= float(q) <= hi + 1e-9 else "WARN"
+        rows.append({"grade": gr, "bps": bps, "n": n, "k": k, "q": q, "lo": lo, "hi": hi, "evaluation": ev})
+    return rows
+
+
 def _num(r: dict[str, str], k: str) -> float:
     v = r.get(k, "")
     return float(v) if v else 0.0
@@ -34,6 +70,7 @@ class CaptureSinkData:
         self.progress_days = progress_days
         self.active = False
         self.grade: dict[str, dict[tuple[int, str], int]] = {}  # persona → (等級, 結果|enc|attempts) → 件数
+        self.dex_full: dict[str, dict[tuple[int, int], list[int]]] = {}  # persona → (等級, 図鑑ボーナス bps) → [件数, 成功]
         self.field: dict[str, dict[str, list[int]]] = {}  # persona → field → [件数, 秒]
         self.violations: dict[str, int] = {}
         self.run: dict[tuple[str, int], dict[str, float]] = {}  # (persona, rep) → "<key>_<e|l>" → 合計
@@ -65,8 +102,13 @@ class CaptureSinkData:
         self.group.setdefault(pid, r["pairing_group_id"])
         g = self.grade.setdefault(pid, {})
         for gr in (1, 2, 3, 4):
-            for k in ("enc", "attempts", *RESULTS, "full_enc", "full_success"):
+            for k in ("enc", "attempts", *RESULTS, "full_enc", "full_success", "dex_enc"):
                 g[(gr, k)] = g.get((gr, k), 0) + int(r.get(f"g{gr}_{k}", 0) or 0)
+        dfull = self.dex_full.setdefault(pid, {})
+        for key, (n, k) in parse_dex_full(r.get("dex_capture_full", "")).items():
+            v = dfull.setdefault(key, [0, 0])
+            v[0] += n
+            v[1] += k
         fd = self.field.setdefault(pid, {})
         for f in m.field_order:
             v = fd.setdefault(f, [0, 0])
@@ -118,7 +160,7 @@ class CaptureSinkData:
         for k in ("tool_attempts", "tool_enc", "tool_success", "tool_first_capture", "tool_pre_unlock", "craft_hunt_lure"):
             add(k, _num(r, k))
         for gr in (1, 2, 3, 4):
-            for k in ("enc", "success", "full_enc", "full_success"):
+            for k in ("enc", "success", "full_enc", "full_success", "dex_excl"):
                 add(f"g{gr}_tool_{k}", _num(r, f"g{gr}_tool_{k}"))
         unlocked = self.tool_unlock_rank is not None and m.field_rank(r["highest_field"]) >= self.tool_unlock_rank
         if unlocked:
@@ -192,7 +234,8 @@ def add_checks(rd: Any, sc: dict[str, Any], ck: Any) -> dict[str, Any]:
             seen_groups.add(cs.group.get(p, p))
             indep.append(p)
     for gr in (1, 2, 3, 4):
-        tot = {k: sum(cs.grade.get(p, {}).get((gr, k), 0) for p in indep) for k in ("enc", "attempts", *RESULTS, "full_enc", "full_success")}
+        tot = {k: sum(cs.grade.get(p, {}).get((gr, k), 0) for p in indep)
+               for k in ("enc", "attempts", *RESULTS, "full_enc", "full_success", "dex_enc")}
         q, ea = formulas.encounter_expectation(gr, rule)
         # 開始時に芯が K_max 回分以上（または無制限）あった遭遇だけを数える。芯切れの遭遇を単に除くと、失敗が続いた遭遇ほど
         # 除かれて成功率が上に偏るため（2 次レビュー Minor 4）
@@ -206,11 +249,19 @@ def add_checks(rd: Any, sc: dict[str, Any], ck: Any) -> dict[str, Any]:
         att = (tot["attempts"] / tot["enc"]) if tot["enc"] else None
         ck.add("capture_rule_conformance", f"grade{gr}", "success_per_encounter", "observed(start_wick>=K_max)", f(k / n if n else None, 4), n,
                f(lo, 4), f(hi, 4), f"Q={float(q):.4f} ∈ Wilson CI", evaluation, appr, ev(n),
-               f"평균 시도 {f(att, 3)}(해석 E[A] {float(ea):.3f}, 심지 소진 포함) — 비교군별 첫 페르소나 합산({','.join(indep)})")
+               f"평균 시도 {f(att, 3)}(해석 E[A] {float(ea):.3f}, 심지 소진 포함) — 비교군별 첫 페르소나 합산({','.join(indep)})"
+               f", 도감 포획 보정 조우 {tot['dex_enc']}건은 적합도에서 제외")
         shares = {k2: (tot[k2] / tot["enc"] if tot["enc"] else None) for k2 in RESULTS}
         ck.add("capture_outcome_share", f"grade{gr}", "encounter_outcome", "success/flee/wick_out/scatter",
                "/".join(f(shares[k2], 3) for k2 in RESULTS), tot["enc"], "", "", "", "INFO", appr, ev(tot["enc"]), "완료일 기준, 비교군별 첫 페르소나 합산")
         out["capture"].append(["grade", f"★{gr}", f(shares["success"], 3), f(shares["flee"], 3), f(shares["wick_out"], 3), f(att, 2), f"{float(q):.3f}/{float(ea):.2f}"])
+    # 1b. 図鑑の捕獲確率ボーナス付き遭遇の適合度（2026-11-13 リビュー Minor 1）: 基本規則の行から外した遭遇を等級 × bps 別に検査する
+    for d in dex_conformance(cs.dex_full, indep, rule, min_enc, wilson):
+        ck.add("capture_dex_conformance", f"grade{d['grade']}:bps{d['bps']}", "success_per_encounter",
+               "observed(start_wick>=K_max,no_tool,dex_bonus)", f(d["k"] / d["n"] if d["n"] else None, 4), d["n"],
+               f(d["lo"], 4), f(d["hi"], 4), f"Q_dex={float(d['q']):.4f} ∈ Wilson CI", d["evaluation"], appr, ev(d["n"]),
+               f"도감 포획 확률 보너스 +{d['bps']}bps가 걸린 도구 없는 조우만(Q = encounter_expectation(capture_bonus_bps)), "
+               f"비교군별 첫 페르소나 합산({','.join(indep)})")
     # 2. 時間の保存
     viol = sum(cs.violations.values())
     ck.add("capture_time_conservation", "all", "capture_seconds_le_budget", "violation_days", str(viol), sum(len(rd.reps[p]) for p in personas) * rd.days,
@@ -396,7 +447,9 @@ def _tool_checks(rd: Any, cs: CaptureSinkData, ck: Any, appr: str, indep: list[s
         lo, hi = wilson(k, n)
         evaluation = "INCONCLUSIVE" if n < min_enc or lo is None else ("PASS" if lo - 1e-9 <= float(q) <= hi + 1e-9 else "WARN")
         ck.add("capture_tool_conformance", f"grade{gr}", "success_per_encounter", "observed(start_wick,tool>=K_max)", f(k / n, 4), n,
-               f(lo, 4), f(hi, 4), f"Q_tool={float(q):.4f} ∈ Wilson CI", evaluation, appr, ev(n), f"도구 사용 조우만, 비교군별 첫 페르소나 합산({','.join(indep)})")
+               f(lo, 4), f(hi, 4), f"Q_tool={float(q):.4f} ∈ Wilson CI", evaluation, appr, ev(n),
+               f"도구 사용 조우만, 비교군별 첫 페르소나 합산({','.join(indep)}), 도감 포획 보정 조우 "
+               f"{int(sum(cs.tool.get(p, {}).get(f'g{gr}_tool_dex_excl', 0) for p in indep))}건은 제외")
     for pid in [p for p in rd.personas if p in cs.tool_personas]:
         t = cs.tool.get(pid, {})
         reps = rd.reps[pid]

@@ -23,6 +23,8 @@
 --    同行の vigor_min は engage の入力を作るとき、pending.endsAt は complete のとき（時計が巻き戻っても遭遇が終わるように）
 -- 芯は capture.attempt_cost の 1 種だけ対応（sim と同じ制約）。遭遇中の状態は実行時だけ（保存しない）。
 -- 遭遇の結果に有料の材料は入らない（芯・灯籠は非売、捕獲補助道具は MVP1 で使わない）。
+-- 図鑑の捕獲確率ボーナス（2026-11-12 決定、オーロラ鹿 +0.5%p・上限 +3%p）は engage 時点の save.dex で決め、結果の確定と
+-- EncounterEvent の attempt.bps（表示する最終値）に同じ値を使う。精霊は販売しないので有料の経路はない（PolicyService 対象外）。
 
 local CaptureService = {}
 CaptureService.__index = CaptureService
@@ -188,6 +190,7 @@ function CaptureService.engage(self: CaptureService, userId: number, save: any, 
 		spirits = gd.spirits,
 		party = party,
 		wicksAvailable = wickMilli // 1000,
+		captureBonusBps = CL.dexCaptureBps(save.dex, gd.spirits, gd.rules.dex_bonus),
 	})
 	if plan == nil then
 		error("CaptureService: 출현 표를 확인한 뒤 종 추첨 실패") -- 上で空でないことを確かめているので起きない

@@ -120,7 +120,7 @@
       "wick_unlimited_pairs": [{"base": "balanced", "test": "balanced_wick_unlimited"}, {"base": "hardcore", "test": "hardcore_wick_unlimited"}],
       "ablation_pairs": [{"base": "balanced", "test": "balanced_level_off"}, {"base": "balanced", "test": "balanced_vigor_off"}],
       "tool_balance_days": [14, 30, 60],
-      "notes": "포획 보조 도구(2026-11-11): capture_tool_first_capture_zero(첫 포획·전역 해금 전 도구 0, draft PASS/FAIL)·capture_tool_conformance(도구 조우 적합도, draft)·capture_tool_usage·capture_tool_field·star4_success_per_day_after_unlock(INFO), 사냥 재료 잔고는 tool_balance_days 기준. 단계 5(2026-11-10) 새 지표. 전부 draft/INFO이며 기존 approved 판정과 무관. 심지 부족 ≤0.01(balanced·hardcore)과 유한 외형 완료 balanced p50 D45~D60은 계획서 6절 초안. 비교 페르소나(wick_unlimited·ablation)는 config/personas_wick_compare.json·personas_ablation.json으로 실행할 때만 행이 나온다."
+      "notes": "도감 포획 확률 보너스(2026-11-12 결정, 2026-11-13 리뷰 Minor 1): 보너스가 걸린 조우는 capture_rule_conformance·capture_tool_conformance에서 빼고(제외 건수는 note), 도구 없는 조우를 capture_dex_conformance(등급×bps별 Q_dex = encounter_expectation(capture_bonus_bps), Wilson CI, draft)로 따로 검사. 포획 보조 도구(2026-11-11): capture_tool_first_capture_zero(첫 포획·전역 해금 전 도구 0, draft PASS/FAIL)·capture_tool_conformance(도구 조우 적합도, draft)·capture_tool_usage·capture_tool_field·star4_success_per_day_after_unlock(INFO), 사냥 재료 잔고는 tool_balance_days 기준. 단계 5(2026-11-10) 새 지표. 전부 draft/INFO이며 기존 approved 판정과 무관. 심지 부족 ≤0.01(balanced·hardcore)과 유한 외형 완료 balanced p50 D45~D60은 계획서 6절 초안. 비교 페르소나(wick_unlimited·ablation)는 config/personas_wick_compare.json·personas_ablation.json으로 실행할 때만 행이 나온다."
     },
     "research": {
       "none": "balanced_noresearch",

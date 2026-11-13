@@ -192,12 +192,115 @@ function Formulas.researchScaledMilli(amountMilli: number, researchBps: number):
 	return idiv(amountMilli * (BPS + researchBps), BPS)
 end
 
--- 施設放置の適用順: 図鑑ボーナス → 切り捨て → 研究 → 切り捨て
+-- 適用順: 図鑑ボーナス（その資源の bps）→ 切り捨て → 研究 → 切り捨て（施設放置・直接採集で同じ）
 function Formulas.idleDexResearchMilli(rawMilli: number, dexBps: number, researchBps: number): number
 	nonneg("raw_milli", rawMilli)
 	nonneg("dex_bps", dexBps)
 	assertSafe(rawMilli * (BPS + dexBps)) -- Python は多倍長なので検査なし。Luau では精度のため検査する
 	return Formulas.researchScaledMilli(idiv(rawMilli * (BPS + dexBps), BPS), researchBps)
+end
+
+-- ---- 図鑑ボーナス（2026-11-12 ユーザー決定、docs/spirit_roster_expansion_20261112.md 図鑑ボーナス改編） ----
+-- 種ごとに dex_bonus を 1 つ持ち、数値は rules.dex_bonus（等級・種類別）だけで決める。全経路がこの結果を使う（formulas.py と同じ）
+
+Formulas.DEX_RESOURCE = "resource_output"
+Formulas.DEX_SPECIAL_TYPES = table.freeze({ "upgrade_cost_down", "craft_cost_down", "capture_attempt_up" })
+-- 費用減少として使える種類（それ以外を費用に掛けるのは誤り）
+Formulas.DEX_COST_TYPES = table.freeze({ "upgrade_cost_down", "craft_cost_down" })
+
+export type DexMap = {
+	resource_output: { [string]: number }, -- 資源 → bps（0 の資源は含めない）
+	upgrade_cost_down: number,
+	craft_cost_down: number,
+	capture_attempt_up: number,
+}
+
+-- 図鑑登録種の配列 → 種類別の図鑑ボーナス（formulas.py dex_bonus_map）。data に無い種は無視し、重複は 1 回だけ数える。
+-- 合計してから種類別の上限 cap_bps で切る（resource_output は資源別）
+function Formulas.dexBonusMap(registered: { string }, spirits: { [string]: any }, rule: any): DexMap
+	local res: { [string]: number } = {}
+	local out: DexMap = { resource_output = res, upgrade_cost_down = 0, craft_cost_down = 0, capture_attempt_up = 0 }
+	local seen: { [string]: boolean } = {}
+	for _, sid in registered do
+		if seen[sid] then
+			continue
+		end
+		seen[sid] = true
+		local s = spirits[sid]
+		if s == nil then
+			continue
+		end
+		local b = s.dex_bonus
+		local t = b.type
+		if t == Formulas.DEX_RESOURCE then
+			local v = rule.grade_bps[tostring(s.grade)]
+			if v == nil then
+				fail(`등급 {s.grade}의 도감 보너스 수치가 없음: {sid}`)
+			end
+			res[b.resource] = (res[b.resource] or 0) + v
+		elseif table.find(Formulas.DEX_SPECIAL_TYPES, t) ~= nil then
+			local o = out :: any
+			o[t] += rule.special_bps[t]
+		else
+			fail(`알 수 없는 도감 보너스 종류: {tostring(t)}`)
+		end
+	end
+	local cap = rule.cap_bps
+	for r, v in res do
+		local c = math.min(cap[Formulas.DEX_RESOURCE], v)
+		res[r] = if c > 0 then c else nil
+	end
+	out.upgrade_cost_down = math.min(cap.upgrade_cost_down, out.upgrade_cost_down)
+	out.craft_cost_down = math.min(cap.craft_cost_down, out.craft_cost_down)
+	out.capture_attempt_up = math.min(cap.capture_attempt_up, out.capture_attempt_up)
+	return out
+end
+
+-- 保存データの図鑑（save.dex = { [種] = 初登録時刻 }）→ dexBonusMap。キーの順は結果に影響しない
+function Formulas.dexBonusMapForSet(dexSet: { [string]: any }, spirits: { [string]: any }, rule: any): DexMap
+	local ids = {}
+	for sid in dexSet do
+		table.insert(ids, sid)
+	end
+	return Formulas.dexBonusMap(ids, spirits, rule)
+end
+
+-- 生産量に図鑑ボーナスを掛ける: amount × (10000 + dex) // 10000（切り捨て）
+function Formulas.dexScaledMilli(amountMilli: number, dexBps: number): number
+	nonneg("amount_milli", amountMilli)
+	nonneg("dex_bps", dexBps)
+	assertSafe(amountMilli * (BPS + dexBps))
+	return idiv(amountMilli * (BPS + dexBps), BPS)
+end
+
+-- 費用の割引: amount − amount × r // 10000（割引額を切り捨て = 費用は切り上げ）。r < 10000 なら amount ≥ 1 → 結果 ≥ 1
+function Formulas.discountedCost(amount: number, discountBps: number): number
+	nonneg("amount", amount)
+	nonneg("discount_bps", discountBps)
+	if discountBps > BPS then
+		fail(`discount_bps는 0..{BPS}: {discountBps}`)
+	end
+	assertSafe(amount * discountBps)
+	return amount - idiv(amount * discountBps, BPS)
+end
+
+-- 費用の各項目に discountedCost を掛けた新しい配列（割引 0 でも写しを返す）
+function Formulas.discountedCosts(costs: { { resource: string, amount: number } }, discountBps: number): { { resource: string, amount: number } }
+	local out = {}
+	for _, c in costs do
+		table.insert(out, { resource = c.resource, amount = Formulas.discountedCost(c.amount, discountBps) })
+	end
+	return out
+end
+
+-- 図鑑の捕獲確率ボーナス: 道具適用後の成功率 p に加算。p > 0 のときだけ min(10000, p + bonus)、p ≤ 0（散り）はそのまま
+function Formulas.captureBonusAttemptBps(pBps: number, bonusBps: number): number
+	assertSafe(pBps)
+	nonneg("bonus_bps", bonusBps)
+	if pBps <= 0 then
+		return pBps
+	end
+	return math.min(BPS, pBps + bonusBps)
 end
 
 -- パーティ戦闘力 = Σ(戦闘力×能力倍率bps)。members は {{combat, ability_bps}, ...}
@@ -492,6 +595,8 @@ function Formulas.captureToolItem(homeField: string, grade: number, unlockedFiel
 end
 
 -- 簡易モード 1 遭遇の結果（捕獲補助道具あり）。formulas.py resolve_encounter_tool と同じ
+-- captureBonusBps（省略 = 0）は図鑑の捕獲確率ボーナス。道具の有無を決めた後の各試行の成功率に captureBonusAttemptBps で加える
+-- （逃走・乱数の位置・道具の消費は変えない）
 -- uniforms は [試行成功 K_max 個, 逃走 K_max 個]（1 始まり: i 回目の試行は uniforms[i]、i 回目の失敗後の逃走は uniforms[K+i]）
 -- wicksAvailable < 0 は芯無制限（wicksUsed は 0）。比較は u × 10000 < p_bps（double 同士、Python float と同じ）
 function Formulas.resolveEncounterTool(
@@ -500,17 +605,19 @@ function Formulas.resolveEncounterTool(
 	uniforms: { number },
 	wicksAvailable: number,
 	weakenS: number,
-	toolsAvailable: number
+	toolsAvailable: number,
+	captureBonusBps: number?
 ): EncounterResult
 	assertSafe(grade, weakenS, wicksAvailable, toolsAvailable)
+	local bonus = captureBonusBps or 0
 	local unlimited = wicksAvailable < 0
 	local k = Formulas.captureKMax(rule)
 	if #uniforms < 2 * k then
 		fail(`uniforms는 {2 * k}개 필요`)
 	end
 	local light = Formulas.easyAttemptLight(grade, rule)
-	local p = Formulas.captureAttemptBps(grade, light, rule)
-	local pt = Formulas.captureToolAttemptBps(grade, light, rule)
+	local p = Formulas.captureBonusAttemptBps(Formulas.captureAttemptBps(grade, light, rule), bonus)
+	local pt = Formulas.captureBonusAttemptBps(Formulas.captureToolAttemptBps(grade, light, rule), bonus)
 	local toolPer = 0
 	if toolsAvailable > 0 and Formulas.captureToolMultBps(grade, rule) > BPS then
 		toolPer = rule.capture_tool.per_attempt

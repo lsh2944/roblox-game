@@ -1,0 +1,17 @@
+{
+  "description": "★4 특수 종류 도감 보너스에 resource가 있음(특수 종류는 resource 없음)",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:aurora_deer/dex_bonus",
+      "value": {
+        "type": "capture_attempt_up",
+        "resource": "dew"
+      }
+    }
+  ]
+}

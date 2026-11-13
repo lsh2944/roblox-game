@@ -1,0 +1,14 @@
+{
+  "description": "비용 감소 상한이 10000 이상(비용이 0이 될 수 있음)",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "rules",
+      "path": "/dex_bonus/cap_bps/craft_cost_down",
+      "value": 10000
+    }
+  ]
+}

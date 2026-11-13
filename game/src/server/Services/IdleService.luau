@@ -20,14 +20,6 @@ function IdleService.new(IdleCalc: any, econ: any): IdleService
 	return setmetatable({ IdleCalc = IdleCalc, econ = econ }, IdleService)
 end
 
-local function countKeys(t: { [any]: any }): number
-	local n = 0
-	for _ in t do
-		n += 1
-	end
-	return n
-end
-
 -- dst の中身を src と同じにする（テーブルの同一性は保つ: 他から save.wallet を参照していても新しい値が見える）
 local function replaceContents(dst: { [any]: any }, src: { [any]: any })
 	for k in dst do
@@ -51,7 +43,7 @@ function IdleService.input(save: any, offline: boolean): any
 		offlineCapHours = save.offline_cap_hours,
 		facilities = save.facilities,
 		roster = save.roster,
-		dexCount = countKeys(save.dex),
+		dex = save.dex, -- 図鑑（資源別の図鑑ボーナスは IdleCalc が Economy.dexMap で求める）
 		researchIdleBps = nil, -- 研究倍率のフック（MVP1 は 0）
 	}
 end

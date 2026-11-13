@@ -245,6 +245,17 @@ return {
 			t:eq(w.svc:dueEvents(1, T + 19), {}, "조우 밖은 빈 목록")
 		end)
 
+		t:test("도감 포획 확률 보너스: engage 시점 save.dex로 결과와 표시 bps(최종값)를 정함", function()
+			local w = newWorld(successBlock(), { 10000, 12000 })
+			w.save.dex.aurora_deer = T -- capture_attempt_up +50（2026-11-12 決定）
+			local wd = w.wild:ensure(1, w.save, T, "meadow")
+			t:eq(w.svc:engage(1, w.save, wd.id, 0, T).ok, true)
+			local p = w.svc:getPending(1)
+			t:eq(p.plan.captureBonusBps, 50)
+			local ev = w.svc:dueEvents(1, T + 10)
+			t:eq({ ev[1].phase, ev[1].bps }, { "attempt", 7550 }, "★2 75% + 0.5%p")
+		end)
+
 		t:test("단계별 전송: 여러 시각을 건너뛰면 순서대로 한꺼번에", function()
 			local w = newWorld(successBlock(), { 10000, 12000 })
 			local wd = w.wild:ensure(1, w.save, T, "meadow")

@@ -14,6 +14,7 @@ from typing import Any, Iterable
 from . import jsonio
 from .data_load import load_data
 from .economy import Economy
+from .metrics_capture import encode_dex_full
 from .model import Model
 from .sim import DAY, Simulator
 from .sim_config import load_personas
@@ -60,18 +61,23 @@ CAPTURE_COLS = ["attempts_cum", "capture_success_cum", "capture_flee_cum", "capt
                 "sink_spent_basic", "sink_spent_hunt", "sink_spent_basic_repeat", "sink_spent_hunt_repeat", "finite_sink_done", "repeat_sink_levels", "repeat_sink_open", "dex_pages",
                 # 2026-11-11: 芯の制作に投入した狩り素材（その日、用途内訳用）
                 "craft_hunt_wick"]
-# 等級別の完了遭遇（完了日）: 件数・結果・試行数
-GRADE_COLS = [f"g{g}_{k}" for g in (1, 2, 3, 4) for k in ("enc", "success", "flee", "wick_out", "scatter", "attempts", "full_enc", "full_success")]
+# 等級別の完了遭遇（完了日）: 件数・結果・試行数。dex_enc = 図鑑の捕獲確率ボーナスが掛かった遭遇（2026-11-12、full_* の適合度から外す）
+GRADE_COLS = [f"g{g}_{k}" for g in (1, 2, 3, 4)
+              for k in ("enc", "success", "flee", "wick_out", "scatter", "attempts", "full_enc", "full_success", "dex_enc")]
 # 捕獲補助道具（2026-11-11）: 道具を使った試行数・遭遇数・成功数（完了日）、番人 2 種（常に 0）、道具の制作に投入した狩り素材、
 # 等級別の道具遭遇（完了日。full = 開始時に芯・道具とも K_max 回分以上）、フィールド別の道具の制作数・消費数（消費は開始日）。
-# 道具を使った遭遇は g*_full_enc/full_success（道具なしの適合度）から外す
+# 道具を使った遭遇は g*_full_enc/full_success（道具なしの適合度）から外す。dex_excl = 図鑑の捕獲確率ボーナスが掛かったため
+# 道具の適合度（g*_tool_full_*）から外した full 遭遇の件数（2026-11-13 リビュー Minor 1）
+TOOL_GRADE_KEYS = ("enc", "success", "full_enc", "full_success", "dex_excl")
 TOOL_COLS = ["tool_attempts", "tool_enc", "tool_success", "tool_first_capture", "tool_pre_unlock", "craft_hunt_lure",
-             *[f"g{g}_tool_{k}" for g in (1, 2, 3, 4) for k in ("enc", "success", "full_enc", "full_success")]]
+             *[f"g{g}_tool_{k}" for g in (1, 2, 3, 4) for k in TOOL_GRADE_KEYS]]
+# 図鑑の捕獲確率ボーナス付き・道具なし・開始時に芯 K_max 回分以上の遭遇（完了日）: "等級:bps:件数:成功;..."（bps 別の適合度用）
+DEX_COLS = ["dex_capture_full"]
 
 
 def daily_columns(model: Model) -> list[str]:
     cols = list(DAILY_BASE) + CAPTURE_COLS + GRADE_COLS + [f"{k}_{f}" for f in model.field_order for k in ("enc_done", "enc_seconds", "attempts")]
-    cols += TOOL_COLS + [f"{k}_{f}" for f in model.field_order for k in ("lure_craft", "lure_used")]
+    cols += TOOL_COLS + [f"{k}_{f}" for f in model.field_order for k in ("lure_craft", "lure_used")] + DEX_COLS
     for r in model.resource_order:
         cols += [f"wallet_{r}"] + [f"earned_{s}_{r}" for s in SOURCES] + [f"spent_{r}"]
     return cols
@@ -139,16 +145,17 @@ def _daily_rows(sim: Simulator, model: Model) -> list[list[str]]:
             n = sum(v for (gg, _), v in acc.grade_results.items() if gg == g)
             row += [str(n), *[str(acc.grade_results.get((g, k), 0)) for k in ("success", "flee", "wick_out", "scatter")],
                     str(acc.grade_attempts.get(g, 0)), str(acc.grade_results_full.get((g, "enc"), 0)),
-                    str(acc.grade_results_full.get((g, "success"), 0))]
+                    str(acc.grade_results_full.get((g, "success"), 0)), str(acc.dex_capture_enc.get(g, 0))]
         for f in model.field_order:
             row += [str(acc.enc_done.get(f, 0)), str(acc.enc_seconds.get(f, 0)), str(acc.field_attempts.get(f, 0))]
         tg = acc.tool_grade
         row += [str(acc.tool_attempts), str(sum(v for (_, k), v in tg.items() if k == "enc")),
                 str(sum(v for (_, k), v in tg.items() if k == "success")), str(acc.tool_first_capture), str(acc.tool_pre_unlock),
                 milli_str(acc.lure_craft_hunt)]
-        row += [str(tg.get((g, k), 0)) for g in (1, 2, 3, 4) for k in ("enc", "success", "full_enc", "full_success")]
+        row += [str(tg.get((g, k), 0)) for g in (1, 2, 3, 4) for k in TOOL_GRADE_KEYS]
         for f in model.field_order:
             row += [milli_str(acc.lure_craft.get(f, 0)), str(acc.lure_used.get(f, 0))]
+        row.append(encode_dex_full(acc.dex_capture_full))
         for r in model.resource_order:
             row.append(milli_str(snap["wallet"][r]))
             row += [milli_str(acc.earned.get((s, r), 0)) for s in SOURCES]

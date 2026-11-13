@@ -137,14 +137,34 @@ function CaptureLogic.pickSpecies(captureTable: { any }, u: number): string?
 	return captureTable[#captureTable].spirit_id
 end
 
--- 遭遇の結果を開始時に確定する（道具なし = resolveEncounterTool(..., 0)）。block は 1 + 2·K_max 個の全体
-function CaptureLogic.resolveEasy(grade: number, rule: any, block: { number }, wicksAvailable: number, weakenS: number): Formulas.EncounterResult
+-- 遭遇の結果を開始時に確定する（道具なし = resolveEncounterTool(..., 0)）。block は 1 + 2·K_max 個の全体。
+-- captureBonusBps（省略 = 0）は図鑑の捕獲確率ボーナス（2026-11-12 決定、dexCaptureBps の値）
+function CaptureLogic.resolveEasy(
+	grade: number,
+	rule: any,
+	block: { number },
+	wicksAvailable: number,
+	weakenS: number,
+	captureBonusBps: number?
+): Formulas.EncounterResult
 	local need = CaptureLogic.blockSize(rule)
 	if #block < need then
 		error(`CaptureLogic: 난수 블록은 {need}개 필요(받은 수 {#block})`)
 	end
 	local uniforms = table.move(block, 2, need, 1, {})
-	return Formulas.resolveEncounterTool(grade, rule, uniforms, wicksAvailable, weakenS, 0)
+	return Formulas.resolveEncounterTool(grade, rule, uniforms, wicksAvailable, weakenS, 0, captureBonusBps)
+end
+
+-- 図鑑（save.dex = { [種] = 初登録時刻 }）の捕獲確率ボーナス（bps）。遭遇開始時点の図鑑で決める（sim._start_encounter と同じ）。
+-- 「成功率は等級別固定」原則の 2 つ目の例外（1 つ目は捕獲補助道具）。精霊は販売しないので有料の経路はない
+function CaptureLogic.dexCaptureBps(dexSet: { [string]: any }, spirits: { [string]: any }, dexRule: any): number
+	return Formulas.dexBonusMapForSet(dexSet, spirits, dexRule).capture_attempt_up
+end
+
+-- 試行の成功率（bps、表示用の最終値）: 等級 × 光の区間（簡易モードの試行の光）→ 図鑑の捕獲確率ボーナス
+function CaptureLogic.attemptBps(grade: number, rule: any, captureBonusBps: number?): number
+	local light = Formulas.easyAttemptLight(grade, rule)
+	return Formulas.captureBonusAttemptBps(Formulas.captureAttemptBps(grade, light, rule), captureBonusBps or 0)
 end
 
 -- ---- 遭遇の計画（S7、計画書 4.3「조우(간편 모드)」2〜5） ----
@@ -162,6 +182,7 @@ export type EncounterPlan = {
 	attackerUid: number?, -- 弱体化した同行の uid（nil で weakened = 灯籠の補助弱体化）
 	weakenSeconds: number,
 	vigorCostTicks: number, -- 攻撃者の活力消費（tick）。灯籠・弱体化なしは 0
+	captureBonusBps: number, -- 図鑑の捕獲確率ボーナス（結果の確定と表示の bps に使った値）
 	result: Formulas.EncounterResult,
 	durationSeconds: number, -- 実時間 = 弱体化秒 + 試行秒 × 試行数（基本 60 秒は探索時間 = 次の出現待ちに使う）
 }
@@ -174,6 +195,7 @@ export type PlanInput = {
 	spirits: { [string]: any }, -- gd.spirits
 	party: { AttackerInput }, -- 同行（活力は開始時刻で評価済み）
 	wicksAvailable: number, -- 芯の個数（milli ではない）
+	captureBonusBps: number?, -- 図鑑の捕獲確率ボーナス（dexCaptureBps、省略 = 0）
 }
 
 -- 遭遇開始時に種・攻撃者・結果をすべて確定する（sim.py _start_encounter と同じ順）。出現表が空なら nil
@@ -198,7 +220,8 @@ function CaptureLogic.planEncounter(input: PlanInput): EncounterPlan?
 	if weakened then
 		attacker, wsec, cost = CaptureLogic.pickAttacker(input.party, grade, rule)
 	end
-	local res = CaptureLogic.resolveEasy(grade, rule, input.block, input.wicksAvailable, wsec)
+	local bonus = input.captureBonusBps or 0
+	local res = CaptureLogic.resolveEasy(grade, rule, input.block, input.wicksAvailable, wsec, bonus)
 	return {
 		species = species,
 		grade = grade,
@@ -206,6 +229,7 @@ function CaptureLogic.planEncounter(input: PlanInput): EncounterPlan?
 		attackerUid = attacker,
 		weakenSeconds = wsec,
 		vigorCostTicks = cost,
+		captureBonusBps = bonus,
 		result = res,
 		durationSeconds = wsec + rule.time.attempt_seconds * res.attempts,
 	}
@@ -213,12 +237,13 @@ end
 
 -- クライアントへ再生させるイベント列（サーバー → クライアント EncounterEvent）。at = 遭遇開始からの秒。
 -- 順: reveal（種の公開、Q2 決定: 灯籠を使ったときに公開）→ weaken（弱体化するときだけ）→ attempt i（試行間隔ごと）→ result。
--- attempt の bps = その試行の成功率、fleeBps = その試行が失敗したときの逃走確率（確率表の常時公開、決定 I1）。
+-- attempt の bps = その試行の成功率（図鑑の捕獲確率ボーナス込みの最終値、2026-11-12 決定）、fleeBps = その試行が失敗したときの
+-- 逃走確率（確率表の常時公開、決定 I1）。
 -- 乱数ブロックはクライアントへ送らない（ここにも入れない）。
 function CaptureLogic.encounterEvents(plan: EncounterPlan, rule: any): { any }
 	local step = rule.time.attempt_seconds
 	local light = Formulas.easyAttemptLight(plan.grade, rule)
-	local bps = Formulas.captureAttemptBps(plan.grade, light, rule)
+	local bps = CaptureLogic.attemptBps(plan.grade, rule, plan.captureBonusBps)
 	local ev: { any } = {
 		{ phase = "reveal", at = 0, species = plan.species, grade = plan.grade },
 	}

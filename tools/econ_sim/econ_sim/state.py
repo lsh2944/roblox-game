@@ -94,6 +94,10 @@ class DayAcc:
     # 回帰の番人（常に 0 のはず）: 道具を使った遭遇での初捕獲・unlock_after_field 解禁前の道具使用（開始日）
     tool_first_capture: int = 0
     tool_pre_unlock: int = 0
+    # 図鑑の捕獲確率ボーナス（2026-11-12）が掛かった遭遇（完了日）: 等級 → 件数。確率適合度（道具なし・道具）の集計からは外す
+    dex_capture_enc: dict[int, int] = field(default_factory=dict)
+    # そのうち道具なし・開始時に芯 K_max 回分以上の遭遇: (等級, ボーナス bps) → [件数, 成功数]（capture_dex_conformance 用）
+    dex_capture_full: dict[tuple[int, int], list[int]] = field(default_factory=dict)
 
     def add_min(self, key: str, n: int) -> None:
         self.minutes[key] = self.minutes.get(key, 0) + n

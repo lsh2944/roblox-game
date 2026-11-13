@@ -4,7 +4,8 @@
 -- 依存: deps.IdleService・deps.IdleCalc・deps.econ・deps.SaveSchema・deps.Clock・deps.Formulas・deps.CaptureLogic・deps.Config・deps.TestKit・deps.gd
 -- 失敗時の不変: S4 リビュー Nit（2026-11-11 進行記録）「精算は写しで計算し、成功したときだけ一括反映」。
 -- 期待値の出典（cwd tools/econ_sim の python3 -c、2026-11-11 の data、シミュ実行なし。IdleCalcSpec と同じ値）:
---   Economy.facility_rate('dew_spring', 1, 開始 3 種, False, 300) = 65096 → accrue_milli(65096, 720, 0) = (781152, 0)、
+--   2026-11-12 図鑑改編後: dex_map(開始 3 種) の dew = 50 → Economy.facility_rate('dew_spring', 1, 開始 3 種, False, 50) = 63516
+--   → accrue_milli(63516, 720, 0) = (762192, 0)、
 --   家の素材 hunt_meadow ★1 500/日 × 3 体: divmod(1500 × 720, 1440) = (750, 0)。夜の効果は data で 0（昼夜とも同じ率）
 
 local T = 1762819200 -- 秒（60 の倍数）
@@ -30,7 +31,7 @@ return {
 			local r = svc:settle(s, T + 13 * 3600, true)
 			t:eq(r.creditedMinutes, 720)
 			t:eq(r.lostMinutes, 60)
-			t:eq(s.wallet, { wick = 21000, dew = 781152, hunt_meadow = 750 })
+			t:eq(s.wallet, { wick = 21000, dew = 762192, hunt_meadow = 750 })
 			t:eq(s.settled_min, T // 60 + 780)
 			t:eq(s.carry["idle:dew"], 0)
 		end)
@@ -84,7 +85,7 @@ return {
 			local w3, c3 = s3.wallet, s3.carry
 			svc:settle(s3, T + 13 * 3600, true)
 			t:eq(s3.wallet == w3 and s3.carry == c3, true)
-			t:eq(w3, { wick = 21000, dew = 781152, hunt_meadow = 750 })
+			t:eq(w3, { wick = 21000, dew = 762192, hunt_meadow = 750 })
 			t:eq(walletRef == s.wallet and carryRef == s.carry, true)
 		end)
 

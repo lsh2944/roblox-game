@@ -31,7 +31,8 @@ class Base(unittest.TestCase):
 class RClassificationTest(Base):
     def run_step(self, sim, idle, in_transition):
         node = self.model.fields["meadow"]["gather_nodes"][0]
-        rate = self.econ.direct_rate(node, sim.tool_id, sim.state.tool_level, [])
+        # 実際の直接採集率（2026-11-12 から図鑑ボーナス込み）を基準に R を作る
+        rate = sim.direct_rate(node, [])
         sim.idle_rates = lambda exclude, night: {"dew": idle(rate)}
         sim.best_idle_rate = lambda res, night: idle(rate)
         sim.in_transition = lambda t: in_transition

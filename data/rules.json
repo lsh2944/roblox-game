@@ -65,9 +65,9 @@
       }
     ],
     "placeholder": true,
-    "notes": "사용자 규칙 F1: 시설에서 일하는(동행 중이 아닌) 정령 1마리가 하루에 고유 필드의 사냥 재료를 생산하는 양(milli=1/1000개). ★1 0.5·★2 0.8·★3 1.2·★4 1.8. 개체값(채집 배율)·도감 보너스 적용 여부는 apply_* 플래그(사용자 확인 중, 기본 false).",
+    "notes": "사용자 규칙 F1: 시설에서 일하는(동행 중이 아닌) 정령 1마리가 하루에 고유 필드의 사냥 재료를 생산하는 양(milli=1/1000개). ★1 0.5·★2 0.8·★3 1.2·★4 1.8. 개체값(채집 배율) 적용 여부는 apply_individual_to_home_material(사용자 확인 중, 기본 false). apply_dex_to_home_material=true(2026-11-12 사용자 결정, 도감 보너스 개편): 도감의 사냥 재료 생산 보너스(dex_bonus resource_output, resource=그 사냥 재료)를 (자원, 등급) 행마다 곱한다(내림).",
     "apply_individual_to_home_material": false,
-    "apply_dex_to_home_material": false
+    "apply_dex_to_home_material": true
   },
   "individual_stats": {
     "gather_bps_min": 10000,
@@ -80,9 +80,10 @@
     "roll_start_spirits": false
   },
   "dex_bonus": {
-    "per_species_bps": 100,
-    "max_bps": 1000,
+    "grade_bps": {"1": 50, "2": 100, "3": 200},
+    "special_bps": {"upgrade_cost_down": 500, "craft_cost_down": 500, "capture_attempt_up": 50},
+    "cap_bps": {"resource_output": 1000, "upgrade_cost_down": 1000, "craft_cost_down": 1000, "capture_attempt_up": 300},
     "placeholder": true,
-    "notes": "사용자 규칙 F5: 종을 도감에 처음 등록할 때마다(시작 정령 포함) 시설에서 일하는 모든 정령의 기본 재료 생산 +1%, 상한 max_bps."
+    "notes": "도감 보너스(2026-11-12 사용자 결정, docs/spirit_roster_expansion_20261112.md 도감 보너스 개편, 기존 F5 전체 +1%/종을 대체): 도감에 등록한 종(시작 정령 포함, 놓아줘도 유지)마다 spirits.dex_bonus 1개. ★1~3 resource_output = 그 자원 생산 +grade_bps(시설 방치·집 방치 사냥 재료·직접 채집·사냥 드롭), ★4 특수 = special_bps(2026-11-13 사용자 결정: 비용 감소 2종은 −1%→−5%, −1%는 강화 비용 대부분이 100 미만이라 실효 0. upgrade_cost_down 시설 Lv 강화·칸 해금 비용 −, craft_cost_down stock 제작 재료 총량 −, capture_attempt_up 포획 시도 성공률 +bps, 도구 적용 뒤 p>0일 때만 min(10000, p+보너스)). 상한 cap_bps는 종류별(resource_output은 자원별). 비용 감소 = 항목마다 cost − 내림(cost×r÷10000)(비용은 올림). 포획 확률 보너스는 '성공률 등급별 고정' 원칙의 두 번째 예외(첫 번째는 포획 도구), capture_attempt_up 상한은 안전 상한 +3%p(300bps, 검증기 RULE_DEX_BONUS)."
   }
 }

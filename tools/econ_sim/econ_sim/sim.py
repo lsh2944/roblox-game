@@ -114,6 +114,7 @@ class Simulator:
         self._rng: random.Random | None = None
         self._ind_day = -1
         self._best_cache: dict[tuple[Any, ...], int] = {}
+        self._dex_cache: tuple[int, dict[str, Any]] | None = None
         self._ind_rng: random.Random | None = None
         self.day_snapshots: list[dict[str, Any]] = []
         # 研究: モード（off/natural/cap）、完了済み効果の資源別 bps（方置 I・直接 A）
@@ -152,6 +153,27 @@ class Simulator:
         st.dex.add(species)  # 図鑑登録（F5）。開始精霊も登録する
         self.touch()
         return uid
+
+    def dex(self) -> dict[str, Any]:
+        """図鑑ボーナス（formulas.dex_bonus_map）。図鑑は増えるだけなので登録種数ごとに 1 回だけ求める."""
+        n = len(self.state.dex)
+        if self._dex_cache is None or self._dex_cache[0] != n:
+            self._dex_cache = (n, self.econ.dex_map(self.state.dex))
+        return self._dex_cache[1]
+
+    def dex_res(self, res: str) -> int:
+        """資源の生産に掛かる図鑑ボーナス（bps）."""
+        return self.dex()["resource_output"].get(res, 0)
+
+    def dex_costs(self, costs: list[dict], kind: str) -> list[dict]:
+        """図鑑の費用減少（kind = upgrade_cost_down|craft_cost_down）を項目ごとに掛けた費用（割引 0 ならそのまま）.
+
+        それ以外の種類（resource_output・capture_attempt_up）は費用減少ではないので ValueError。
+        """
+        if kind not in formulas.DEX_COST_TYPES:
+            raise ValueError(f"비용 감소 종류가 아님: {kind}")
+        r = self.dex()[kind]
+        return formulas.discounted_costs(costs, r) if r else costs
 
     def capacity(self) -> int:
         st = self.state
@@ -225,7 +247,8 @@ class Simulator:
         rec = self.m.recipes[recipe_id]
         if rec["mode"] != "stock" or times < 1:
             raise ValueError(f"stock 레시피만 제작 가능: {recipe_id}")
-        costs = [{"resource": x["resource"], "amount": x["amount"] * times} for x in rec["inputs"]]
+        # 図鑑の制作材料減少（2026-11-12 決定）: 1 回の制作の総量（材料 × 回数）に掛ける
+        costs = self.dex_costs([{"resource": x["resource"], "amount": x["amount"] * times} for x in rec["inputs"]], "craft_cost_down")
         if not self.can_afford(costs):
             raise ValueError(f"재료 부족: {recipe_id}×{times}")
         self.spend(costs)
@@ -383,8 +406,9 @@ class Simulator:
         self.r_direct = {r: v for r, v in self.m.research_effect_bps(done, "basic_gather_bps").items() if v}
 
     def direct_rate(self, node: dict, members: list[Member]) -> int:
-        """直接採集（milli/時）。既存計算（道具・同行）に研究 A を経路別に 1 回だけ掛ける."""
+        """直接採集（milli/時）。既存計算（道具・同行）→ 図鑑ボーナス（資源別、切り捨て）→ 研究 A（経路別に 1 回）."""
         rate = self.econ.direct_rate(node, self.tool_id, self.state.tool_level, members)
+        rate = formulas.dex_scaled_milli(rate, self.dex_res(node["resource"]))
         a = self.r_direct.get(node["resource"], 0)
         return formulas.research_scaled_milli(rate, a) if a else rate
 
@@ -459,7 +483,7 @@ class Simulator:
         for fid, uids in st.assignment.items():
             members = self.members([u for u in uids if u not in exclude])
             r = self.m.facilities[fid]["produces"]
-            rates[r] = rates.get(r, 0) + self.econ.facility_rate(fid, st.fac_level[fid], members, night, self.econ.dex_bps(len(st.dex)))
+            rates[r] = rates.get(r, 0) + self.econ.facility_rate(fid, st.fac_level[fid], members, night, self.dex_res(r))
         if self.r_idle:
             # 研究（決定 C2）: 図鑑ボーナス込みの資源別方置に 1 回だけ掛ける
             rates = {r: formulas.research_scaled_milli(v, self.r_idle.get(r, 0)) for r, v in rates.items()}
@@ -481,7 +505,7 @@ class Simulator:
     def home_rates(self, exclude: frozenset[int]) -> dict[str, int]:
         """施設で働く（同行中でない）精霊の固有フィールド狩り素材（milli/日、F1）."""
         uids = [u for us in self.state.assignment.values() for u in us if u not in exclude]
-        return self.econ.home_material_per_day(self.members(uids), self.econ.dex_bps(len(self.state.dex)))
+        return self.econ.home_material_per_day(self.members(uids), self.dex()["resource_output"])
 
     def _accrue_daily(self, source: str, res: str, per_day: int, minutes: int, day: int, tag: str = "") -> int:
         key = ("daily:" + source + tag, res)
@@ -524,7 +548,7 @@ class Simulator:
                     for r, rate in rates.items():
                         self._accrue("idle", r, rate, mins, day)
                     uids = [u for us in st.assignment.values() for u in us if u not in exclude]
-                    detail = self.econ.home_material_detail(self.members(uids), self.econ.dex_bps(len(st.dex)))
+                    detail = self.econ.home_material_detail(self.members(uids), self.dex()["resource_output"])
                     for (r, grade), per_day in detail.items():
                         gained = self._accrue_daily("idle", r, per_day, mins, day, f"g{grade}")
                         acc_g = self.day_acc(day).home_by_grade
@@ -563,7 +587,7 @@ class Simulator:
             spirits = self.members(uids)
             found = placement.best_single(self.econ, placement.Slot(fid, st.fac_level[fid], st.fac_slots[fid]), spirits, night)
             members = [spirits[i] for i in found.assign[fid]]
-            value = self.econ.facility_rate(fid, st.fac_level[fid], members, night, self.econ.dex_bps(len(st.dex)))
+            value = self.econ.facility_rate(fid, st.fac_level[fid], members, night, self.dex_res(res))
             value = formulas.research_scaled_milli(value, self.r_idle.get(res, 0))
         self._best_cache[key] = value
         return value
@@ -767,12 +791,15 @@ class Simulator:
                 self.day_acc(t // DAY).food_eaten += 1
 
     def hunt_rate_live(self, field_id: str, drop: dict, party: tuple[int, ...] | list[int], t: int) -> int:
-        """狩りの実産出（milli/時）: 名目の狩り率に、同行の活力倍率を戦闘力で加重して掛ける（戦闘力ではなく産出に掛ける）."""
+        """狩りの実産出（milli/時）: 名目の狩り率に、同行の活力倍率を戦闘力で加重して掛ける（戦闘力ではなく産出に掛ける）.
+
+        最後に図鑑ボーナス（その狩り素材の bps、2026-11-12 決定）を掛けて切り捨てる。
+        """
         rate = self.econ.hunt_rate(field_id, drop, self.members(party))
         ro = self.state.roster
         powers = [self.econ.combat_power(ro[u].species, ro[u].level, ro[u].combat_bps) for u in party]
         mults = [self.vigor_mult_bps(self.vigor_at(u, t)) for u in party]
-        return formulas.vigor_hunt_scaled_milli(rate, powers, mults)
+        return formulas.dex_scaled_milli(formulas.vigor_hunt_scaled_milli(rate, powers, mults), self.dex_res(drop["resource"]))
 
     def pick_attacker(self, party: tuple[int, ...] | list[int], target_grade: int, t: int) -> tuple[int | None, int, int]:
         """簡易モードの自動攻撃者 (uid|None=灯籠の補助弱体化, 秒, 活力消費 tick).
@@ -856,7 +883,10 @@ class Simulator:
         # 捕獲補助道具: 確率の値だけを変え、乱数ブロック（上の u）と消費順は変えない。道具なしは resolve_encounter と同じ結果
         tool_res = self.tool_for(pick, grade)
         tools = max(0, st.wallet[tool_res] // 1000 - self.tool_min_stock) if tool_res is not None else 0
-        result, attempts, used, seconds, tused = formulas.resolve_encounter_tool(grade, self.capture_rule, u[1:], avail, wsec, tools)
+        # 図鑑の捕獲確率ボーナス（2026-11-12 決定）: 開始時点の図鑑で決め、道具の後に試行ごとの成功率へ加える（乱数の位置は不変）
+        dex_cap = self.dex()["capture_attempt_up"]
+        result, attempts, used, seconds, tused = formulas.resolve_encounter_tool(grade, self.capture_rule, u[1:], avail, wsec, tools,
+                                                                                 dex_cap)
         if used:
             self.spend([{"resource": self.wick_id, "amount": used}])
         if tused:
@@ -874,7 +904,8 @@ class Simulator:
                         "full_wick": full_wick,
                         # 道具を使った試行数（0 = 道具なしの遭遇）。開始時に道具も K_max 回分以上 = 全試行が道具付き（道具の適合度用）
                         "tool_attempts": tused // self.tool_rule["per_attempt"] if tused else 0,
-                        "full_tool": bool(tused) and full_wick and tools >= self.k_max * self.tool_rule["per_attempt"]}
+                        "full_tool": bool(tused) and full_wick and tools >= self.k_max * self.tool_rule["per_attempt"],
+                        "dex_capture_bps": dex_cap}
         return True
 
     def _complete_encounter(self, pe: dict[str, Any], t: int) -> bool:
@@ -890,6 +921,10 @@ class Simulator:
         acc.grade_attempts[pe["grade"]] = acc.grade_attempts.get(pe["grade"], 0) + pe["attempts"]
         acc.field_attempts[pe["field"]] = acc.field_attempts.get(pe["field"], 0) + pe["attempts"]
         tool_n = pe.get("tool_attempts", 0)
+        dex_on = pe.get("dex_capture_bps", 0) > 0
+        if dex_on:
+            # 図鑑の捕獲確率ボーナスが掛かった遭遇は、基本規則（Q）・道具（Q_tool）の確率適合度から外して件数だけ数える
+            acc.dex_capture_enc[pe["grade"]] = acc.dex_capture_enc.get(pe["grade"], 0) + 1
         if tool_n:
             # 道具を使った遭遇は道具なしの確率適合度（grade_results_full）から外し、道具の集計に分ける（off では常に 0 件）
             tg = acc.tool_grade
@@ -898,10 +933,17 @@ class Simulator:
             acc.tool_attempts += tool_n
             if pe["result"] == "success":
                 tg[(g, "success")] = tg.get((g, "success"), 0) + 1
-            if pe.get("full_tool"):
+            if pe.get("full_tool") and dex_on:
+                tg[(g, "dex_excl")] = tg.get((g, "dex_excl"), 0) + 1  # 道具の適合度（Q_tool）から外した件数（note 用）
+            elif pe.get("full_tool"):
                 tg[(g, "full_enc")] = tg.get((g, "full_enc"), 0) + 1
                 if pe["result"] == "success":
                     tg[(g, "full_success")] = tg.get((g, "full_success"), 0) + 1
+        elif pe.get("full_wick", True) and dex_on:
+            # 図鑑ボーナス付きは bps 別に別集計（Q は encounter_expectation(..., capture_bonus_bps=bps)）
+            v = acc.dex_capture_full.setdefault((pe["grade"], pe["dex_capture_bps"]), [0, 0])
+            v[0] += 1
+            v[1] += int(pe["result"] == "success")
         elif pe.get("full_wick", True):
             acc.grade_results_full[(pe["grade"], "enc")] = acc.grade_results_full.get((pe["grade"], "enc"), 0) + 1
             if pe["result"] == "success":

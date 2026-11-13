@@ -1,0 +1,16 @@
+{
+  "description": "resource_output 도감 보너스에 resource가 없음",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:sparkle/dex_bonus",
+      "value": {
+        "type": "resource_output"
+      }
+    }
+  ]
+}

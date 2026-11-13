@@ -94,6 +94,30 @@ class FormulaTest(Base):
         u = [0.5] * (2 * formulas.capture_k_max(self.rule))
         self.assertEqual(formulas.resolve_encounter_tool(1, self.rule, u, 5, 0, 5)[4], 0)
 
+    def test_dex_capture_bonus_after_tool(self):
+        # 図鑑の捕獲確率ボーナス（2026-11-12 決定）: 道具の後に加算、p > 0 のときだけ、上限 10000、逃走・道具消費は不変
+        r = random.Random(23)
+        k = formulas.capture_k_max(self.rule)
+        p_tool = min(10000, formulas.capture_tool_attempt_bps(4, 20, self.rule) + 50)
+        p_base = min(10000, formulas.capture_attempt_bps(4, 20, self.rule) + 50)
+        for _ in range(500):
+            u = [r.random() for _ in range(2 * k)]
+            stock = r.randint(0, 4)
+            grade = r.randint(1, 4)
+            # ボーナス 0 は従来と同じ結果（完全回帰）
+            self.assertEqual(formulas.resolve_encounter_tool(grade, self.rule, u, 30, 0, stock, 0),
+                             formulas.resolve_encounter_tool(grade, self.rule, u, 30, 0, stock))
+            res, att, _, _, tused = formulas.resolve_encounter_tool(4, self.rule, u, 30, 0, stock, 50)
+            self.assertEqual(tused, min(att, stock))
+            if res == "success":
+                self.assertLess(u[att - 1] * 10000, p_tool if att <= stock else p_base)
+            for i in range(1, att + (0 if res == "success" else 1)):
+                self.assertGreaterEqual(u[i - 1] * 10000, p_tool if i <= stock else p_base)
+        # 期待値: ボーナスで Q が上がり、散り（0）にはボーナスが付かない
+        self.assertGreater(formulas.encounter_expectation(4, self.rule, capture_bonus_bps=50)[0],
+                           formulas.encounter_expectation(4, self.rule)[0])
+        self.assertEqual(formulas.capture_bonus_attempt_bps(formulas.capture_attempt_bps(4, 0, self.rule), 300), 0)
+
 
 class ConditionTest(Base):
     def test_first_capture_invalid(self):

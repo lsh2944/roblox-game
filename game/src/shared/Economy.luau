@@ -159,7 +159,8 @@ function Economy.mixedBonus(self: Economy, members: { Member }): number
 	return best
 end
 
--- 施設 1 つの放置生産（milli/時）。混合 → 図鑑の順に施設全体へ掛けて切り捨て（economy.py _facility_rate）
+-- 施設 1 つの放置生産（milli/時）。混合 → 図鑑の順に施設全体へ掛けて切り捨て（economy.py _facility_rate）。
+-- dexBps はその施設の生産資源の図鑑ボーナス（dexMap(...).resource_output[produces]、2026-11-12 改編で資源別）
 function Economy.facilityRate(self: Economy, fid: string, level: number, members: { Member }, night: boolean, dexBps: number): number
 	if level <= 0 or #members == 0 then
 		return 0
@@ -185,14 +186,23 @@ function Economy.facilityRate(self: Economy, fid: string, level: number, members
 	return idiv(rate * (BPS + dexBps), BPS)
 end
 
--- 図鑑登録種数 → 生産ボーナス（F5、上限あり）
-function Economy.dexBps(self: Economy, registered: number): number
-	local d = self.gd.rules.dex_bonus
-	return math.min(d.max_bps, d.per_species_bps * registered)
+-- 図鑑（save.dex = { [種] = 初登録時刻 }）→ 種類別の図鑑ボーナス（economy.py dex_map、2026-11-12 改編）
+function Economy.dexMap(self: Economy, dexSet: { [string]: any }): Formulas.DexMap
+	return Formulas.dexBonusMapForSet(dexSet, self.gd.spirits, self.gd.rules.dex_bonus)
 end
 
--- (資源, 等級) 別の方置特殊財（milli/日、F1）。出現順に集計した配列を返す
-function Economy.homeMaterialDetail(self: Economy, members: { Member }, dexBps: number): { HomeMaterialRow }
+-- 図鑑の費用減少（kind = "upgrade_cost_down" | "craft_cost_down"）を項目ごとに掛けた新しい費用
+function Economy.dexCosts(self: Economy, dexSet: { [string]: any }, costs: { { resource: string, amount: number } }, kind: string): { { resource: string, amount: number } }
+	if table.find(Formulas.DEX_COST_TYPES, kind) == nil then
+		error(`Economy: 비용 감소 종류가 아님 '{kind}'`)
+	end
+	local m = self:dexMap(dexSet) :: any
+	return Formulas.discountedCosts(costs, m[kind])
+end
+
+-- (資源, 等級) 別の方置特殊財（milli/日、F1）。出現順に集計した配列を返す。
+-- dexRes は資源別の図鑑ボーナス（dexMap(...).resource_output、nil = なし）。apply_dex_to_home_material のとき行ごとに掛ける
+function Economy.homeMaterialDetail(self: Economy, members: { Member }, dexRes: { [string]: number }?): { HomeMaterialRow }
 	local hm = self.gd.rules.home_material
 	local rows: { HomeMaterialRow } = {}
 	local index: { [string]: HomeMaterialRow } = {}
@@ -218,18 +228,18 @@ function Economy.homeMaterialDetail(self: Economy, members: { Member }, dexBps: 
 			row.milli += v
 		end
 	end
-	if hm.apply_dex_to_home_material then
+	if hm.apply_dex_to_home_material and dexRes ~= nil then
 		for _, row in rows do
-			row.milli = idiv(row.milli * (BPS + dexBps), BPS)
+			row.milli = Formulas.dexScaledMilli(row.milli, dexRes[row.resource] or 0)
 		end
 	end
 	return rows
 end
 
 -- 資源別に合算した方置特殊財（milli/日）
-function Economy.homeMaterialPerDay(self: Economy, members: { Member }, dexBps: number): { [string]: number }
+function Economy.homeMaterialPerDay(self: Economy, members: { Member }, dexRes: { [string]: number }?): { [string]: number }
 	local out: { [string]: number } = {}
-	for _, row in self:homeMaterialDetail(members, dexBps) do
+	for _, row in self:homeMaterialDetail(members, dexRes) do
 		out[row.resource] = (out[row.resource] or 0) + row.milli
 	end
 	return out

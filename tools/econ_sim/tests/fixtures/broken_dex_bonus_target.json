@@ -1,0 +1,14 @@
+{
+  "description": "도감 자원 생산 보너스의 대상이 기본·사냥 재료가 아님(연구 포인트)",
+  "expect_codes": [
+    "RULE_DEX_BONUS"
+  ],
+  "ops": [
+    {
+      "op": "set",
+      "file": "spirits",
+      "path": "/spirits/id:dewdrop/dex_bonus/resource",
+      "value": "research"
+    }
+  ]
+}

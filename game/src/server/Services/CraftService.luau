@@ -28,7 +28,8 @@ end
 -- Craft(recipeId, times)。戻り値 RemoteResult（data = { recipeId, times, output }）
 function CraftService.craft(self: CraftService, userId: number, save: any, recipeId: any, times: any, nowSec: number): any
 	local d = self.deps
-	local inputs, output, code = d.CraftRules.check(d.gd, recipeId, times, d.allowed, d.maxTimes)
+	-- 図鑑の制作材料減少は保存データの図鑑で決める（CraftRules.check が総量に掛ける）
+	local inputs, output, code = d.CraftRules.check(d.gd, recipeId, times, d.allowed, d.maxTimes, save.dex)
 	if code ~= nil then
 		return { ok = false, code = code }
 	end

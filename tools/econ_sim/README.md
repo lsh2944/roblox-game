@@ -108,7 +108,7 @@ python3 -m unittest discover -s tests        # 전체 테스트
 
 | 파일 | 내용 |
 |---|---|
-| `daily.csv` | 실행(페르소나×반복)×일 1행: 활동 분, 오프라인 인정/손실 분, 보유·상한, 누적 포획·놓아주기, 강화 상태, 직접 비중 S, 채집 시점 R(`g2_best_*` 판정용·`g2_actual_*` 참고: 평균·정의 분·구간 밖/안 3배 초과 분·미정의 분·구간 밖/안 최대), 도감 등록 수, F1 방치 사냥 재료 등급별 획득(`home_g1~4`), 포획 상태 기계 열(`attempts_cum`, 결과별 누적 `capture_{success,flee,wick_out,scatter}_cum`, 그날 `capture_budget_seconds`·`capture_seconds`(사용 초 ≤ 예산), 날 끝 미완료 조우 남은 초 `capture_carry_seconds`, 약화 수·초·등롱 보조 수, 급식 수 `food_eaten`, 활력 ≤50 동행의 사냥 분 `vigor_low_hunt_min`), 필드별 완료 조우 수·초(`enc_done_<필드>`·`enc_seconds_<필드>`, 완료일 기준), 자원별 잔액·출처별 획득(idle/direct/hunt/quest/paid/release/craft/grant/sink)·지출 |
+| `daily.csv` | 실행(페르소나×반복)×일 1행: 활동 분, 오프라인 인정/손실 분, 보유·상한, 누적 포획·놓아주기, 강화 상태, 직접 비중 S, 채집 시점 R(`g2_best_*` 판정용·`g2_actual_*` 참고: 평균·정의 분·구간 밖/안 3배 초과 분·미정의 분·구간 밖/안 최대), 도감 등록 수, F1 방치 사냥 재료 등급별 획득(`home_g1~4`), 포획 상태 기계 열(`attempts_cum`, 결과별 누적 `capture_{success,flee,wick_out,scatter}_cum`, 그날 `capture_budget_seconds`·`capture_seconds`(사용 초 ≤ 예산), 날 끝 미완료 조우 남은 초 `capture_carry_seconds`, 약화 수·초·등롱 보조 수, 급식 수 `food_eaten`, 활력 ≤50 동행의 사냥 분 `vigor_low_hunt_min`), 필드별 완료 조우 수·초(`enc_done_<필드>`·`enc_seconds_<필드>`, 완료일 기준), 도감 포획 보정 조우(`g<등급>_dex_enc` 전체 수, `g<등급>_tool_dex_excl` 도구 적합도에서 뺀 수, `dex_capture_full` = "등급:bps:조우:성공;…" 도구 없는 full 조우), 자원별 잔액·출처별 획득(idle/direct/hunt/quest/paid/release/craft/grant/sink)·지출 |
 | `events.csv` | 필드 해금·종별 첫 포획·보관함 가득·콘텐츠 소진(미도달도 `observed=false`로 1행, 모든 행에 `censor_time_minutes`), 구매(패스 보상 행은 2026-11-11 초심자 패스 제거로 현재 없음) |
 | `spirit_daily.csv` | 페르소나×일×종의 반복 평균(보유 수·평균 레벨·시설 배치 분·동행 분·놓아주기) |
 | `capture_stats.csv` | 종별 첫 획득률(D14/D30/기간), 미획득률, 첫 획득일 p10~p99(미도달을 +∞로 포함, 공란=기간 내 미도달), p99 표본 부족 표시, 완료자 조우 수, 해석식 조우 수 |
@@ -142,11 +142,11 @@ python3 -m unittest discover -s tests        # 전체 테스트
 ### 사용자 규칙 F (2026-11-06)
 | 규칙 | 데이터 | 시뮬 동작 |
 |---|---|---|
-| F1 고유 필드 특수재화 | `spirits[].home_field`, `rules.home_material.per_day_milli_by_grade`(★1~4 0.5/0.8/1.2/1.8개/일), `apply_individual_to_home_material`·`apply_dex_to_home_material`(기본 false) | 시설에서 일하는(동행 중 아닌) 정령이 고유 필드의 첫 사냥 드롭 재료를 방치 생산. 일 단위 나머지 이월 적립(`earned_idle_<사냥 재료>`) |
+| F1 고유 필드 특수재화 | `spirits[].home_field`, `rules.home_material.per_day_milli_by_grade`(★1~4 0.5/0.8/1.2/1.8개/일), `apply_individual_to_home_material`(기본 false)·`apply_dex_to_home_material`(2026-11-12부터 true) | 시설에서 일하는(동행 중 아닌) 정령이 고유 필드의 첫 사냥 드롭 재료를 방치 생산. 도감의 사냥 재료 생산 보너스(그 사냥 재료의 bps)를 (자원, 등급) 행마다 곱하고 버림. 일 단위 나머지 이월 적립(`earned_idle_<사냥 재료>`) |
 | F2 개체값 | `rules.individual_stats`(채집·전투 각 10000~12000bps, stream `individual`, `start_spirit_bps`, `roll_start_spirits` 기본 false) | 포획 성공 시 독립 균등 정수 추첨. 채집 배율은 시설·동행 기여, 전투 배율은 사냥 전투력의 능력 배율에 곱함. 놓아주기는 개체값 합계가 낮은 개체부터 |
 | F3 생산 슬롯 | 시설당 3→최대 5(게임 내 비용) 유지 | 과금으로 늘리는 효과(`production_slot`·`facility_slot`·`working_spirits`)는 금지 |
 | F4 보유 상한 | `hub.storage`(base 100, max 200), 거점 등급 보너스 0, 보관함 상품 +10 × 10회 | `min(max_capacity, 100 + 보관함 상품)` |
-| F5 도감 보너스 | `rules.dex_bonus`(종당 100bps, 상한 1000), `spirits[].event`(시뮬 미사용) | 처음 획득한 종 수(시작 정령 포함, 놓아줘도 유지) × 1%를 시설 기본 재료 생산에 곱함 |
+| 도감 보너스(2026-11-12 개편, F5 대체) | `spirits[].dex_bonus`(종마다 1개: ★1~3 `resource_output`+`resource`, ★4 `upgrade_cost_down`·`craft_cost_down`·`capture_attempt_up`), `rules.dex_bonus`(`grade_bps` ★1 50·★2 100·★3 200, `special_bps` 강화 −500·제작 −500(2026-11-13 결정)·포획 +50, `cap_bps` 자원별 1000·비용 1000·포획 300), `spirits[].event`(시뮬 미사용) | 처음 획득한 종(시작 정령 포함, 놓아줘도 유지)의 보너스를 `formulas.dex_bonus_map`으로 합산·종류별 상한(자원 생산은 자원별). 자원 생산 보너스는 그 자원의 시설 방치(혼합 다음·연구 전)·집 방치 사냥 재료·직접 채집(연구 전)·사냥 드롭(활력 축소 다음)에 곱하고 버림. 비용 감소는 항목마다 cost − 내림(cost×r÷10000)(강화 = 시설 Lv·칸 해금, 제작 = stock 1회의 재료×횟수 총량). 포획 확률은 도구 적용 뒤 p>0인 시도에 min(10000, p+보너스), 보정 조우는 `capture_dex_conformance`(등급×bps)로 따로 적합도 검사. 검증기 `RULE_DEX_BONUS` |
 
 개체 상태(향후 게임 저장 스키마에도 필요): `uid`, `species`, `level`, `gather_bps`(채집·생산 개체값), `combat_bps`(전투 개체값). 플레이어 상태: 도감 등록 종 집합(`dex`), 보관함 상품 구매 수.
 
@@ -162,7 +162,7 @@ python3 -m unittest discover -s tests        # 전체 테스트
 - **연구 시간 단축 상품은 MVP에서 제외(사용자 결정 2026-11-09).** 근거: 단축 상품만 사는 비교군(balanced_skip)의 능선 해금 단축이 100시드에서 %p·상대 모두 0.000(outputs/20261109T021251Z_full). 자연 연구 일정은 시간이 아니라 연구 포인트 수입(보관함 만석 시 놓아주기)에 막혀 있어 시간 단축이 해금을 앞당기지 못한다. kind `research_time_skip`·검증 규칙·시뮬 기능(`when=production_research_active` 구매)과 노드의 `speedup_allowed`는 나중을 위해 남겼다(테스트는 시험용 상품을 패치로 추가해 검사).
 
 ### 공식
-- 방치 = 기존 방치량(도감 보너스 포함, 자원별 합) × (10000 + I) / 10000, 직접 = 기존 직접량 × (10000 + A) / 10000, 각각 버림(`formulas.research_scaled_milli`). 가산 금지(결정 C2). 골든 벡터 `research_*`.
+- 방치 = 기존 방치량(도감 보너스 포함, 자원별 합) × (10000 + I) / 10000, 직접 = 기존 직접량(2026-11-12부터 그 자원의 도감 보너스 포함) × (10000 + A) / 10000, 각각 버림(`formulas.research_scaled_milli`). 가산 금지(결정 C2). 골든 벡터 `research_*`.
 - 연구 완료 시각을 생산 구간 경계로 나눈다(`Simulator.advance`). 완료 효과는 그 이전 구간에 소급하지 않는다. 연구 타이머는 실제 시간으로 진행(오프라인 상한과 무관).
 
 ### 검증기 규칙
@@ -291,7 +291,7 @@ python3 -m unittest discover -s tests        # 전체 테스트
 | 사냥 재료 | resources.json | 필드별 1종(이름 가칭) |
 | 공식 상수 | rules.json | gather_ref=5, 동행 직접 채집 k=10%, 사냥 전투력비 0.5~1.5, 게임 내 시계(60분 주기, 매시 30~60분 밤) |
 | 거점 | hub.json | 거점 등급 2·3 비용(보관함 보너스 0, 등급의 다른 효과 미정), 오프라인 상한 16/20/24시간 비용 |
-| F 규칙 수치 | rules.json | 특수재화 하루량, 도감 보너스 1%·상한 10% |
+| F 규칙 수치 | rules.json | 특수재화 하루량, 도감 보너스(`dex_bonus` 등급·종류별 bps와 상한) |
 | 일일 의뢰 | daily_quests.json | 필드별 사냥 재료 지급량(3/3/3/2). 건설 요구량(시설 게이트·슬롯·거점 등급·오프라인 상한)은 단계별 지급량×3(9/9/9/6)으로 통일, 필드 해금 비용은 대상 외 |
 | 상품 | products.json | 상품 4종(외형·보관함·배치 프리셋·구독)의 가격·수량·한도. 재료 상자·초심자 패스는 2026-11-11 제거 |
 | 릴리스 | releases.json | 2주판(meadow+forest) 10종, 4주판 20종(2026-11-12 확장) |
