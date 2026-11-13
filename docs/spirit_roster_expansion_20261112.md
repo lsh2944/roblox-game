@@ -208,3 +208,9 @@
 - `20261112_roster20_q`(개편 전) → `20261112_dex_redesign_q`(개편, 할인 −1%): approved 36행 중 35행 판정 유지, `research_cap_shortening` cave→ridge PASS→INCONCLUSIVE(중앙값 0.106→0.122 ≤0.15, CI 상단 0.129→0.169, 20시드). balanced ★4 첫 포획 p99 그림자 등불 3→4·오로라 사슴 5→6·별무리 고래 6→6일(≤14 PASS). 시설 방치 생산 −4~7%, 직접 채집 증가, 하루 포획 거의 동일, 동굴 사냥 재료 공급 +12~30%, light_1h a3 완료율 0.20→0.45, balanced 연구 공급/소비 4,305/3,082 → 4,353/3,082, 심지 막힘 변화 없음(hardcore 4→5분).
 - `20261112_dex_redesign_q` → `20261113_dex_redesign_q2`(할인 −5%, 적합도 분리): approved 판정 변화 없음(PASS 24·INFO 10·INCONCLUSIVE 2). 새 `capture_dex_conformance` 4행(★1~4, +50bps) 모두 PASS. 시설 Lv 합 진행(D10·15·20·30, Lv 합 90 도달일)은 할인 전후 같다. 시설 레벨은 필드별 상한이 진행을 막아서 할인의 진행 효과는 작고, 절약분은 소비처 지출로 간다(hardcore 기본 재료 지출 +3~4%).
 - 200시드 full로 cave→ridge 판정을 확정하는 것은 메인이 실행한다.
+
+### full 확인 (2026-11-13, 메인)
+- `outputs/20261113_dex_redesign_full100`(100시드, `all --seeds 100 --workers 8`, 1993초): 판정은 PASS 151 / WARN 12 / **FAIL 0** / INCONCLUSIVE 1 / INFO 233.
+- quick에서 보류였던 research_cap_shortening cave→ridge는 **PASS**다(중앙값 0.104, CI 0.098~0.123, 기준 ≤0.15). 남은 INCONCLUSIVE는 meadow→forest(0.034, CI 0~0.396)다. 개편 전 기준 run에서도 보류였고, 1~2일짜리 구간이라 생기는 이산 잡음이다.
+- 결론: 도감 등급 수치(★1 50 / ★2 100 / ★3 200bps)는 **조정하지 않는다**.
+- 200시드는 재부팅으로 두 번 중단됐고, 사용자 결정으로 100시드로 확정했다. 중단된 미완성 폴더 `outputs/20261113_dex_redesign_full`과 `_full2`는 삭제 승인 대기 중이다.

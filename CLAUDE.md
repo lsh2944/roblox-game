@@ -1,6 +1,6 @@
 # roblox-game — 빛 정령 방치·수집 Roblox 게임
 
-1인 개발, 광고비 없는 수익형 전 세계 대상 게임. 코드는 Claude(Luau·Python), Roblox Studio 작업·게시는 사용자가 맡는다. Git 저장소(2026-11-12 초기화·첫 커밋 b511e25, 브랜치 main, GitHub 비공개 저장소로 회사 macOS와 집 Windows에서 공유).
+1인 개발, 수익형 전 세계 대상 게임(광고는 출시 초기 소액 시험만 허용, 2026-11-13 결정). 성공 기준: 출시 6개월 안 월 $100 이상. 현재 우선순위: 새 기능 동결, MVP1 Studio 결선(S5~S10) 완성(`docs/success_analysis_20261113.md`). 코드는 Claude(Luau·Python), Roblox Studio 작업·게시는 사용자가 맡는다. Git 저장소(2026-11-12 초기화·첫 커밋 b511e25, 브랜치 main, GitHub 비공개 저장소로 회사 macOS와 집 Windows에서 공유).
 
 ## 작업 시작 시 (필수)
 - **먼저 OS를 확인한다**(환경 정보 Platform `darwin`/`win32`, 애매하면 `uname -s`). 회사 = macOS(Apple Silicon, zsh), 집 = Windows(Git Bash 권장). Python 명령(`python3` vs `py -3.12`), 도구 바이너리(`.tools/bin/*` vs `*.exe`), 경로·셸 문법이 다르다. OS별 명령과 새 PC 준비는 `docs/dev_environment.md`.
