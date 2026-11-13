@@ -213,4 +213,4 @@
 - `outputs/20261113_dex_redesign_full100`(100시드, `all --seeds 100 --workers 8`, 1993초): 판정은 PASS 151 / WARN 12 / **FAIL 0** / INCONCLUSIVE 1 / INFO 233.
 - quick에서 보류였던 research_cap_shortening cave→ridge는 **PASS**다(중앙값 0.104, CI 0.098~0.123, 기준 ≤0.15). 남은 INCONCLUSIVE는 meadow→forest(0.034, CI 0~0.396)다. 개편 전 기준 run에서도 보류였고, 1~2일짜리 구간이라 생기는 이산 잡음이다.
 - 결론: 도감 등급 수치(★1 50 / ★2 100 / ★3 200bps)는 **조정하지 않는다**.
-- 200시드는 재부팅으로 두 번 중단됐고, 사용자 결정으로 100시드로 확정했다. 중단된 미완성 폴더 `outputs/20261113_dex_redesign_full`과 `_full2`는 삭제 승인 대기 중이다.
+- 200시드는 재부팅으로 두 번 중단됐고, 사용자 결정으로 100시드로 확정했다. 중단된 미완성 폴더(`_full`, `_full2`)는 사용자 승인으로 삭제했다(2026-11-13).
