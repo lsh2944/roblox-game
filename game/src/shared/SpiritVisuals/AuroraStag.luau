@@ -1,12 +1,14 @@
 --!strict
--- 光の精霊「오로라 사슴(aurora_stag)」★4 の見た目(第4版 A+B: ちびっこ体型 + にっこり閉じた三日月目)
--- 2026-11-12 ユーザー決定。形・数値は docs/previews/aurora_stag_v4ab_preview.html と同じ
---   2 頭身(頭 ≒ 胴+脚)・首なし・丸い胴・短く太い脚・短く先が丸い光の角・頭の後ろの後光
+-- 光の精霊「오로라 사슴(aurora_stag)」★4 の見た目(第5版: v4 A+B の比率調整)
+-- 2026-11-12 ユーザー決定。形・数値は docs/previews/aurora_stag_v5_preview.html と同じ
+--   大きな頭(頭:その下 ≒ 1:1.4)・前後に長い豆形の胴・短い首・胸の白い毛の房
+--   脚は太もも(胴に半分埋める)→ 細いすね(円柱)の 2 段 + 小さな蹄・2 本枝の角(先は光の玉)
+--   小さく上向きの尾・背中の斑点 5 個・頭を少しかしげた姿勢・頭の後ろの後光
 --   目は表面に沿う円弧(管 3 本)の閉じ目で固定(まばたきなし)。★4 の神秘感はオーロラの帯・後光・粒子で出す
 -- 3D モデルを使わず、楕円体と管(円柱+球)・Beam・パーティクル・ライトで組む
 -- 配置: ReplicatedStorage.Shared.SpiritVisuals.AuroraStag(Rojo: game/src/shared/SpiritVisuals/AuroraStag.luau)
 -- 利用: クライアント専用の見た目(判定・報酬には使わない)。依存モジュール: なし(RunService のみ)
--- 構成: パーツ 51 / Beam 3 / ParticleEmitter 1 / PointLight 1 / Attachment 6(帯の端点は既存パーツに付ける)
+-- 構成: パーツ 61 / Beam 3 / ParticleEmitter 1 / PointLight 1 / Attachment 6(帯の端点は既存パーツに付ける)
 -- 座標は足元中央が原点、前方 = -Z。寸法は SCALE = 1 の値で書き、生成時に SCALE 倍する
 -- 全パーツ Anchored で Heartbeat ごとに CFrame を更新する
 
@@ -40,14 +42,25 @@ local DEFAULT_PALETTE: Palette = {
 }
 
 -- 寸法(SCALE = 1 の値)
-local BODY_SIZE = Vector3.new(1.25, 1.0, 1.45)
-local BODY_CENTER = Vector3.new(0, 0.95, 0.05)
+local BODY_SIZE = Vector3.new(1.15, 0.85, 2.0) -- 前後に長い豆形
+local BODY_CENTER = Vector3.new(0, 1.15, 0.2)
+local BODY_RADII = BODY_SIZE / 2
 local HEAD_SIZE = Vector3.new(1.3, 1.2, 1.15)
-local HEAD_CENTER = Vector3.new(0, 1.95, -0.35)
+local HEAD_CENTER = Vector3.new(0, 2.3, -0.85)
 local HEAD_RADII = HEAD_SIZE / 2
-local HEAD_PIVOT = Vector3.new(0, 1.5, -0.3) -- 首の付け根(頭の回転軸)
-local LEG_SIZE = Vector3.new(0.34, 0.62, 0.36)
-local HOOF_SIZE = Vector3.new(0.32, 0.14, 0.34)
+local HEAD_PIVOT = Vector3.new(0, 1.55, -0.65) -- 首の付け根(頭の回転軸)
+local HEAD_TILT = math.rad(7) -- 頭を少しかしげた姿勢(Z 軸まわり、揺れの中心)
+-- 脚: 前脚・後脚の z と太ももの大きさ(すねは太ももの中から下へ伸ばす)
+local LEGS = {
+	{ z = -0.45, thigh = Vector3.new(0.3, 0.55, 0.36) },
+	{ z = 0.75, thigh = Vector3.new(0.38, 0.65, 0.48) },
+}
+local LEG_X = 0.33
+local THIGH_Y = 0.97
+local SHIN_TOP_Y = 0.85 -- 太ももの中に埋める
+local SHIN_BOTTOM_Y = 0.12
+local SHIN_W = 0.17
+local HOOF_SIZE = Vector3.new(0.24, 0.13, 0.27)
 local EYE_WIDTH = 0.05 -- 閉じ目の線の太さ
 local HALO_SIZE = Vector3.new(0.04, 2.1, 2.1)
 
@@ -152,18 +165,27 @@ function AuroraStag.create(parent: Instance, origin: CFrame, palette: Palette?):
 
 	local headCf = CFrame.new(HEAD_CENTER)
 
-	-- 胴・背中の斑点・尾
+	-- 胴・胸の白い毛・首
 	local body = ell("Body", BODY_SIZE, pal.body, "body", CFrame.new(BODY_CENTER))
-	for _, sp in { Vector3.new(-0.25, 1.4, 0.3), Vector3.new(0.25, 1.4, 0.3), Vector3.new(0, 1.32, 0.62) } do
-		ell("Spot", Vector3.new(0.2, 0.06, 0.2), pal.cream, "body", CFrame.new(sp))
-	end
-	ell("Tail", Vector3.new(0.34, 0.38, 0.3), pal.cream, "body", CFrame.new(0, 1.15, 0.8) * CFrame.Angles(math.rad(-30), 0, 0))
+	ell("Chest", Vector3.new(0.68, 0.62, 0.36), pal.cream, "body", CFrame.new(0, 1.3, -0.74) * CFrame.Angles(math.rad(20), 0, 0)) -- 平たくして胴に沿わせる
+	ell("Neck", Vector3.new(0.5, 0.8, 0.5), pal.body, "body", CFrame.new(0, 1.68, -0.62) * CFrame.Angles(math.rad(-22), 0, 0)) -- 上を前へ傾ける
 
-	-- 脚: 短く太い楕円体 + 蹄
+	-- 背中の斑点(5 個、胴の上面の高さに合わせて少し埋める)
+	for _, xz in { Vector2.new(-0.24, -0.05), Vector2.new(0.24, -0.05), Vector2.new(-0.27, 0.5), Vector2.new(0.27, 0.5), Vector2.new(0, 0.85) } do
+		local k = 1 - ((xz.X - BODY_CENTER.X) / BODY_RADII.X) ^ 2 - ((xz.Y - BODY_CENTER.Z) / BODY_RADII.Z) ^ 2
+		local y = BODY_CENTER.Y + BODY_RADII.Y * math.sqrt(math.max(k, 0)) - 0.015
+		ell("Spot", Vector3.new(0.19, 0.06, 0.19), pal.cream, "body", CFrame.new(xz.X, y, xz.Y))
+	end
+	-- 尾: 小さく上向き(先を後ろ上へ)
+	ell("Tail", Vector3.new(0.26, 0.4, 0.24), pal.cream, "body", CFrame.new(0, 1.45, 1.12) * CFrame.Angles(math.rad(25), 0, 0))
+
+	-- 脚: 太もも(胴に半分埋める)+ 細いすね(円柱、上端は太ももの中)+ 小さな蹄
 	for _, s in { -1, 1 } do
-		for _, z in { -0.35, 0.42 } do
-			ell("Leg", LEG_SIZE, pal.body, "body", CFrame.new(s * 0.33, 0.38, z))
-			ell("Hoof", HOOF_SIZE, pal.dark, "body", CFrame.new(s * 0.33, 0.08, z))
+		for _, leg in LEGS do
+			local x = s * LEG_X
+			ell("Thigh", leg.thigh, pal.body, "body", CFrame.new(x, THIGH_Y, leg.z))
+			tube("Shin", Vector3.new(x, SHIN_TOP_Y, leg.z), Vector3.new(x, SHIN_BOTTOM_Y, leg.z), SHIN_W, pal.body, MAT, "body", nil, false)
+			ell("Hoof", HOOF_SIZE, pal.dark, "body", CFrame.new(x, 0.07, leg.z))
 		end
 	end
 
@@ -192,20 +214,24 @@ function AuroraStag.create(parent: Instance, origin: CFrame, palette: Palette?):
 		ell("EarInner", Vector3.new(0.12, 0.38, 0.22), pal.pink, "head", earCf * CFrame.new(0, 0, -0.08))
 	end
 
-	-- 角: 短い 2 節 + 先の丸い光の玉、途中から小枝 1 本(先も玉)。色はオーロラが流れる
+	-- 角: 2 節の幹 + 先の光の玉、枝 2 本(幹の 0.45 から外前へ・0.78 から内上へ、先は玉)
+	-- 根元の球は頭に埋まって見えないので置かない。色はオーロラが流れる
 	local antlerTips: { BasePart } = {}
 	for _, s in { -1, 1 } do
 		local p0 = HEAD_CENTER + Vector3.new(s * 0.24, 0.5, 0)
-		local p1 = HEAD_CENTER + Vector3.new(s * 0.4, 0.8, 0)
-		local p2 = HEAD_CENTER + Vector3.new(s * 0.5, 0.95, 0.1)
-		ball("Antler", p0, 0.18, auroraAt(pal, 0), NEON, "head", 0)
-		local m1 = bezier(p0, p1, p2, 0.5)
-		tube("Antler", p0, m1, 0.17, auroraAt(pal, 0.3), NEON, "head", 0.3, true)
-		tube("Antler", m1, p2, 0.15, auroraAt(pal, 0.7), NEON, "head", 0.7, false)
+		local p1 = HEAD_CENTER + Vector3.new(s * 0.44, 0.92, 0)
+		local p2 = HEAD_CENTER + Vector3.new(s * 0.56, 1.18, 0.12)
+		local m1 = bezier(p0, p1, p2, 0.45)
+		local m2 = bezier(p0, p1, p2, 0.78)
+		tube("Antler", p0, m1, 0.16, auroraAt(pal, 0.3), NEON, "head", 0.3, true)
+		tube("Antler", m1, p2, 0.14, auroraAt(pal, 0.7), NEON, "head", 0.7, false)
 		table.insert(antlerTips, ball("AntlerTip", p2, 0.24, auroraAt(pal, 1), NEON, "head", 1))
-		local bt = m1 + Vector3.new(s * 0.17, 0.1, -0.12)
-		tube("Antler", m1, bt, 0.11, auroraAt(pal, 0.6), NEON, "head", 0.6, false)
-		ball("AntlerTip", bt, 0.17, auroraAt(pal, 0.9), NEON, "head", 0.9)
+		local b1 = m1 + Vector3.new(s * 0.2, 0.12, -0.15)
+		tube("Antler", m1, b1, 0.1, auroraAt(pal, 0.55), NEON, "head", 0.55, false)
+		ball("AntlerTip", b1, 0.16, auroraAt(pal, 0.85), NEON, "head", 0.85)
+		local b2 = m2 + Vector3.new(-s * 0.12, 0.22, -0.06)
+		tube("Antler", m2, b2, 0.09, auroraAt(pal, 0.8), NEON, "head", 0.8, false)
+		ball("AntlerTip", b2, 0.15, auroraAt(pal, 0.95), NEON, "head", 0.95)
 	end
 
 	-- 後光: 頭の後ろの薄い円盤(円柱の軸を前後に向ける)
@@ -222,9 +248,9 @@ function AuroraStag.create(parent: Instance, origin: CFrame, palette: Palette?):
 	end
 	-- 胴の Attachment は胴の中心からの相対位置で置く
 	local ribbonDefs = {
-		{ a = attach(antlerTips[1], Vector3.zero), b = attach(body, Vector3.new(-1.0, 2.3, 1.9) - BODY_CENTER), phase = 1.7, w0 = 0.45 },
-		{ a = attach(antlerTips[2], Vector3.zero), b = attach(body, Vector3.new(1.0, 2.3, 1.9) - BODY_CENTER), phase = 0, w0 = 0.45 },
-		{ a = attach(head, Vector3.new(0, 0.3, 0.45)), b = attach(body, Vector3.new(0, 1.25, 1.9) - BODY_CENTER), phase = 0.9, w0 = 0.35 },
+		{ a = attach(antlerTips[1], Vector3.zero), b = attach(body, Vector3.new(-1.0, 2.5, 2.4) - BODY_CENTER), phase = 1.7, w0 = 0.45 },
+		{ a = attach(antlerTips[2], Vector3.zero), b = attach(body, Vector3.new(1.0, 2.5, 2.4) - BODY_CENTER), phase = 0, w0 = 0.45 },
+		{ a = attach(head, Vector3.new(0, 0.3, 0.45)), b = attach(body, Vector3.new(0, 1.5, 2.4) - BODY_CENTER), phase = 0.9, w0 = 0.35 },
 	}
 	local ribbons: { Ribbon } = {}
 	for _, r in ribbonDefs do
@@ -274,7 +300,7 @@ function AuroraStag.create(parent: Instance, origin: CFrame, palette: Palette?):
 	model.PrimaryPart = body
 	model.Parent = parent
 
-	-- アニメーション: わずかに浮遊・ゆっくりうなずき・首かしげ・角の色が流れる・帯が波打つ・後光の明滅
+	-- アニメーション: わずかに浮遊・ゆっくりうなずき・かしげた首がゆれる・角の色が流れる・帯が波打つ・後光の明滅
 	local pivot = CFrame.new(HEAD_PIVOT * SCALE)
 	local pivotInv = pivot:Inverse()
 	local t0 = os.clock() - timeOffset
@@ -288,7 +314,7 @@ function AuroraStag.create(parent: Instance, origin: CFrame, palette: Palette?):
 		end
 		local t = os.clock() - t0
 		local root = origin * CFrame.new(0, 0.1 * SCALE * math.sin(t * 1.2), 0)
-		local headRoot = root * pivot * CFrame.Angles(math.rad(3) * math.sin(t * 0.8), 0, math.rad(6) * math.sin(t * 0.5)) * pivotInv
+		local headRoot = root * pivot * CFrame.Angles(math.rad(3) * math.sin(t * 0.8), 0, HEAD_TILT + math.rad(4) * math.sin(t * 0.5)) * pivotInv
 
 		local flow = (t * 0.15) % 1
 		for _, it in items do
