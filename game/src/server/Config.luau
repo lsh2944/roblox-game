@@ -58,6 +58,10 @@ Config.CAPTURE_RADIUS = 20 -- 野生精霊に灯籠を使える距離（studs）
 Config.CRAFT_ALLOWED = table.freeze({ "wick_from_meadow" })
 Config.CRAFT_MAX_TIMES = 100
 
+-- ---- 帰還収穫の要約（2026-11-13 ユーザー決定、表示専用で経済契約ではない） ----
+-- オフライン経過（読み込み時のゲーム時刻 − last_online_at、分）がこれ以上なら帰還画面に出す（1 時間）
+Config.RETURN_REPORT_MIN_OFFLINE_MINUTES = 60
+
 -- プレイヤー向けの文言（追放の案内など）は ReplicatedStorage.Shared.Text にキーで置く（Config には持たない）
 
 return table.freeze(Config)

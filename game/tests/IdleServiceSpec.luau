@@ -7,6 +7,7 @@
 --   2026-11-12 図鑑改編後: dex_map(開始 3 種) の dew = 50 → Economy.facility_rate('dew_spring', 1, 開始 3 種, False, 50) = 63516
 --   → accrue_milli(63516, 720, 0) = (762192, 0)、
 --   家の素材 hunt_meadow ★1 500/日 × 3 体: divmod(1500 × 720, 1440) = (750, 0)。夜の効果は data で 0（昼夜とも同じ率）
+-- 帰還要約（2026-11-13）: 精霊別の期待値は IdleCalcSpec と同じ（dew {"1": 241200, "2": 347328, "3": 173664}、hunt_meadow 各 250）
 
 local T = 1762819200 -- 秒（60 の倍数）
 
@@ -87,6 +88,90 @@ return {
 			t:eq(s3.wallet == w3 and s3.carry == c3, true)
 			t:eq(w3, { wick = 21000, dew = 762192, hunt_meadow = 750 })
 			t:eq(walletRef == s.wallet and carryRef == s.carry, true)
+		end)
+
+		-- ---- 帰還要約（セッションメモリ、表示専用） ----
+		local logs: { string } = {}
+		local opts = {
+			reportMinOfflineMinutes = deps.Config.RETURN_REPORT_MIN_OFFLINE_MINUTES,
+			log = function(msg: string)
+				table.insert(logs, msg)
+			end,
+		}
+
+		t:test("settleOnLoad: 정산은 settle(offline)과 같고 요약은 메모리에만", function()
+			t:eq(deps.Config.RETURN_REPORT_MIN_OFFLINE_MINUTES, 60)
+			local svcR = deps.IdleService.new(deps.IdleCalc, deps.econ, opts)
+			local s1, s2 = placed(), placed()
+			local r1 = svc:settle(s1, T + 13 * 3600, true)
+			local r2 = svcR:settleOnLoad(7, s2, T + 13 * 3600)
+			t:eq(s2, s1, "저장 데이터(지갑·carry·settled_min·키)는 기존 오프라인 정산과 동일")
+			t:eq(r2.creditedMinutes, r1.creditedMinutes)
+			t:eq(r2.gained, r1.gained)
+			local rep = svcR:getReturnReport(7)
+			t:eq(rep.show, true)
+			t:eq(rep.offlineMinutes, 780)
+			t:eq(rep.creditedMinutes, 720)
+			t:eq(rep.lostMinutes, 60)
+			t:eq(rep.offlineCapHours, 12)
+			t:eq(rep.gained, { dew = 762192, hunt_meadow = 750 })
+			t:eq(#rep.spirits, 3)
+			t:eq(rep.spirits[1].uid, "2")
+			t:eq(rep.spirits[1].species, "dewdrop")
+			t:eq(rep.spirits[1].resources, { dew = 347328, hunt_meadow = 250 })
+			t:eq(svcR:getReturnReport(8), nil, "다른 userId")
+			svcR:clearReturnReport(7)
+			t:eq(svcR:getReturnReport(7), nil)
+			-- opts なし（既存の new）は要約を作らない
+			svc:settleOnLoad(7, placed(), T + 13 * 3600)
+			t:eq(svc:getReturnReport(7), nil)
+		end)
+
+		t:test("settleOnLoad: 오프라인 경과 59분은 show=false, 60분은 true(초 단위 내림)", function()
+			local svcR = deps.IdleService.new(deps.IdleCalc, deps.econ, opts)
+			svcR:settleOnLoad(1, placed(), T + 59 * 60 + 59)
+			t:eq(svcR:getReturnReport(1).offlineMinutes, 59)
+			t:eq(svcR:getReturnReport(1).show, false)
+			svcR:settleOnLoad(1, placed(), T + 60 * 60)
+			t:eq(svcR:getReturnReport(1).offlineMinutes, 60)
+			t:eq(svcR:getReturnReport(1).show, true)
+			-- 精算済み時刻が退出より後でも、判定は last_online_at からの経過
+			local s = placed()
+			s.settled_min = T // 60 + 30
+			svcR:settleOnLoad(1, s, T + 60 * 60)
+			local rep = svcR:getReturnReport(1)
+			t:eq(rep.creditedMinutes, 30)
+			t:eq(rep.show, true)
+		end)
+
+		t:test("settleOnLoad: 요약 생성 실패해도 정산·저장은 그대로, 요약만 nil + 로그", function()
+			local broken = setmetatable({
+				spiritBreakdown = function(): any
+					error("요약 실패 흉내")
+				end,
+			}, { __index = deps.IdleCalc })
+			local svcB = deps.IdleService.new(broken, deps.econ, opts)
+			local svcR = deps.IdleService.new(deps.IdleCalc, deps.econ, opts)
+			-- 前のセッションの要約が残っていても消える
+			svcB.reports[5] = { stale = true }
+			local s1, s2 = placed(), placed()
+			svcR:settleOnLoad(5, s1, T + 13 * 3600)
+			table.clear(logs)
+			local r = svcB:settleOnLoad(5, s2, T + 13 * 3600)
+			t:eq(s2, s1)
+			t:eq(r.creditedMinutes, 720)
+			t:eq(svcB:getReturnReport(5), nil)
+			t:eq(#logs, 1)
+			t:eq(string.find(logs[1], "요약 실패 흉내", 1, true) ~= nil, true)
+			-- 精算そのものが失敗したら従来どおり error で保存データは不変（要約も作らない）
+			local s3 = placed()
+			s3.wallet.dew = 9007199254740991 - 1
+			local before = deps.TestKit.deepCopy(s3)
+			t:eq((pcall(function()
+				svcR:settleOnLoad(6, s3, T + 13 * 3600)
+			end)), false)
+			t:eq(s3, before)
+			t:eq(svcR:getReturnReport(6), nil)
 		end)
 
 		t:test("Clock: Studio 오프셋은 정수 초만, 그 밖은 0", function()

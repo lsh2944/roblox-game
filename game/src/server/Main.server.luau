@@ -69,7 +69,7 @@ end
 print(`[PlayerData] 저장소: {if isStudio and not (Config.STUDIO_USE_REAL_DATASTORE and realAvailable) then "Mock" else storeName}`)
 
 -- 4) サービス
-local idle = IdleService.new(IdleCalc, econ)
+local idle = IdleService.new(IdleCalc, econ, { reportMinOfflineMinutes = Config.RETURN_REPORT_MIN_OFFLINE_MINUTES, log = print })
 local rng = Random.new()
 local newSaveCtx = { gd = gd, startSpirits = Config.START_SPIRITS, milli = Formulas.MILLI, vigorTick = CaptureLogic.VIGOR_TICK }
 
@@ -117,7 +117,8 @@ local playerData = PlayerDataService.new({
 	-- 読み込み直後: オフライン精算（新規は不要）
 	onLoaded = function(userId: number, save: any, decision: string, nowSec: number)
 		if decision ~= "new" then
-			local r = idle:settle(save, nowSec, true)
+			-- オフライン精算 + 帰還収穫の要約（要約はセッションメモリだけ。S5 GetSnapshot で idle:getReturnReport を返す予定）
+			local r = idle:settleOnLoad(userId, save, nowSec)
 			print(`[Idle] u_{userId} 오프라인 정산: 인정 {r.creditedMinutes}분, 소실 {r.lostMinutes}분`)
 		end
 		local wick = (save.wallet.wick or 0) // Formulas.MILLI
@@ -131,7 +132,12 @@ local playerData = PlayerDataService.new({
 })
 
 local function onPlayerAdded(player: Player)
-	playerData:loadAsync(player.UserId)
+	local userId = player.UserId
+	local ok = playerData:loadAsync(userId)
+	-- 読み込み中に退出した（onLoaded の後に "left" で終わった）なら、PlayerRemoving より後に作られた帰還要約を捨てる
+	if not ok and Players:GetPlayerByUserId(userId) == nil then
+		idle:clearReturnReport(userId)
+	end
 end
 
 Players.PlayerAdded:Connect(function(player)
@@ -146,6 +152,7 @@ end
 --   PlayerRemoving: releaseAsync の前に SessionCleanup.run(cleanupDeps, userId, playerData:get(userId), clock:now())
 --   BindToClose: closeAll の前に、読み込み済みの全員へ同じ呼び出し
 Players.PlayerRemoving:Connect(function(player)
+	idle:clearReturnReport(player.UserId) -- 帰還要約（セッションメモリ）を捨てる
 	task.spawn(function()
 		-- TODO: ここで SessionCleanup.run（releaseAsync の前）
 		playerData:releaseAsync(player.UserId)
