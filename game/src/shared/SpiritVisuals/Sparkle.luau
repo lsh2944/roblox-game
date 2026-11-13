@@ -6,7 +6,7 @@
 --   まばたきは目を線につぶして表す(2026-11-12 決定)
 -- 配置: ReplicatedStorage.Shared.SpiritVisuals.Sparkle(Rojo: game/src/shared/SpiritVisuals/Sparkle.luau)
 -- 利用: クライアント専用の見た目(判定・報酬には使わない)。依存モジュール: なし(RunService のみ)
--- 構成: パーツ 12 / ParticleEmitter 1 / PointLight 1
+-- 構成: パーツ 26(うち口 14、2026-11-13 追加) / ParticleEmitter 1 / PointLight 1
 
 local RunService = game:GetService("RunService")
 
@@ -121,6 +121,33 @@ function Sparkle.create(parent, origin, palette)
 		table.insert(shines, shine)
 		local cheek = makeEllipsoid("Cheek", Vector3.new(0.15, 0.08, 0.04), cheekColor, Enum.Material.SmoothPlastic, 0.25, model)
 		table.insert(faceItems, { part = cheek, cf = onSurface(CORE_RADII, s * 0.3, -0.1, 0) })
+	end
+
+	-- 口: ω 形(左右 2 つの ∪ を管と球でつなぐ)。色は目と同じ(2026-11-13 決定、A/B 比較の B1 案)
+	-- 口の上端 = 目の中心(0.06) - 0.13。各 ∪ は横半径 0.04・縦半径 0.035、線の太さ 0.03
+	local MOUTH_Y, MOUTH_RX, MOUTH_RY, MOUTH_W = 0.06 - 0.13, 0.04, 0.035, 0.03
+	local function addMouthBall(pos)
+		local b = makePart("Mouth", Enum.PartType.Ball, Vector3.new(MOUTH_W, MOUTH_W, MOUTH_W), palette.eye, Enum.Material.SmoothPlastic, 0, model)
+		table.insert(faceItems, { part = b, cf = CFrame.new(pos) })
+	end
+	for _, cx in ipairs({ -MOUTH_RX, MOUTH_RX }) do
+		-- ∪ の下半分(180°→360°)を 3 区間に分け、本体表面から 0.01 浮かせた点を結ぶ
+		local pts = {}
+		for _, deg in ipairs({ 180, 240, 300, 360 }) do
+			local a = math.rad(deg)
+			local x = cx + MOUTH_RX * math.cos(a)
+			local y = MOUTH_Y + MOUTH_RY * math.sin(a)
+			table.insert(pts, onSurface(CORE_RADII, x, y, 0.01).Position)
+		end
+		addMouthBall(pts[1])
+		for i = 1, 3 do
+			local a, b = pts[i], pts[i + 1]
+			-- 円柱パーツの軸(ローカル X)を a→b に向ける
+			local cf = CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.rad(90), 0)
+			local seg = makePart("Mouth", Enum.PartType.Cylinder, Vector3.new((b - a).Magnitude, MOUTH_W, MOUTH_W), palette.eye, Enum.Material.SmoothPlastic, 0, model)
+			table.insert(faceItems, { part = seg, cf = cf })
+			addMouthBall(b)
+		end
 	end
 
 	-- 羽: 薄い円柱 = 円盤。上の大きい羽と下の小さい羽を左右に1枚ずつ

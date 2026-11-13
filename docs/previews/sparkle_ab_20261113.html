@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반짝이 외형 A/B 비교 (2026-11-13)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #20242e; overflow: hidden; font-family: system-ui, sans-serif; }
+  canvas { position: fixed; left: 0; top: 0; z-index: 0; }
+  #cap, .lbl, .row { z-index: 1; }
+  #cap { position: fixed; left: 14px; top: 8px; color: #e8ecff; font-size: 13px; line-height: 1.45; }
+  #cap b { font-size: 17px; }
+  #cap small { color: #aab2d0; }
+  .lbl { position: fixed; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.5); color: #fff; font-size: 12px; line-height: 1.25; pointer-events: none; }
+  .lbl small { color: #cfd6ee; font-size: 10px; }
+  .row { position: fixed; color: #e8ecff; font-size: 15px; font-weight: bold; writing-mode: vertical-rl; text-align: center; }
+</style>
+</head>
+<body>
+<div id="cap"><b>반짝이 ★1 외형 A/B 비교</b> (2026-11-13 · 한 칸에 변수 하나만 바꿈, C는 종합)<br>
+<small>Neon = 조명 무시 자체 발광(MeshBasic), SmoothPlastic = 빛·음영을 받는 재질(MeshStandard)로 근사한 브라우저 미리보기입니다. 실제 Roblox 화면과는 다릅니다. ?view=front 정면(기본), ?view=q 3/4 시점, ?t=초&amp;freeze 촬영.</small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Sparkle.luau(現行)の構成・寸法・色を基準に、外見の候補を 1 変数ずつ変えて並べる比較用プレビュー
+// 列 = 案(A 現行 / B1 口 / B2 目 / B3 材質 / B4 シルエット・接地 / C 総合)、行 = 昼・夜
+// 各セルは独立したシーン(同じ時刻・同じ乱数列)をシザーで描き分ける
+// 座標は Roblox と同じ(前方 = -Z)。カメラを -Z 側に置いて顔を見る
+const Q = new URLSearchParams(location.search);
+const T0 = +(Q.get('t') || 6.2832); // 2π: 首振り 0(正面)・まばたき外・上下ゆれ 0
+const FREEZE = Q.has('freeze'), VIEW = Q.get('view') || 'front';
+
+const VARIANTS = [
+  { id: 'A', name: '현행', note: 'Sparkle.luau 그대로' },
+  { id: 'B1', name: '입 추가', note: 'ω 입(SmoothPlastic)', mouth: true },
+  { id: 'B2', name: '눈 확대·하향', note: '눈 0.15×0.2→0.2×0.27, y 0.06→0', bigEyes: true },
+  { id: 'B3', name: '재질', note: '몸 SmoothPlastic · 날개 테두리만 Neon · Halo 0.92', matte: true },
+  { id: 'B4', name: '더듬이·그림자', note: '별 더듬이 + 바닥 그림자', antenna: true, shadow: true },
+  { id: 'C', name: '종합', note: 'B1+B2+B3+B4', mouth: true, bigEyes: true, matte: true, antenna: true, shadow: true },
+];
+const ENVS = [
+  { id: 'day', name: '낮', bg: 0x9fd4ff, ground: 0x6fb86a, fogNear: 8, fogFar: 30,
+    hemi: [0xdff0ff, 0x5a7a4a, 0.75], sun: [0xfff6e6, 0.85, [-3, 6, -4]], stars: false },
+  { id: 'night', name: '밤', bg: 0x0b1026, ground: 0x0f2a22, fogNear: 6, fogFar: 22,
+    hemi: [0x7f93d0, 0x1a3a32, 0.6], sun: [0x9fb4ff, 0.3, [-3, 6, -4]], stars: true }, // Roblox は夜も OutdoorAmbient が残る想定で暗くしすぎない
+];
+const CAMS = { // [位置, 注視点, fov]
+  front: [[0, 2.0, -5.6], [0, 1.3, 0], 30],
+  q: [[-3.3, 3.3, -4.2], [0, 1.25, 0.1], 32], // 3/4 + やや見下ろし(プレイヤーカメラ寄り)
+};
+const CAM = CAMS[VIEW] || CAMS.front;
+
+const C = { core: 0xfff4c2, halo: 0xffe27a, wing: 0x8fe9ff, eye: 0x282030, shine: 0xffffff, cheek: 0xffa0b4 };
+
+// CFrame 相当の行列ヘルパー(Euler 'XYZ' = Roblox の CFrame.Angles と同じ順)
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const T = (x, y, z) => new THREE.Matrix4().makeTranslation(x, y, z);
+const TV = v => T(v.x, v.y, v.z);
+const A = (x, y, z) => new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(x, y, z, 'XYZ'));
+const mul = (...ms) => { const r = new THREE.Matrix4(); ms.forEach(m => r.multiply(m)); return r; };
+const rad = d => d * Math.PI / 180;
+function lookAt(p, q, up) { const m = new THREE.Matrix4().lookAt(p, q, up || V(0, 1, 0)); m.setPosition(p); return m; }
+function surfPoint(r, x, y) { const k = 1 - (x / r.x) ** 2 - (y / r.y) ** 2; return V(x, y, -r.z * Math.sqrt(Math.max(k, 0))); }
+function surfNormal(r, p) { return V(p.x / r.x ** 2, p.y / r.y ** 2, p.z / r.z ** 2).normalize(); }
+function onSurface(r, x, y, lift) {
+  const p = surfPoint(r, x, y), n = surfNormal(r, p), e = p.clone().addScaledVector(n, lift);
+  const m = new THREE.Matrix4().lookAt(e, p.clone().addScaledVector(n, lift + 1), V(0, 1, 0)); m.setPosition(e); return m;
+}
+const SPH = new THREE.SphereGeometry(0.5, 40, 30);
+const CYL = new THREE.CylinderGeometry(0.5, 0.5, 1, 40); CYL.rotateZ(Math.PI / 2); // Roblox の Cylinder と同じく軸を X に
+
+// 再現性のための乱数(セルごとに同じ列を使う)
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function glowTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+const soft = glowTex();
+const addMat = (col, op) => new THREE.SpriteMaterial({ map: soft, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
+// Neon = 照明を受けない自己発光(MeshBasic)、SmoothPlastic = 照明・陰影を受ける(MeshStandard)
+const neon = (color, op) => new THREE.MeshBasicMaterial({ color, transparent: op < 1, opacity: op, depthWrite: op >= 1 });
+const plastic = (color, op) => new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0, transparent: op < 1, opacity: op, depthWrite: op >= 1 });
+
+// 1 セル分のシーンを組み立て、frame(t, dt) を返す
+function buildCell(v, env) {
+  const rnd = mulberry32(20261113);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(env.bg);
+  scene.fog = new THREE.Fog(env.bg, env.fogNear, env.fogFar);
+  scene.add(new THREE.HemisphereLight(...env.hemi));
+  const sun = new THREE.DirectionalLight(env.sun[0], env.sun[1]); sun.position.set(...env.sun[2]); scene.add(sun);
+  // Sparkle.luau の PointLight(Range 12, Brightness 2)。本体の中心に置く(本体の外面は内側からは照らされない)
+  const pl = new THREE.PointLight(C.halo, 1.0, 12); scene.add(pl);
+
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshLambertMaterial({ color: env.ground }));
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  if (env.stars) {
+    const sg = new THREE.BufferGeometry(), sp = [];
+    for (let i = 0; i < 400; i++) sp.push((rnd() - 0.5) * 60, 4 + rnd() * 20, 10 + rnd() * 20);
+    sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+    scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, fog: false })));
+  }
+
+  const items = []; // { m, cf, size }(cf は本体中心基準)
+  const mk = (geo, mat) => { const m = new THREE.Mesh(geo, mat); m.matrixAutoUpdate = false; scene.add(m); return m; };
+  const add = (geo, mat, cf, size, extra) => { const it = Object.assign({ m: mk(geo, mat), cf, size }, extra || {}); items.push(it); return it; };
+  // 点 a→b の管(円柱、endBall なら終端に球)。AuroraStag.luau の tube と同じ組み方
+  function tube(a, b, w, mat, endBall) {
+    const d = b.clone().sub(a), up = Math.abs(d.clone().normalize().y) > 0.99 ? V(0, 0, 1) : V(0, 1, 0);
+    add(CYL, mat, mul(lookAt(a.clone().add(b).multiplyScalar(0.5), b, up), A(0, rad(90), 0)), V(d.length(), w, w));
+    if (endBall) add(SPH, mat, TV(b), V(w, w, w));
+  }
+
+  const CR = V(0.5, 0.5, 0.5);
+  // 本体: 現行は Neon、B3 は SmoothPlastic(同じ色)
+  const bodyMat = () => v.matte ? plastic(C.core, 1) : neon(C.core, 1);
+  add(SPH, bodyMat(), new THREE.Matrix4(), V(1, 1, 1));
+  // 光輪: Neon。Roblox の Transparency(現行 0.85 → B3 0.92)を加算の不透明度へ写す(現行プレビューと同じ換算)
+  const haloT = v.matte ? 0.92 : 0.85;
+  const halo = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color: C.halo, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.matrixAutoUpdate = false; scene.add(halo);
+
+  // 顔: 目(SmoothPlastic)+ ハイライト(Neon)+ 頬(SmoothPlastic 0.25)
+  // B2: 目を 1.35 倍(0.15×0.2 → 0.2×0.27)、中心を胴の直径の 6%(0.06)下げる。ハイライトは目に合わせて同じ倍率で移す
+  const ek = v.bigEyes ? 1.35 : 1, eyeY = v.bigEyes ? 0.0 : 0.06;
+  const eyes = [], shines = [];
+  for (const s of [-1, 1]) {
+    eyes.push(add(SPH, plastic(C.eye, 1), onSurface(CR, s * 0.17, eyeY, 0), V(0.15 * ek, 0.2 * ek, 0.08)));
+    shines.push(add(SPH, neon(C.shine, 1), onSurface(CR, s * 0.17 - 0.03 * ek, eyeY + 0.05 * ek, 0.04), V(0.06 * ek, 0.06 * ek, 0.03)).m);
+    add(SPH, plastic(C.cheek, 0.75), onSurface(CR, s * 0.3, -0.1, 0), V(0.15, 0.08, 0.04));
+  }
+  // B1: ω の口。左右 2 つの ∪ を管でつなぐ(SmoothPlastic、目と同じ色)。口の上端 = 目の中心 - 0.13
+  if (v.mouth) {
+    const my = eyeY - 0.13, rx = 0.04, ry = 0.035, w = 0.03;
+    for (const cx of [-rx, rx]) {
+      const pts = [180, 240, 300, 360].map(a => {
+        const p = surfPoint(CR, cx + rx * Math.cos(rad(a)), my + ry * Math.sin(rad(a)));
+        return p.addScaledVector(surfNormal(CR, p), 0.01);
+      });
+      add(SPH, plastic(C.eye, 1), TV(pts[0]), V(w, w, w));
+      for (let i = 0; i < 3; i++) tube(pts[i], pts[i + 1], w, plastic(C.eye, 1), true);
+    }
+  }
+
+  // B4: 頭の上の小さな星の触角(茎 = 本体と同じ材質の管 2 本、星 = Neon の光線 5 本 + 中心の玉)
+  if (v.antenna) {
+    const p0 = V(0, 0.42, 0.04), p1 = V(0.04, 0.66, 0.05), p2 = V(0.11, 0.8, 0.05);
+    tube(p0, p1, 0.045, bodyMat(), true);
+    tube(p1, p2, 0.04, bodyMat(), false);
+    const sc = V(0.13, 0.9, 0.05);
+    add(SPH, neon(C.halo, 1), TV(sc), V(0.1, 0.1, 0.05));
+    for (let i = 0; i < 5; i++) {
+      const th = rad(90 + 72 * i);
+      add(SPH, neon(C.halo, 1), mul(TV(sc), A(0, 0, th - Math.PI / 2), T(0, 0.065, 0)), V(0.07, 0.15, 0.04));
+    }
+  }
+
+  // 羽: 薄い円柱 = 円盤。現行は Neon(透明 0.4)
+  // B3: 羽本体を SmoothPlastic(透明 0.2、直径の 78%、厚み 0.05)にして、同じ直径の Neon 円盤(厚み 0.03)を中に入れ縁だけ光らせる
+  const wings = [];
+  [{ d: 0.75, tilt: rad(15), y: 0.1 }, { d: 0.45, tilt: rad(-30), y: -0.12 }].forEach(def => [-1, 1].forEach(s => {
+    if (v.matte) {
+      wings.push({ m: mk(CYL, neon(C.wing, 0.6)), def, s, size: V(0.03, def.d, def.d) });
+      wings.push({ m: mk(CYL, plastic(C.wing, 0.8)), def, s, size: V(0.05, def.d * 0.78, def.d * 0.78) });
+    } else {
+      wings.push({ m: mk(CYL, neon(C.wing, 0.6)), def, s, size: V(0.04, def.d, def.d) });
+    }
+  }));
+
+  // Neon のにじみ(ブルーム)近似。B3 は本体が Neon でなくなるので弱める(近似値)
+  const g1k = v.matte ? 0.3 : 1, g2k = v.matte ? 0.5 : 1;
+  const glow1 = new THREE.Sprite(addMat(C.halo, 0.45)); glow1.scale.set(2.2, 2.2, 1); scene.add(glow1);
+  const glow2 = new THREE.Sprite(addMat(C.halo, 0.12 * g2k)); glow2.scale.set(4.5, 4.5, 1); scene.add(glow2);
+
+  // B4: 地面の丸い影(Luau へ移せるよう、黒い平たい円柱 2 枚: 内 0.7 透明 0.65 / 外 1.0 透明 0.82)
+  const shadows = [];
+  if (v.shadow) {
+    for (const [d, tr] of [[1.0, 0.82], [0.7, 0.65]]) {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(d / 2, d / 2, 0.02, 48), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 1 - tr, depthWrite: false }));
+      m.position.y = 0.015; m.renderOrder = 2; scene.add(m); shadows.push(m);
+    }
+  }
+
+  // きらきら粒子(本体の箱の中から出て、下にふわっと落ちる)
+  const parts = [];
+  function emit(center) {
+    const p = new THREE.Sprite(addMat(rnd() < 0.5 ? C.halo : C.wing, 1));
+    p.position.copy(center).add(V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5));
+    const vel = V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize().multiplyScalar(0.4 + rnd() * 0.6);
+    parts.push({ p, v: vel, life: 0, max: 0.6 + rnd() * 0.6 }); scene.add(p);
+  }
+  function stepParts(dt) {
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const q = parts[i]; q.life += dt; q.v.y -= 0.6 * dt; q.p.position.addScaledVector(q.v, dt);
+      const k = q.life / q.max, s = 0.25 * (1 - k) * 1.6;
+      q.p.scale.set(s, s, 1); q.p.material.opacity = 0.8 * (1 - k);
+      if (k >= 1) { scene.remove(q.p); parts.splice(i, 1); }
+    }
+  }
+
+  let acc = 0;
+  function frame(t, dt) {
+    const root = mul(T(0, 1.5, 0), T(0, Math.sin(t * 2) * 0.25, 0), A(0, Math.sin(t * 0.5) * 0.6, 0));
+    items.forEach(it => it.m.matrix.copy(root).multiply(it.cf).multiply(new THREE.Matrix4().makeScale(it.size.x, it.size.y, it.size.z)));
+    halo.matrix.copy(root).multiply(new THREE.Matrix4().makeScale(1.8, 1.8, 1.8));
+    // Roblox: Transparency = (基準 - 0.03) + 0.06 sin(3t)。不透明度 ≒ 0.45 × (1 - Transparency)
+    halo.material.opacity = 0.45 * (1 - (haloT - 0.03 + 0.06 * Math.sin(t * 3)));
+    const blink = ((t % 3.2 + 3.2) % 3.2) < 0.12;
+    eyes.forEach(e => e.m.matrix.multiply(new THREE.Matrix4().makeScale(1, blink ? 0.15 : 1, 1)));
+    shines.forEach(m => m.visible = !blink);
+    const flap = rad(25) * Math.sin(t * 14);
+    wings.forEach(w => { w.m.matrix.copy(mul(root, T(0, w.def.y, 0.3), A(0, w.s * flap, 0), A(0, 0, w.s * w.def.tilt), T(w.s * (w.def.d / 2 + 0.05), 0, 0), A(0, rad(90), 0))).multiply(new THREE.Matrix4().makeScale(w.size.x, w.size.y, w.size.z)); });
+    const c = V(0, 0, 0).applyMatrix4(root);
+    pl.position.copy(c); pl.intensity = (1.8 + 0.6 * Math.sin(t * 3)) / 2;
+    glow1.position.copy(c); glow2.position.copy(c);
+    glow1.material.opacity = (0.4 + 0.1 * Math.sin(t * 3)) * g1k;
+    shadows.forEach(m => { m.position.x = c.x; m.position.z = c.z; });
+    acc += dt * 14; while (acc >= 1) { acc -= 1; emit(c); }
+    stepParts(dt);
+  }
+  const camera = new THREE.PerspectiveCamera(CAM[2], 1, 0.1, 100);
+  camera.position.set(...CAM[0]); camera.lookAt(...CAM[1]);
+  return { scene, camera, frame };
+}
+
+// レイアウト: 上に見出し、左に行ラベル、6 列 × 2 行
+const HEAD = 56, LEFT = 34, GAP = 4;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(devicePixelRatio); renderer.setScissorTest(true); renderer.autoClear = true;
+document.body.appendChild(renderer.domElement);
+const cells = [];
+ENVS.forEach((env, r) => VARIANTS.forEach((v, c) => {
+  const cell = Object.assign(buildCell(v, env), { r, c });
+  cell.lbl = document.createElement('div'); cell.lbl.className = 'lbl';
+  cell.lbl.innerHTML = `<b>${v.id}</b> ${v.name}<br><small>${v.note}</small>`;
+  document.body.appendChild(cell.lbl); cells.push(cell);
+}));
+const rowLbl = ENVS.map(env => { const d = document.createElement('div'); d.className = 'row'; d.textContent = env.name; document.body.appendChild(d); return d; });
+function layout() {
+  const W = innerWidth, H = innerHeight;
+  renderer.setSize(W, H);
+  const cw = (W - LEFT - GAP * (VARIANTS.length - 1)) / VARIANTS.length, ch = (H - HEAD - GAP * (ENVS.length - 1)) / ENVS.length;
+  for (const cell of cells) {
+    cell.rect = { x: LEFT + cell.c * (cw + GAP), y: HEAD + cell.r * (ch + GAP), w: cw, h: ch };
+    cell.camera.aspect = cw / ch; cell.camera.updateProjectionMatrix();
+    Object.assign(cell.lbl.style, { left: cell.rect.x + 6 + 'px', top: cell.rect.y + 6 + 'px', maxWidth: cw - 20 + 'px' });
+  }
+  rowLbl.forEach((d, r) => Object.assign(d.style, { left: '6px', top: HEAD + r * (ch + GAP) + 'px', height: ch + 'px', width: '22px' }));
+}
+layout();
+// 表示後に窓の大きさが変わっても(ヘッドレス撮影など)追従する
+addEventListener('resize', layout);
+
+// ?t=秒 で開始時刻をずらせる。&freeze で時刻を止める(撮影用)
+const clock = new THREE.Clock(); let last = T0, warmed = false;
+function tick() {
+  const t = FREEZE ? T0 : T0 + clock.getElapsedTime(), dt = FREEZE ? 0 : t - last; last = t;
+  if (!warmed) { warmed = true; for (let k = 0; k < 60; k++) cells.forEach(cell => cell.frame(T0 - 2 + k / 30, 1 / 30)); } // 撮影時に粒子が見えるよう先に流す
+  const H = innerHeight;
+  for (const cell of cells) {
+    cell.frame(t, dt);
+    const r = cell.rect;
+    renderer.setViewport(r.x, H - r.y - r.h, r.w, r.h); renderer.setScissor(r.x, H - r.y - r.h, r.w, r.h);
+    renderer.render(cell.scene, cell.camera);
+  }
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
