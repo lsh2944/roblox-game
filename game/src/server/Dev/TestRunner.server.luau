@@ -5,7 +5,9 @@
 --   GatherCalc・RosterRules・FacilityRules・QuestRules・CraftRules、
 --   ReplicatedStorage.GameData（data）、ReplicatedStorage.Remotes、ServerStorage.TestData.test_vectors、
 --   ServerScriptService.Server の Clock・ServerRng・Data.{SaveSchema, Migrations, DataStoreAdapter, PlayerDataService}・
---   Services.{IdleService, Activity, GatherService, WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup}（MockStore のみ使用、実 DataStore には触れない）、
+--   Services.{IdleService, Activity, GatherService, WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService}（MockStore のみ使用、実 DataStore には触れない）、
+--   Net.{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World.MeadowBuilder（checkConfig・plotFrame だけ。ワールドは作らない）、Shared.HudFormat、
+--   StarterPlayer.StarterPlayerScripts.Client.Controllers.State（純粋。テストだけで読む）、
 --   ServerStorage.Tests（TestKit・VectorRunner・名前が "Spec" で終わるモジュール）、ServerScriptService.Server.Config
 -- RunService:IsStudio() のときだけ動く（ライブサーバーでは何もしない）。
 -- 同じテストを Lune でも実行できる: cwd roblox-game で `lune run game/tests/lune_run.luau`
@@ -54,6 +56,19 @@ local FacilityService = require(Services:WaitForChild("FacilityService")) :: any
 local QuestService = require(Services:WaitForChild("QuestService")) :: any
 local CraftService = require(Services:WaitForChild("CraftService")) :: any
 local SessionCleanup = require(Services:WaitForChild("SessionCleanup")) :: any
+local PlotService = require(Services:WaitForChild("PlotService")) :: any
+local HudFormat = require(Shared:WaitForChild("HudFormat")) :: any
+local NetFolder = Server:WaitForChild("Net")
+local Validate = require(NetFolder:WaitForChild("Validate")) :: any
+local RateLimiter = require(NetFolder:WaitForChild("RateLimiter")) :: any
+local PushThrottle = require(NetFolder:WaitForChild("PushThrottle")) :: any
+local Remoting = require(NetFolder:WaitForChild("Remoting")) :: any
+local Snapshot = require(NetFolder:WaitForChild("Snapshot")) :: any
+local MeadowBuilder = require(Server:WaitForChild("World"):WaitForChild("MeadowBuilder")) :: any
+-- クライアントの純粋モジュール（サーバーからも StarterPlayer の中身は読める）
+local ClientState = require(
+	game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("Client"):WaitForChild("Controllers"):WaitForChild("State")
+) :: any
 local TestKit = require(Tests:WaitForChild("TestKit")) :: any
 local VectorRunner = require(Tests:WaitForChild("VectorRunner")) :: any
 
@@ -107,6 +122,15 @@ local deps = {
 	QuestService = QuestService,
 	CraftService = CraftService,
 	SessionCleanup = SessionCleanup,
+	PlotService = PlotService,
+	HudFormat = HudFormat,
+	Validate = Validate,
+	RateLimiter = RateLimiter,
+	PushThrottle = PushThrottle,
+	Remoting = Remoting,
+	Snapshot = Snapshot,
+	MeadowBuilder = MeadowBuilder,
+	ClientState = ClientState,
 	-- 標本検査（CaptureSampleSpec）の乱数源: 本番と同じ Roblox Random（ストリームごとに別シード）
 	sampleRngFactory = function(seed: number)
 		return ServerRng.robloxFactory(function()

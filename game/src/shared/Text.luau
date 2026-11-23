@@ -22,6 +22,24 @@ Text.STRINGS = table.freeze({
 	["Kick.LostLock"] = "Your account joined from another server, so this session has ended.",
 	-- 捕獲開始の拒否（Q4 決定: 保管箱が満杯なら捕獲を止めて手動の放出を案内する。Net.ErrorCode.STORAGE_FULL に対応）
 	["Notice.StorageFull"] = "Your spirit storage is full. Release a spirit to make room before using the lantern.",
+	-- Remote の応答コード（Net.ErrorCode.NOT_IMPLEMENTED: S5 時点で処理が未結線の Remote）
+	["Error.NotImplemented"] = "This feature is coming soon.",
+	-- HUD（S5: 左上の財布・右上の日次状態。{name} 形式の差し込みは Text.format）
+	["Hud.Loading"] = "Loading...",
+	["Hud.Dew"] = "Dew",
+	["Hud.Bloom"] = "Bloom",
+	["Hud.Wick"] = "Wick",
+	["Hud.Materials"] = "Meadow Materials",
+	["Hud.DailyClaimed"] = "Daily claimed",
+	["Hud.DailyReady"] = "Daily ready",
+	["Hud.DailyReset"] = "Resets in {time}",
+	-- ワールドの看板（S5 MeadowBuilder。サーバーが組み立てて複製する）
+	["World.PlotEmpty"] = "Empty Garden",
+	["World.PlotOwner"] = "{name}'s Garden",
+	["World.Board"] = "Daily Requests",
+	["World.ForestGate"] = "Forest - Coming soon",
+	["World.Reserved"] = "Coming soon",
+	["World.Showcase"] = "Showcase - Coming soon",
 } :: { [string]: string })
 
 -- キーの文言を返す。無いキーは誤り（黙って空文字を出さない）
@@ -31,6 +49,27 @@ function Text.get(key: string): string
 		error(`Text.get: 없는 키: {tostring(key)}`)
 	end
 	return s
+end
+
+-- キーの文言の {名前} を args の値で置き換える。args に無い名前・余った args は誤り（黙って欠けた文言を出さない）
+-- 置き換える値は文字列化してそのまま入れる（値の中の { } は再解釈しない）
+function Text.format(key: string, args: { [string]: any }): string
+	local s = Text.get(key)
+	local used: { [string]: boolean } = {}
+	local out = string.gsub(s, "{(%w+)}", function(name: string): string
+		local v = args[name]
+		if v == nil then
+			error(`Text.format: '{key}' 의 자리 '{name}' 값 없음`)
+		end
+		used[name] = true
+		return tostring(v)
+	end)
+	for name in args do
+		if not used[name] then
+			error(`Text.format: '{key}' 에 없는 자리 '{tostring(name)}'`)
+		end
+	end
+	return out
 end
 
 return table.freeze(Text)

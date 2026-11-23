@@ -32,5 +32,36 @@ return {
 				(Text.STRINGS :: any)["Kick.LoadFailed"] = "x"
 			end)), false)
 		end)
+
+		t:test("format: {이름} 자리 바꾸기, 값 없음·남는 값은 오류", function()
+			t:eq(Text.format("Hud.DailyReset", { time = "01:02:03" }), "Resets in 01:02:03")
+			t:eq(Text.format("World.PlotOwner", { name = "Mia{x}" }), "Mia{x}'s Garden", "값 안의 중괄호는 그대로")
+			t:eq(Text.format("Hud.Dew", {}), "Dew")
+			t:eq((pcall(Text.format, "Hud.DailyReset", {})), false)
+			t:eq((pcall(Text.format, "Hud.Dew", { extra = 1 })), false)
+			t:eq((pcall(Text.format, "Hud.NoSuchKey", {})), false)
+		end)
+
+		t:test("S5 HUD·월드·미구현 문구 키", function()
+			for _, key in {
+				"Error.NotImplemented",
+				"Hud.Loading",
+				"Hud.Dew",
+				"Hud.Bloom",
+				"Hud.Wick",
+				"Hud.Materials",
+				"Hud.DailyClaimed",
+				"Hud.DailyReady",
+				"Hud.DailyReset",
+				"World.PlotEmpty",
+				"World.PlotOwner",
+				"World.Board",
+				"World.ForestGate",
+				"World.Reserved",
+				"World.Showcase",
+			} do
+				t:ok(Text.STRINGS[key] ~= nil, key)
+			end
+		end)
 	end,
 }

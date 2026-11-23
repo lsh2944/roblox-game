@@ -62,6 +62,82 @@ Config.CRAFT_MAX_TIMES = 100
 -- オフライン経過（読み込み時のゲーム時刻 − last_online_at、分）がこれ以上なら帰還画面に出す（1 時間）
 Config.RETURN_REPORT_MIN_OFFLINE_MINUTES = 60
 
+-- ---- Remote（S5、計画書 4.3 の Remote 表。ゲーム専用の運用値で経済契約ではない） ----
+-- プレイヤーごと・Remote ごとのトークンバケット（毎秒の補充数 = 容量）。超過は捨てて回数を記録する（追放しない）。
+-- C→S の Remote は全部ここに載せる（RemotingSpec が Net.Directions と突き合わせる）。MoveSlot は 2026-11-12 メイン確認で AssignSlot と同じ 4/s
+Config.REMOTE_RATES = table.freeze({
+	GetSnapshot = 2,
+	GatherStart = 2,
+	GatherStop = 2,
+	CaptureEngage = 1,
+	SetParty = 2,
+	AssignSlot = 4,
+	UpgradeFacility = 2,
+	Craft = 2,
+	ClaimDaily = 1,
+	ReleaseSpirit = 2,
+	LevelUpSpirit = 4,
+	MoveSlot = 4,
+})
+-- 引数の上限（型・形の検証用。実在するか・範囲の本当の上限はサービスが data で判定する）
+Config.REMOTE_ID_MAX_LEN = 32 -- nodeId・wildId・facilityId・recipeId（Remote 表: string(≤32)）
+Config.REMOTE_UID_MAX_LEN = 16 -- 精霊 uid（10 進文字列、SaveSchema.uidNum と同じ上限）
+Config.REMOTE_SLOT_MAX = 64 -- slotIndex・toSlot の形の上限（実際の枠数はサービスが施設の slots で判定）
+-- StateChanged（S→C）の送信間隔の下限（秒）。変更の印を付けてまとめて送る = 最大 4 回/秒（Remote 表「서버 스로틀 4/s」）
+Config.PUSH_MIN_INTERVAL_SECONDS = 0.25
+Config.PUSH_LOOP_SECONDS = 0.25 -- 送信ループの周期（分が変わったら全員に印を付けて財布のプレビューを送り直す。補間の上限秒は Shared.HudFormat）
+
+-- ---- ワールド（S5、docs/world_hud_design_20261112.md 1 節。studs、Y 上、-Z = 北（フィールド側）。仮値: Studio で歩いて調整） ----
+-- 部地 = 8（W1 決定: サーバー 8 人 = 部地 8 個。Experience の最大人数 8 は Studio の Game Settings で設定する）
+-- 部地の中心は広場（原点）を中心に南側の半円（半径 185）、各部地は広場を向く（前 = 広場側）。
+-- 座標は PlotSpec が「8 個・部地どうし／広場／フィールドと重ならない」を確かめる。ノード ID は fields.json gather_nodes[].id と一致させる
+Config.WORLD = table.freeze({
+	folderName = "MeadowWorld", -- Workspace 直下に実行時に作る（Rojo の管理外）
+	groundY = 1, -- 地面の上面の高さ（テンプレートの Baseplate 上面 0 と重ならないよう少し上）
+	plaza = table.freeze({ x = 0, z = 0, radius = 28 }),
+	board = table.freeze({ x = 18, z = -14 }), -- 日次依頼の掲示板（S9 で使う）
+	field = table.freeze({ id = "meadow", x = 0, z = -160, sizeX = 280, sizeZ = 170 }),
+	path = table.freeze({ width = 14 }), -- 広場の北端からフィールドの南端までの道
+	nodes = table.freeze({
+		meadow_dew = table.freeze({ x = -85, z = -160, radius = 7 }), -- 見た目の半径（判定は Config.GATHER_RADIUS）
+		meadow_bloom = table.freeze({ x = 85, z = -160, radius = 7 }),
+	}),
+	wildZone = table.freeze({ x = 0, z = -160, radius = 40 }), -- 野生の出現区域（S7）
+	-- 野生の出現地点（S7 の WildSpawnService.pointCount が数を使う。出現区域の中）
+	wildPoints = table.freeze({
+		table.freeze({ x = 0, z = -135 }),
+		table.freeze({ x = 22, z = -147 }),
+		table.freeze({ x = 22, z = -173 }),
+		table.freeze({ x = 0, z = -185 }),
+		table.freeze({ x = -22, z = -173 }),
+		table.freeze({ x = -22, z = -147 }),
+	}),
+	gate = table.freeze({ x = 0, z = -255 }), -- 森の関門（未解禁、"Coming soon"）
+	plotSize = 64,
+	plots = table.freeze({
+		table.freeze({ x = -185, z = 0 }),
+		table.freeze({ x = -167, z = 80 }),
+		table.freeze({ x = -115, z = 145 }),
+		table.freeze({ x = -41, z = 180 }),
+		table.freeze({ x = 41, z = 180 }),
+		table.freeze({ x = 115, z = 145 }),
+		table.freeze({ x = 167, z = 80 }),
+		table.freeze({ x = 185, z = 0 }),
+	}),
+	-- 部地の中の配置（部地ローカル。-Z = 前 = 広場側、+Z = 奥）。施設の台座は facilities.json の ID
+	plotLayout = table.freeze({
+		house = table.freeze({ x = 0, z = 20 }),
+		pedestals = table.freeze({
+			dew_spring = table.freeze({ x = -16, z = 4 }),
+			bloom_garden = table.freeze({ x = 16, z = 4 }),
+		}),
+		reserved = table.freeze({ id = "crystal_forge", x = 0, z = -4 }), -- forest の施設の予約地（MVP1 範囲外）
+		showcase = table.freeze({ table.freeze({ x = -12, z = -20 }), table.freeze({ x = 0, z = -20 }), table.freeze({ x = 12, z = -20 }) }),
+		sign = table.freeze({ x = 0, z = -29 }), -- 名札（前の端）
+		spawn = table.freeze({ x = 0, z = -12 }), -- 出現位置（奥 = 家・台座の方を向く）
+	}),
+})
+
 -- プレイヤー向けの文言（追放の案内など）は ReplicatedStorage.Shared.Text にキーで置く（Config には持たない）
 
 return table.freeze(Config)

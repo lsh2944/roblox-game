@@ -47,6 +47,28 @@ Net.RemoteKinds = table.freeze({
 	MoveSlot = "RF",
 } :: { [string]: RemoteKind })
 
+-- 方向: "C2S" = クライアント→サーバー（Net/Remoting がレート → 検証 → 処理の順で受ける）、"S2C" = サーバー→クライアントだけ
+-- （S2C の RemoteEvent はサーバーが OnServerEvent を受けない。クライアントから送られても誰も処理しない）
+export type Direction = "C2S" | "S2C"
+
+Net.Directions = table.freeze({
+	GetSnapshot = "C2S",
+	StateChanged = "S2C",
+	GatherStart = "C2S",
+	GatherStop = "C2S",
+	CaptureEngage = "C2S",
+	EncounterEvent = "S2C",
+	SetParty = "C2S",
+	AssignSlot = "C2S",
+	UpgradeFacility = "C2S",
+	Craft = "C2S",
+	ClaimDaily = "C2S",
+	Notify = "S2C",
+	ReleaseSpirit = "C2S",
+	LevelUpSpirit = "C2S",
+	MoveSlot = "C2S",
+} :: { [string]: Direction })
+
 -- 応答・通知のエラーコード（クライアントは表示文言をこのコードから引く）
 Net.ErrorCode = table.freeze({
 	BAD_ARG = "BAD_ARG", -- 型・範囲・長さの検証に失敗
@@ -66,6 +88,7 @@ Net.ErrorCode = table.freeze({
 	NOT_ALLOWED = "NOT_ALLOWED", -- 許可リスト外（制作レシピ等）
 	ALREADY_CLAIMED = "ALREADY_CLAIMED", -- 日次依頼の受取済み
 	NOT_READY = "NOT_READY", -- データ読み込み前など
+	NOT_IMPLEMENTED = "NOT_IMPLEMENTED", -- Remote は結線済みだが処理が未実装（S5 時点の S6〜S9 Remote。検証・レートは通した後に返す）
 	INTERNAL = "INTERNAL", -- サーバー内部エラー
 })
 

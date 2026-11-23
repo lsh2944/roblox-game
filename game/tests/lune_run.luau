@@ -3,7 +3,9 @@
 -- 実行: cwd roblox-game で `lune run game/tests/lune_run.luau`（Lune 0.11 系。失敗が 1 件でもあれば終了コード 1）
 -- 依存: @lune/fs・@lune/serde・@lune/process、game/src/shared の純粋モジュール（Text を含む）、game/src/server の Config・Clock・
 --   Data/{SaveSchema, Migrations, DataStoreAdapter, PlayerDataService}・ServerRng・Services/{IdleService, Activity, GatherService,
---   WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup}（Roblox API は deps 注入なので読み込める）、game/tests の TestKit・VectorRunner・*Spec
+--   WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService}・
+--   Net/{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World/MeadowBuilder（純粋関数だけ使う）、game/src/client/Controllers/State（Roblox API は deps 注入なので読み込める）、
+--   game/tests の TestKit・VectorRunner・*Spec
 -- default.project.json の globIgnorePaths で Rojo の同期対象から外している（ServerStorage.Tests に入らない）。
 -- data は manifest の path どおりに data/*.json を読み、Studio の GameData フォルダと同じ docs を作る。
 -- あわせて default.project.json の写像（GameData・TestData・Remotes）が manifest・Net と一致するかを確認する。
@@ -42,6 +44,15 @@ local FacilityService = require("../src/server/Services/FacilityService")
 local QuestService = require("../src/server/Services/QuestService")
 local CraftService = require("../src/server/Services/CraftService")
 local SessionCleanup = require("../src/server/Services/SessionCleanup")
+local PlotService = require("../src/server/Services/PlotService")
+local HudFormat = require("../src/shared/HudFormat")
+local Validate = require("../src/server/Net/Validate")
+local RateLimiter = require("../src/server/Net/RateLimiter")
+local PushThrottle = require("../src/server/Net/PushThrottle")
+local Remoting = require("../src/server/Net/Remoting")
+local Snapshot = require("../src/server/Net/Snapshot")
+local MeadowBuilder = require("../src/server/World/MeadowBuilder")
+local ClientState = require("../src/client/Controllers/State")
 local TestKit = require("./TestKit")
 local VectorRunner = require("./VectorRunner")
 
@@ -65,6 +76,12 @@ local SPECS: { [string]: any } = {
 	PlayerDataSpec = require("./PlayerDataSpec"),
 	SaveSchemaSpec = require("./SaveSchemaSpec"),
 	TextSpec = require("./TextSpec"),
+	ValidateSpec = require("./ValidateSpec"),
+	RateLimiterSpec = require("./RateLimiterSpec"),
+	RemotingSpec = require("./RemotingSpec"),
+	SnapshotSpec = require("./SnapshotSpec"),
+	PlotSpec = require("./PlotSpec"),
+	HudFormatSpec = require("./HudFormatSpec"),
 }
 
 if not fs.isFile("data/manifest.json") then
@@ -161,6 +178,41 @@ for _, entry in fs.readDir("game/tests") do
 	end
 end
 
+-- C→S の受け口は Net/Remoting.luau だけ（計画書 4.3・world_hud_design W3/W5: 二つ目の入口を作らない）。
+-- game/src 全体で OnServerInvoke・OnServerEvent を書いているファイルを探す（コメント行は除く）
+do
+	local ENTRY = "game/src/server/Net/Remoting.luau"
+	local found = 0
+	local function scan(dir: string)
+		for _, entry in fs.readDir(dir) do
+			local path = dir .. "/" .. entry
+			if fs.isDir(path) then
+				scan(path)
+			elseif string.match(entry, "%.luau$") then
+				local n = 0
+				for line in string.gmatch(fs.readFile(path), "[^\n]+") do
+					if not string.match(line, "^%s*%-%-") and (string.find(line, "OnServerInvoke", 1, true) or string.find(line, "OnServerEvent", 1, true)) then
+						n += 1
+					end
+				end
+				if n > 0 then
+					if path == ENTRY then
+						found += n
+					else
+						print(`[project] FAIL Remote 수신 코드가 Remoting 밖에 있음: {path}`)
+						failures += 1
+					end
+				end
+			end
+		end
+	end
+	scan("game/src")
+	if found == 0 then
+		print(`[project] FAIL {ENTRY} 에 Remote 수신 코드가 없음`)
+		failures += 1
+	end
+end
+
 -- 2) 黄金ベクトル
 local vectors = readJson("data/test_vectors.json")
 local vs = VectorRunner.run(vectors, Formulas)
@@ -205,6 +257,15 @@ local deps = {
 	QuestService = QuestService,
 	CraftService = CraftService,
 	SessionCleanup = SessionCleanup,
+	PlotService = PlotService,
+	HudFormat = HudFormat,
+	Validate = Validate,
+	RateLimiter = RateLimiter,
+	PushThrottle = PushThrottle,
+	Remoting = Remoting,
+	Snapshot = Snapshot,
+	MeadowBuilder = MeadowBuilder,
+	ClientState = ClientState,
 	sampleRngFactory = TestKit.xorshiftFactory, -- 標本検査の乱数源（Studio は Roblox Random）
 	TestKit = TestKit,
 	gd = gd,
