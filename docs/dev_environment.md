@@ -20,6 +20,9 @@
 | Roblox Studio | 미설치(2026-11-11) | 설치해서 사용 |
 | 임시 파일 | Claude scratchpad | Claude scratchpad(경로가 다르므로 문서에 절대경로를 고정하지 않는다) |
 | 줄바꿈 | LF | `.gitattributes`로 LF 고정. 편집기도 LF로 저장 |
+| 콘솔 인코딩 | UTF-8 | 집 PC는 cp932(일본어)라 econ_sim이 한국어 출력 시 `UnicodeEncodeError`로 멈춘다(2026-11-23 확인). 사용자 환경 변수 `PYTHONUTF8=1`을 등록하거나 명령 앞에 `PYTHONIOENCODING=utf-8`을 붙인다 |
+
+`game/src/client`는 S5 전까지 빈 폴더라 `.gitkeep`으로 유지한다(없으면 새 clone에서 `rojo build`가 `$path` 오류로 실패, 2026-11-23). `.gitkeep`은 Rojo 빌드 결과에 들어가지 않는다.
 
 공통 명령(cwd는 저장소 루트 `roblox-game`, Git Bash와 zsh에서 같은 형태):
 
