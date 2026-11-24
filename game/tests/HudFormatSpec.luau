@@ -1,7 +1,7 @@
 --!strict
 -- HudFormatSpec: HUD の表示用純粋関数（縮約表記・milli → 表示整数・財布の補間・残り時間）とクライアントの State（seq・補間・帰還要約 1 回）
 -- 配置: ServerStorage.Tests.HudFormatSpec（Rojo: game/tests/HudFormatSpec.luau）
--- 依存: deps.HudFormat・deps.ClientState（StarterPlayer.StarterPlayerScripts.Client.Controllers.State）
+-- 依存: deps.HudFormat・deps.Net・deps.Text・deps.ClientState（StarterPlayer.StarterPlayerScripts.Client.Controllers.State）
 -- 期待値の出典: world_hud_design 3 節（左上の財布は縮約表記 1.2K）、表示整数は milli // 1000（Ledger・サーバーログと同じ切り捨て）、
 --   S5 決定（縮約は切り捨て、補間は表示専用で上限あり、古い seq は捨てる、帰還要約は 1 回だけ渡す）
 
@@ -93,6 +93,52 @@ return {
 			clock = 500
 			t:eq(st:units("dew"), 125, "120초 상한")
 			t:eq(st:units("bloom"), 0)
+		end)
+
+		t:test("State(S6): 채집 중이면 그 자원만 accruedAt 이후를 채집률로 보간, 상한 동일, 채집 노드", function()
+			local clock = 0
+			local st = deps.ClientState.new(function()
+				return clock
+			end, HF)
+			t:eq(st:gatherNode(), nil, "스냅샷 전")
+			-- 財布 bloom 2000 milli は accruedAt = 990 まで積算済み。serverNow 1000 → 経過 10 秒 × 360000/時 = +1000
+			t:eq(st:apply(snap(1, {
+				wallet = { dew = 5000, bloom = 2000 },
+				gather = { nodeId = "meadow_bloom", resource = "bloom", rate = 360000, accruedAt = 990 },
+			})), true)
+			t:eq(st:units("bloom"), 3)
+			t:eq(st:units("dew"), 45, "다른 자원은 방치 보간만")
+			t:eq(st:gatherNode(), "meadow_bloom")
+			clock = 10
+			t:eq(st:units("bloom"), 4)
+			clock = 1000
+			t:eq(st:units("bloom"), 2 + 12, "120초 상한(360000 × 120 / 3600 = 12000)")
+			t:eq(st:apply(snap(2)), true)
+			t:eq(st:gatherNode(), nil, "채집이 끝난 스냅샷")
+			t:eq(st:units("bloom"), 0)
+		end)
+
+		t:test("오류 코드 → 토스트 문구 키(없는 코드는 Error.Generic, Notify TOO_FAR 는 채집 정지)", function()
+			local E = deps.Net.ErrorCode
+			t:eq(HF.errorTextKey(E.TOO_FAR), "Error.TooFar")
+			t:eq(HF.errorTextKey(E.BUSY), "Error.Busy")
+			t:eq(HF.errorTextKey(E.NOT_UNLOCKED), "Error.NotUnlocked")
+			t:eq(HF.errorTextKey(E.RATE_LIMITED), "Error.RateLimited")
+			t:eq(HF.errorTextKey(E.NOT_IMPLEMENTED), "Error.NotImplemented")
+			t:eq(HF.errorTextKey(E.INTERNAL), "Error.Generic")
+			t:eq(HF.errorTextKey(nil), "Error.Generic")
+			t:eq(HF.errorTextKey(42), "Error.Generic")
+			t:eq(HF.noticeTextKey(E.TOO_FAR), "Notice.GatherStopped")
+			t:eq(HF.noticeTextKey(E.STORAGE_FULL), "Notice.StorageFull")
+			t:eq(HF.noticeTextKey(E.BUSY), "Error.Busy", "Notify 전용이 아니면 RF 와 같은 문구")
+			-- 対応先の文言キーは全部 Text にある（表示時に Text.get が error にならない）
+			for _, key in HF.ERROR_TEXT_KEYS do
+				t:ok(deps.Text.STRINGS[key] ~= nil, key)
+			end
+			for _, key in HF.NOTICE_TEXT_KEYS do
+				t:ok(deps.Text.STRINGS[key] ~= nil, key)
+			end
+			t:ok(deps.Text.STRINGS[HF.GENERIC_ERROR_KEY] ~= nil)
 		end)
 
 		t:test("State: 오래된·같은 seq 와 형식 틀린 것은 버림, 듣는 쪽 오류는 다른 쪽을 막지 않음", function()

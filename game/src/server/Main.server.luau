@@ -3,13 +3,15 @@
 --   自動保存・StateChanged の送信ループ）
 -- 配置: ServerScriptService.Server.Main（Script。Rojo: game/src/server/Main.server.luau）
 -- 依存: ReplicatedStorage.Shared の Data.GameData・Economy・Formulas・CaptureLogic・IdleCalc・Text・Net・RosterRules・QuestRules・
---   FacilityRules、ReplicatedStorage.GameData（data/*.json）、ReplicatedStorage.Remotes、
---   ServerScriptService.Server の Config・Clock・Data.{DataStoreAdapter, PlayerDataService, SaveSchema}・Services.{IdleService, PlotService}・
+--   FacilityRules・GatherCalc・Ledger、ReplicatedStorage.GameData（data/*.json）、ReplicatedStorage.Remotes、
+--   ServerScriptService.Server の Config・Clock・Data.{DataStoreAdapter, PlayerDataService, SaveSchema}・
+--   Services.{IdleService, PlotService, Activity, GatherService, GatherLoop, SessionCleanup}・
 --   Net.{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World.MeadowBuilder
 --
 -- S5 時点: 保存・放置精算に加えて、ワールド（Workspace.MeadowWorld、Rojo 管理外）・部地の割り当てと自分の部地での出現・
---   Remote の結線（全 C→S Remote をレート → 検証 → 処理で受ける。処理は GetSnapshot だけ、S6〜S9 は NOT_IMPLEMENTED）・
---   StateChanged（変更の印と毎分の財布更新、最大 4 回/秒）。S6〜S9 のサービス結線と SessionCleanup は各段階で行う。
+--   Remote の結線（全 C→S Remote をレート → 検証 → 処理で受ける）・StateChanged（変更の印と毎分の財布更新、最大 4 回/秒）。
+-- S6: 直接採集（GatherStart・GatherStop の処理、1 秒ごとの距離の再確認、保存前の採集精算、スナップショットの採集状態）と
+--   SessionCleanup の結線（退出は releaseAsync の前、終了は closeAll の前）。S7〜S9 の Remote は NOT_IMPLEMENTED のまま。
 -- 実 DataStore を使うのはライブサーバー、または Studio で Config.STUDIO_USE_REAL_DATASTORE=true かつ API 接続確認が通ったときだけ。
 
 local Players = game:GetService("Players")
@@ -30,6 +32,8 @@ local Net = require(Shared:WaitForChild("Net")) :: any
 local RosterRules = require(Shared:WaitForChild("RosterRules")) :: any
 local QuestRules = require(Shared:WaitForChild("QuestRules")) :: any
 local FacilityRules = require(Shared:WaitForChild("FacilityRules")) :: any
+local GatherCalc = require(Shared:WaitForChild("GatherCalc")) :: any
+local Ledger = require(Shared:WaitForChild("Ledger")) :: any
 
 local Server = script.Parent
 local Config = require(Server:WaitForChild("Config")) :: any
@@ -41,6 +45,10 @@ local SaveSchema = require(DataFolder:WaitForChild("SaveSchema")) :: any
 local ServicesFolder = Server:WaitForChild("Services")
 local IdleService = require(ServicesFolder:WaitForChild("IdleService")) :: any
 local PlotService = require(ServicesFolder:WaitForChild("PlotService")) :: any
+local Activity = require(ServicesFolder:WaitForChild("Activity")) :: any
+local GatherService = require(ServicesFolder:WaitForChild("GatherService")) :: any
+local GatherLoop = require(ServicesFolder:WaitForChild("GatherLoop")) :: any
+local SessionCleanup = require(ServicesFolder:WaitForChild("SessionCleanup")) :: any
 local NetFolder = Server:WaitForChild("Net")
 local Validate = require(NetFolder:WaitForChild("Validate")) :: any
 local RateLimiter = require(NetFolder:WaitForChild("RateLimiter")) :: any
@@ -90,6 +98,34 @@ print(`[PlayerData] 저장소: {if isStudio and not (Config.STUDIO_USE_REAL_DATA
 local idle = IdleService.new(IdleCalc, econ, { reportMinOfflineMinutes = Config.RETURN_REPORT_MIN_OFFLINE_MINUTES, log = print })
 local rng = Random.new()
 local newSaveCtx = { gd = gd, startSpirits = Config.START_SPIRITS, milli = Formulas.MILLI, vigorTick = CaptureLogic.VIGOR_TICK }
+-- 活動（採集 ⟂ 捕獲）と直接採集（S6）。CaptureService（S7）も同じ activity を共有する
+local activity = Activity.new()
+local gather = GatherService.new({
+	GatherCalc = GatherCalc,
+	econ = econ,
+	ledger = Ledger.new(gd),
+	activity = activity,
+	radius = Config.GATHER_RADIUS,
+	maxGapSeconds = Config.GATHER_MAX_CREDIT_SECONDS,
+})
+
+-- キャラクターの位置（採集の距離判定）。キャラクターが無い・死亡・HumanoidRootPart が無ければ nil（= 距離無限大）
+local function rootPosition(userId: number): Vector3?
+	local p = Players:GetPlayerByUserId(userId)
+	local character = if p ~= nil then p.Character else nil
+	if character == nil then
+		return nil
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid == nil or humanoid.Health <= 0 then
+		return nil
+	end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if hrp == nil or not hrp:IsA("BasePart") then
+		return nil
+	end
+	return hrp.Position
+end
 
 local function countKeys(t: { [any]: any }): number
 	local n = 0
@@ -142,9 +178,9 @@ local playerData = PlayerDataService.new({
 		local wick = (save.wallet.wick or 0) // Formulas.MILLI
 		print(`[PlayerData] u_{userId} 상태: 심지 {wick}, 정령 {countKeys(save.roster)}, 시설 {countKeys(save.facilities)}`)
 	end,
-	-- 保存直前: オンライン精算と最終オンライン時刻
-	beforeSave = function(save: any, nowSec: number)
-		idle:beforeSave(save, nowSec)
+	-- 保存直前（自動保存・退出・終了の全保存）: 採集をその時点まで積算 → オンライン精算と最終オンライン時刻
+	beforeSave = function(save: any, nowSec: number, userId: number)
+		GatherLoop.beforeSave(gather, idle, warn, save, nowSec, userId)
 	end,
 	config = Config,
 })
@@ -190,16 +226,26 @@ local remoting = Remoting.new({
 			seq = seq,
 			plot = plots:plotOf(userId),
 			returnReport = if forResponse then idle:getReturnReport(userId) else nil,
+			gather = gather:session(userId),
 		})
 	end,
 	log = function(msg: string)
 		warn(msg)
 	end,
 })
--- GetSnapshot: 状態を変えない（mutates なし）。S6〜S9 の Remote は登録しないので start が NOT_IMPLEMENTED で結線する
+-- GetSnapshot: 状態を変えない（mutates なし）。S7〜S9 の Remote は登録しないので start が NOT_IMPLEMENTED で結線する
 remoting:bind(Net.Remotes.GetSnapshot, function(ctx: any)
 	return { ok = true, data = remoting:snapshot(ctx.userId, ctx.save, ctx.now, true) }
 end)
+-- 採集（S6）: 距離はサーバーがキャラクター位置と Config.WORLD.nodes の座標で測る（GatherLoop）
+local gatherStartDeps = { gather = gather, nodes = Config.WORLD.nodes, rootPosition = rootPosition }
+remoting:bind(Net.Remotes.GatherStart, function(ctx: any, nodeId: any)
+	return GatherLoop.start(gatherStartDeps, ctx.userId, ctx.save, nodeId, ctx.now)
+end, { mutates = true })
+remoting:bind(Net.Remotes.GatherStop, function(ctx: any)
+	gather:stop(ctx.userId, ctx.save, ctx.now)
+	return { ok = true }
+end, { mutates = true })
 remoting:start()
 
 -- 出現位置: 自分の部地（W4）。部地が無い（満員）なら広場
@@ -246,10 +292,18 @@ for _, player in Players:GetPlayers() do
 	task.spawn(onPlayerAdded, player)
 end
 
--- TODO(S5 以降の結線、Studio 段階): 遭遇・採集・野生を作ったら、保存の前に Services.SessionCleanup.run で後始末する
---   （順番 capture:finish → gather:stop → wild:clear → activity:clear。遭遇中の捕獲を保存に入れるため）。
---   PlayerRemoving: releaseAsync の前に SessionCleanup.run(cleanupDeps, userId, playerData:get(userId), clock:now())
---   BindToClose: closeAll の前に、読み込み済みの全員へ同じ呼び出し
+-- 保存前の後始末（SessionCleanup: capture:finish → gather:stop → wild:clear → activity:clear）。
+-- capture・wild は S7 までは何もしない空の実装（S7 で CaptureService・WildSpawnService のインスタンスに置き換える）
+local captureStub = {
+	finish = function(_self: any, _userId: number, _save: any, _nowSec: number): any
+		return nil
+	end,
+}
+local wildStub = {
+	clear = function(_self: any, _userId: number) end,
+}
+local cleanupDeps = { capture = captureStub, gather = gather, wild = wildStub, activity = activity, log = warn }
+
 Players.PlayerRemoving:Connect(function(player)
 	local userId = player.UserId
 	remoting:forget(userId) -- レート・送信の印・seq を捨てる
@@ -259,20 +313,54 @@ Players.PlayerRemoving:Connect(function(player)
 	end
 	idle:clearReturnReport(userId) -- 帰還要約（セッションメモリ）を捨てる
 	task.spawn(function()
-		-- TODO: ここで SessionCleanup.run（releaseAsync の前）
-		playerData:releaseAsync(player.UserId)
+		-- 後始末（採集をこの時点まで積算して閉じる）→ 保存・錠外し
+		SessionCleanup.leave(cleanupDeps, playerData, userId, clock:now())
 	end)
 end)
 
 game:BindToClose(function()
-	-- TODO: ここで全員に SessionCleanup.run（closeAll の前）
-	playerData:closeAll()
+	local ids = {}
+	for _, p in Players:GetPlayers() do
+		table.insert(ids, p.UserId)
+	end
+	SessionCleanup.closeAll(cleanupDeps, playerData, ids, clock:now())
 end)
 
 task.spawn(function()
 	while true do
 		task.wait(Config.AUTOSAVE_TICK_SECONDS)
 		playerData:autosaveTick()
+	end
+end)
+
+-- 採集の再確認ループ（Config.GATHER_CHECK_SECONDS ごと）: 範囲内なら積算、範囲外・キャラクター無しは終了して Notify
+local notifyRemote = remotes[Net.Remotes.Notify] :: RemoteEvent
+local gatherTickDeps = {
+	gather = gather,
+	nodes = Config.WORLD.nodes,
+	radius = Config.GATHER_RADIUS,
+	getSave = function(userId: number)
+		return playerData:get(userId)
+	end,
+	rootPosition = rootPosition,
+	onEnded = function(userId: number, nodeId: string)
+		remoting:markDirty(userId)
+		local p = Players:GetPlayerByUserId(userId)
+		if p ~= nil then
+			notifyRemote:FireClient(p, { code = Net.ErrorCode.TOO_FAR, args = { nodeId = nodeId } })
+		end
+	end,
+	onGained = function(userId: number)
+		remoting:markDirty(userId)
+	end,
+	log = function(msg: string)
+		warn(msg)
+	end,
+}
+task.spawn(function()
+	while true do
+		task.wait(Config.GATHER_CHECK_SECONDS)
+		GatherLoop.tickAll(gatherTickDeps, clock:now())
 	end
 end)
 

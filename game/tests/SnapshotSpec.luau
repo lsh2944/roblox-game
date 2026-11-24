@@ -111,7 +111,8 @@ return {
 			s.carry["idle:dew"] = 12
 			s.next_spawn_at = T + 60
 			local report = { show = true, offlineMinutes = 90, creditedMinutes = 90, lostMinutes = 0, offlineCapHours = 12, gained = { dew = 1 }, spirits = {} }
-			local snap = S.build(ctx, s, T + 100, { seq = 3, plot = 2, returnReport = report })
+			local session = { nodeId = "meadow_dew", resource = "dew", rate = 160800, lastSec = T + 99 }
+			local snap = S.build(ctx, s, T + 100, { seq = 3, plot = 2, returnReport = report, gather = session })
 			local allowed: { [string]: boolean } = {}
 			for _, k in S.KEYS do
 				allowed[k] = true
@@ -152,13 +153,24 @@ return {
 			t:eq(snap.plot, 2)
 			t:eq(snap.v, S.VERSION)
 			t:eq(snap.returnReport, report)
+			t:ok(snap.gather ~= nil, "채집 상태가 실제로 검사 대상에 들어감")
 		end)
 
-		t:test("귀환 요약은 extras 로 줄 때만, 부지 없으면 plot = nil", function()
+		t:test("귀환 요약·채집은 extras 로 줄 때만, 부지 없으면 plot = nil", function()
 			local s = placed()
 			local snap = S.build(ctx, s, T + 100, { seq = 1 })
 			t:eq(snap.returnReport, nil)
 			t:eq(snap.plot, nil)
+			t:eq(snap.gather, nil)
+		end)
+
+		t:test("채집(S6): nodeId·resource·rate(milli/시)·accruedAt 만, 세션의 사본", function()
+			local s = placed()
+			local session = { nodeId = "meadow_bloom", resource = "bloom", rate = 123456, lastSec = T + 42 }
+			local snap = S.build(ctx, s, T + 43, { seq = 1, gather = session })
+			t:eq(snap.gather, { nodeId = "meadow_bloom", resource = "bloom", rate = 123456, accruedAt = T + 42 })
+			snap.gather.rate = 0
+			t:eq(session.rate, 123456, "스냅샷 수정이 세션에 번지지 않음")
 		end)
 
 		t:test("now < settled_min(시계 역행)이면 적립 없이 지갑 그대로, walletAt = settled_min", function()

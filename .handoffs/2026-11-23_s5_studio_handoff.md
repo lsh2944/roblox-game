@@ -37,3 +37,8 @@
 
 ## 5. 그 뒤 순서
 S5 완료 → S6(직접 채집: GatherStart/Stop 결선, 1초 거리 재확인, ProximityPrompt → 기존 RF) → S7(외형 레지스트리·야생·포획) → S8(시설·방치·귀환 요약 화면) → S9(일일·제작) → S10(통합·실제 DataStore 재접속·2인 서버·리뷰). 각 단계에서 `Remoting.bind(name, fn, {mutates=true})`로 결선하고 SessionCleanup(PlayerRemoving은 releaseAsync 전, BindToClose는 closeAll 전)을 함께 넣는다.
+
+## 6. (2026-11-24) S6 진행 상태
+- S6 구현·Lune 검증 완료(unit 204/25), Studio 기동·테스트까지 확인. **다음에 할 일 = S6 채집 상호작용 Studio 확인**: Dew 노드에서 E → 칩 `Gathering Dew +160/h`·Dew 약 22.5초에 1 증가 → 원 밖으로 나가면 1초 안에 멈춤·토스트 → 연타해도 증가 속도 동일 → Bloom 노드는 +161/h → 정지 시 `저장 성공(Mock)`, `정리 실패` 없음.
+- 교훈: 이전 세션의 `rojo serve`가 남아 있으면(포트 34872 점유) 새로 띄우지 말고 그 PID를 끄고 다시 띄운 뒤 Studio에서 변경 Accept. Studio 시작 창과 장소 창이 같이 떠 있으면 컴퓨터 조작 시 포커스가 시작 창으로 가므로 시작 창을 닫고 진행.
+- 남은 판단: 계획서 진행 기록 2026-11-24 S6 항목 끝.

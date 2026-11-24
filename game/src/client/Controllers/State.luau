@@ -10,6 +10,8 @@
 --   （S5 決定: サーバーはセッション中ずっと応答に入れ、表示を 1 回にするのはクライアント。画面は S8）
 -- - サーバー時刻の推定 = snapshot.serverNow + (clock() − 受信時刻)。端末の時計ではなく受信からの経過で数える（Studio の時計オフセットにも追従）
 -- - 財布の表示 = HudFormat.projectMilli(wallet, perHour, homePerDay, (serverNow − walletAt) + 受信からの経過, 上限) を units で切り捨て
+--   採集中（snapshot.gather）はその資源に gather.rate × (推定サーバー時刻 − gather.accruedAt) を足す（表示専用、次の送信でサーバー値に戻る）
+-- - 採集中か = gatherNode()（ノードの Prompt の表示切り替えに使う）
 
 local State = {}
 State.__index = State
@@ -95,7 +97,21 @@ function State.units(self: State, res: string): number?
 		now - (s.walletAt or now),
 		self.HudFormat.PROJECT_MAX_SECONDS
 	)
+	-- 採集中（S6）: 財布は accruedAt まで積算済みなので、その後の経過だけを採集率で足す（上限は同じ PROJECT_MAX_SECONDS）
+	local g = s.gather
+	if type(g) == "table" and g.resource == res and type(g.rate) == "number" and type(g.accruedAt) == "number" then
+		milli = self.HudFormat.projectMilli(milli, g.rate, nil, now - g.accruedAt, self.HudFormat.PROJECT_MAX_SECONDS)
+	end
 	return self.HudFormat.units(milli)
+end
+
+-- 採集中のノード ID（採集していない・スナップショットが無ければ nil）
+function State.gatherNode(self: State): string?
+	local s = self.snap
+	if s == nil or type(s.gather) ~= "table" or type(s.gather.nodeId) ~= "string" then
+		return nil
+	end
+	return s.gather.nodeId
 end
 
 -- 帰還収穫の要約を 1 回だけ取り出す（show = false の要約も 1 回で消える。表示するかは呼び出し側が show を見る）

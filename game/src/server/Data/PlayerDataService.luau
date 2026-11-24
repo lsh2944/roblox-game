@@ -112,7 +112,7 @@ export type Deps = {
 	isPresent: (userId: number) -> boolean,
 	log: (msg: string) -> (),
 	onLoaded: ((userId: number, save: any, decision: string, nowSec: number) -> ())?,
-	beforeSave: ((save: any, nowSec: number) -> ())?,
+	beforeSave: ((save: any, nowSec: number, userId: number) -> ())?, -- userId は S6 で追加（採集の精算がプレイヤー単位のため）
 	config: any, -- Config（LOCK_TTL_SECONDS など）
 }
 
@@ -283,7 +283,7 @@ end
 function PlayerDataService._write(self: Service, p: Profile, release: boolean): (boolean, string)
 	local d, c = self.deps, cfg(self)
 	if not p.noHooks and d.beforeSave ~= nil then
-		local okH, err = pcall(d.beforeSave :: any, p.save, d.gameNow())
+		local okH, err = pcall(d.beforeSave :: any, p.save, d.gameNow(), p.userId)
 		if not okH then
 			d.log(`[PlayerData] {p.key} 저장 전 정산 실패(정산 없이 저장): {tostring(err)}`)
 		end

@@ -1,13 +1,18 @@
 --!strict
--- Hud: 最小 HUD（左上 = 財布 Dew・Bloom・Wick・Meadow Materials、右上 = 日次の状態と UTC 0 時までの残り）
+-- Hud: 最小 HUD（左上 = 財布 Dew・Bloom・Wick・Meadow Materials、右上 = 日次の状態と UTC 0 時までの残り、
+--   下中央 = 採集の状態チップ「Gathering Dew +N/h」（S6）、上 = トースト 3 秒（S6 最小実装、Notify・RF の失敗））
 -- 配置: StarterPlayer.StarterPlayerScripts.Client.Controllers.Hud（ModuleScript。Rojo: game/src/client/Controllers/Hud.luau）
 -- 依存: new の引数で受け取る Controllers.State、ReplicatedStorage.Shared の Text・HudFormat、LocalPlayer（PlayerGui）
 --
 -- 配置の規則（docs/world_hud_design_20261112.md 3 節）:
 -- - ScreenInsets = CoreUISafeInsets（ノッチ・Roblox の上部メニューと重ならない）。左下（移動スティック）・右下（ジャンプ）・
---   上中央（Roblox メニュー）には置かない。左の縦メニュー・下中央の状態チップ・遭遇カード・パネルは S6〜S9
+--   上中央（Roblox メニュー）には置かない。左の縦メニュー・遭遇カード・パネルは S7〜S9
 -- - 文言は Text のキー（英語）、数は HudFormat（切り捨ての縮約表記）。値はサーバーのスナップショットだけから作る（表示専用）
--- - 0.2 秒ごとに書き換える（財布の補間・残り時間のカウントダウン）
+-- - 0.2 秒ごとに書き換える（財布の補間・残り時間のカウントダウン・採集チップ）
+-- - 採集チップの率は「表示整数/時」（2026-11-24 S6: 開始時の採集率は 160〜212/時 ≒ 0.04〜0.06/秒で、/s では小数 2 桁でも
+--   倍率の差が見えにくい。完了基準「160/시 × 배율」と同じ単位で Studio 照合できる。設計文書 3 節の "+N/s" から変更）。
+--   遭遇中に隠すのは S7
+-- - トーストは画面上部（Roblox のトップバーより下）に 1 件だけ 3 秒出す。新しいものが来たら置き換える
 
 local Hud = {}
 Hud.__index = Hud
@@ -23,6 +28,9 @@ local WALLET = {
 local INK = Color3.fromRGB(43, 37, 64)
 local PILL_HEIGHT = 32
 local TEXT_SIZE = 18
+local TOAST_SECONDS = 3 -- 設計文書 3 節「화면 위쪽에서 3초」
+local TOAST_TOP = 64 -- 上端からの位置（Roblox のトップバーと重ならない高さ。Studio で確認して調整）
+local CHIP_BOTTOM = 24 -- 下端からの位置（左下の移動スティック・右下のジャンプの間）
 
 export type Hud = typeof(setmetatable(
 	{} :: {
@@ -35,6 +43,11 @@ export type Hud = typeof(setmetatable(
 		dailyStatus: TextLabel,
 		dailyReset: TextLabel,
 		dailyResetPill: Frame,
+		gatherChip: Frame,
+		gatherText: TextLabel,
+		toastFrame: Frame,
+		toastText: TextLabel,
+		toastSeq: number,
 		running: boolean,
 	},
 	Hud
@@ -133,6 +146,30 @@ function Hud.new(playerGui: Instance, state: any, Text: any, HudFormat: any): Hu
 	status.Text = Text.get("Hud.Loading")
 	resetPill.Visible = false
 
+	-- 下中央: 採集の状態チップ（採集中だけ表示）
+	local chipHolder = Instance.new("Frame")
+	chipHolder.Name = "GatherChip"
+	chipHolder.BackgroundTransparency = 1
+	chipHolder.AutomaticSize = Enum.AutomaticSize.XY
+	chipHolder.Size = UDim2.fromOffset(0, 0)
+	chipHolder.AnchorPoint = Vector2.new(0.5, 1)
+	chipHolder.Position = UDim2.new(0.5, 0, 1, -CHIP_BOTTOM)
+	chipHolder.Visible = false
+	chipHolder.Parent = gui
+	local _, chipText = pill(chipHolder, 1, nil)
+
+	-- 上: トースト（1 件、3 秒）
+	local toastHolder = Instance.new("Frame")
+	toastHolder.Name = "Toast"
+	toastHolder.BackgroundTransparency = 1
+	toastHolder.AutomaticSize = Enum.AutomaticSize.XY
+	toastHolder.Size = UDim2.fromOffset(0, 0)
+	toastHolder.AnchorPoint = Vector2.new(0.5, 0)
+	toastHolder.Position = UDim2.new(0.5, 0, 0, TOAST_TOP)
+	toastHolder.Visible = false
+	toastHolder.Parent = gui
+	local _, toastText = pill(toastHolder, 1, nil)
+
 	gui.Parent = playerGui
 	local self = setmetatable({
 		gui = gui,
@@ -144,9 +181,32 @@ function Hud.new(playerGui: Instance, state: any, Text: any, HudFormat: any): Hu
 		dailyStatus = status,
 		dailyReset = reset,
 		dailyResetPill = resetPill,
+		gatherChip = chipHolder,
+		gatherText = chipText,
+		toastFrame = toastHolder,
+		toastText = toastText,
+		toastSeq = 0,
 		running = false,
 	}, Hud)
 	return self
+end
+
+-- 資源の表示名（財布と同じ文言キー。無い資源は ID のまま）
+function Hud.resourceName(self: Hud, res: string): string
+	return self.walletNames[res] or res
+end
+
+-- トーストを 3 秒出す（新しいものが来たら置き換え、古い方の消去予約は無効になる）
+function Hud.toast(self: Hud, text: string)
+	self.toastSeq += 1
+	local mySeq = self.toastSeq
+	self.toastText.Text = text
+	self.toastFrame.Visible = true
+	task.delay(TOAST_SECONDS, function()
+		if self.toastSeq == mySeq then
+			self.toastFrame.Visible = false
+		end
+	end)
 end
 
 -- 表示の書き換え（スナップショットが無いあいだは "-" と Loading のまま）
@@ -170,6 +230,16 @@ function Hud.refresh(self: Hud)
 		else
 			self.dailyResetPill.Visible = false
 		end
+	end
+	local g = snap.gather
+	if type(g) == "table" and type(g.rate) == "number" and type(g.resource) == "string" then
+		self.gatherText.Text = self.Text.format("Hud.Gathering", {
+			resource = self:resourceName(g.resource),
+			rate = HF.abbreviate(HF.units(g.rate)),
+		})
+		self.gatherChip.Visible = true
+	else
+		self.gatherChip.Visible = false
 	end
 end
 
