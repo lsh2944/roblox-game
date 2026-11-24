@@ -8,7 +8,7 @@
 3. 콘솔이 cp932라 econ_sim 한국어 출력이 깨지면 `PYTHONUTF8=1`(사용자 환경 변수) 또는 `PYTHONIOENCODING=utf-8`.
 4. 확인: `.tools/bin/lune run game/tests/lune_run.luau` → 매핑 오류 0 · vectors 123/30/0 · **unit 192/0 (24 suites)**.
 
-## 1. 바로 이어서 할 일 — S5 Studio 재확인
+## 1. (2026-11-24 완료) S5 Studio 재확인 — 결과는 계획서 진행 기록 2026-11-24
 1. Claude가 `rojo serve` 실행(cwd 저장소 루트, 백그라운드).
 2. 사용자: Studio에서 Rojo **Connect** → 편집 상태 Explorer에 `StarterPlayer > StarterPlayerScripts > Client`(Main·Controllers)와 `ServerStorage > Tests > ValidateSpec`이 있는지 확인 → **Play**.
 3. 기대 출력: `[unit] UNIT PASS 192 / FAIL 0 (24 suites)`, `[World] MeadowWorld 생성: 부지 8개`, `[Client] GameData OK (17 files)`, 빨간 오류 없음.
@@ -26,7 +26,7 @@
 - 미확인: HUD·클라이언트·Remote 거부. 원인은 S5 작업 중 `rojo serve`가 종료돼(Rojo 7.7.1 패닉) **새 파일이 Studio에 동기화되지 않은 것**(unit 136/18로 확인). 코드 문제 아님.
 - 교훈: 파일을 대량으로 바꾼 뒤에는 `rojo serve`를 재시작하고 Studio에서 다시 Connect한 뒤 Explorer에서 새 파일 존재를 확인하고 Play.
 
-## 3. 알려진 문제 (S5 재확인 뒤 수정)
+## 3. 알려진 문제 — (2026-11-24) "Coming soon" 겹침은 예약 자리를 (22, 22)로 옮겨 해결
 - crystal_forge 예약 자리 "Coming soon" 표지가 스폰 위치와 겹쳐 캐릭터를 가린다 → `World/MeadowBuilder.luau`·`Config.WORLD` 좌표 조정.
 - 재확인에서 나오는 다른 화면 지적과 묶어서 한 번에 고친다.
 

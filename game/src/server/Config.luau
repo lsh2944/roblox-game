@@ -131,7 +131,8 @@ Config.WORLD = table.freeze({
 			dew_spring = table.freeze({ x = -16, z = 4 }),
 			bloom_garden = table.freeze({ x = 16, z = 4 }),
 		}),
-		reserved = table.freeze({ id = "crystal_forge", x = 0, z = -4 }), -- forest の施設の予約地（MVP1 範囲外）
+		-- forest の施設の予約地（MVP1 範囲外）。家の右奥に置く（2026-11-24: 中央 z=-4 だと出現位置の正面で看板がキャラクターを隠した）
+		reserved = table.freeze({ id = "crystal_forge", x = 22, z = 22 }),
 		showcase = table.freeze({ table.freeze({ x = -12, z = -20 }), table.freeze({ x = 0, z = -20 }), table.freeze({ x = 12, z = -20 }) }),
 		sign = table.freeze({ x = 0, z = -29 }), -- 名札（前の端）
 		spawn = table.freeze({ x = 0, z = -12 }), -- 出現位置（奥 = 家・台座の方を向く）
