@@ -81,6 +81,36 @@ function HudFormat.projectMilli(
 	return milli + add
 end
 
+-- 応答コード（RF の失敗）→ トーストの文言キー（Shared.Text）。対応が無いコードは汎用の文言
+local ERROR_TEXT_KEYS: { [string]: string } = {
+	[Net.ErrorCode.TOO_FAR] = "Error.TooFar",
+	[Net.ErrorCode.BUSY] = "Error.Busy",
+	[Net.ErrorCode.NOT_UNLOCKED] = "Error.NotUnlocked",
+	[Net.ErrorCode.RATE_LIMITED] = "Error.RateLimited",
+	[Net.ErrorCode.NOT_IMPLEMENTED] = "Error.NotImplemented",
+	[Net.ErrorCode.STORAGE_FULL] = "Notice.StorageFull",
+}
+HudFormat.ERROR_TEXT_KEYS = table.freeze(ERROR_TEXT_KEYS)
+HudFormat.GENERIC_ERROR_KEY = "Error.Generic"
+
+-- Notify（S→C）のコード → 文言キー。サーバーからの自発的な通知なので RF の失敗と文言を分けるもの（TOO_FAR = 範囲外で採集が
+-- 止まった）だけここに置き、他は RF と同じ対応を使う
+local NOTICE_TEXT_KEYS: { [string]: string } = {
+	[Net.ErrorCode.TOO_FAR] = "Notice.GatherStopped",
+}
+HudFormat.NOTICE_TEXT_KEYS = table.freeze(NOTICE_TEXT_KEYS)
+
+function HudFormat.errorTextKey(code: any): string
+	return if type(code) == "string" then ERROR_TEXT_KEYS[code] or HudFormat.GENERIC_ERROR_KEY else HudFormat.GENERIC_ERROR_KEY
+end
+
+function HudFormat.noticeTextKey(code: any): string
+	if type(code) == "string" and NOTICE_TEXT_KEYS[code] ~= nil then
+		return NOTICE_TEXT_KEYS[code]
+	end
+	return HudFormat.errorTextKey(code)
+end
+
 -- 残り秒 → "HH:MM:SS"（負は 0、24 時間以上も時の桁を伸ばす）
 function HudFormat.countdown(seconds: number): string
 	local s = if seconds ~= seconds or seconds < 0 then 0 else math.floor(seconds)

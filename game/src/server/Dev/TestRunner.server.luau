@@ -5,7 +5,7 @@
 --   GatherCalc・RosterRules・FacilityRules・QuestRules・CraftRules、
 --   ReplicatedStorage.GameData（data）、ReplicatedStorage.Remotes、ServerStorage.TestData.test_vectors、
 --   ServerScriptService.Server の Clock・ServerRng・Data.{SaveSchema, Migrations, DataStoreAdapter, PlayerDataService}・
---   Services.{IdleService, Activity, GatherService, WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService, TravelService}（MockStore のみ使用、実 DataStore には触れない）、
+--   Services.{IdleService, Activity, GatherService, WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService, GatherLoop, TravelService}（MockStore のみ使用、実 DataStore には触れない）、
 --   Net.{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World.MeadowBuilder（純粋関数だけ。ワールドは作らない）、Shared.HudFormat、
 --   StarterPlayer.StarterPlayerScripts.Client.Controllers.State（純粋。テストだけで読む）、
 --   ServerStorage.Tests（TestKit・VectorRunner・名前が "Spec" で終わるモジュール）、ServerScriptService.Server.Config
@@ -56,6 +56,7 @@ local FacilityService = require(Services:WaitForChild("FacilityService")) :: any
 local QuestService = require(Services:WaitForChild("QuestService")) :: any
 local CraftService = require(Services:WaitForChild("CraftService")) :: any
 local SessionCleanup = require(Services:WaitForChild("SessionCleanup")) :: any
+local GatherLoop = require(Services:WaitForChild("GatherLoop")) :: any
 local PlotService = require(Services:WaitForChild("PlotService")) :: any
 local TravelService = require(Services:WaitForChild("TravelService")) :: any
 local HudFormat = require(Shared:WaitForChild("HudFormat")) :: any
@@ -123,6 +124,7 @@ local deps = {
 	QuestService = QuestService,
 	CraftService = CraftService,
 	SessionCleanup = SessionCleanup,
+	GatherLoop = GatherLoop,
 	PlotService = PlotService,
 	TravelService = TravelService,
 	HudFormat = HudFormat,

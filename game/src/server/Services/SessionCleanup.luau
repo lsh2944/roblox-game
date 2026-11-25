@@ -11,9 +11,9 @@
 -- 4. activity:clear — 活動の残りを消す（1・2 で消えているはずの防御）
 -- 各段は pcall で包み、1 つが失敗しても残りの段と、その後の保存（releaseAsync）を止めない（失敗は log と戻り値の errors）。
 --
--- 呼び出し位置（Main の結線は Studio 段階。Main.server.luau の TODO 参照）:
--- - PlayerRemoving: playerData:releaseAsync(userId) の前に SessionCleanup.run(deps, userId, playerData:get(userId), clock:now())
--- - BindToClose: playerData:closeAll() の前に、読み込み済みの全員へ同じ呼び出し
+-- 呼び出し位置（S6 で Main に結線。順番は leave・closeAll が固定し、GatherLoopSpec が確かめる）:
+-- - PlayerRemoving: SessionCleanup.leave = run(deps, userId, playerData:get(userId), now) → playerData:releaseAsync(userId)
+-- - BindToClose: SessionCleanup.closeAll = 残っている全員に run → playerData:closeAll()
 -- 保存データが無い（読み込み前・失敗）ときは save = nil で呼んでよい: 保存に触れる 1・2 を飛ばし、3・4 だけ行う。
 
 local SessionCleanup = {}
@@ -60,6 +60,20 @@ function SessionCleanup.run(deps: Deps, userId: number, save: any?, nowSec: numb
 		deps.activity:clear(userId)
 	end)
 	return out
+end
+
+-- 退出: 後始末してから保存・錠外し（Main の PlayerRemoving が task.spawn の中で呼ぶ）。戻り値 = releaseAsync の結果
+function SessionCleanup.leave(deps: Deps, playerData: any, userId: number, nowSec: number): boolean
+	SessionCleanup.run(deps, userId, playerData:get(userId), nowSec)
+	return playerData:releaseAsync(userId)
+end
+
+-- サーバー終了: userIds の全員を後始末してから closeAll（Main の BindToClose）
+function SessionCleanup.closeAll(deps: Deps, playerData: any, userIds: { number }, nowSec: number)
+	for _, userId in userIds do
+		SessionCleanup.run(deps, userId, playerData:get(userId), nowSec)
+	end
+	playerData:closeAll()
 end
 
 return table.freeze(SessionCleanup)

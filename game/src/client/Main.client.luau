@@ -2,13 +2,15 @@
 -- Main（クライアント）: 複製の待ち合わせ → 状態（State）と HUD の起動 → StateChanged の受信 → GetSnapshot の初回取得
 -- 配置: StarterPlayer.StarterPlayerScripts.Client.Main（LocalScript。Rojo: game/src/client/Main.client.luau）
 -- 依存: ReplicatedStorage.Shared の Net・Text・HudFormat・Data.GameData、ReplicatedStorage.GameData、ReplicatedStorage.Remotes の
---   GetSnapshot・StateChanged・Travel、同じフォルダの Controllers.{State, Hud}
+--   GetSnapshot・StateChanged・Notify・GatherStart・GatherStop・Travel、同じフォルダの Controllers.{State, Hud, Gather}、
+--   Workspace（採集ノード）
 --
 -- S1〜S3 進行記録の繰り越し Minor 1: game:IsLoaded() を待ってから require する（初期複製が揃う前に Shared の
 -- require-by-string（"./Formulas" など）や GameData の ModuleScript を探して失敗しないように）。
 -- クライアントは表示だけを行う。状態はサーバーのスナップショットからだけ作り、要求は Remote（サーバーがレート・検証する）で送る。
--- S5 の範囲: 財布と日次の HUD。帰還収穫の要約は State に 1 回分だけ保持する（画面は S8）。パネル・Prompt は S6〜S9。
+-- S5 の範囲: 財布と日次の HUD。帰還収穫の要約は State に 1 回分だけ保持する（画面は S8）。
 -- 移動ボタン（2026-11-24 決定）: 行き先の名前だけを Travel RF で送り、失敗なら HUD に短い案内を出す（成功時は何も出さない）。
+-- S6: 採集ノードの Prompt（Controllers.Gather）・採集チップ・Notify のトースト。パネル・遭遇は S7〜S9。
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +37,7 @@ end
 local Controllers = script.Parent:WaitForChild("Controllers")
 local State = require(Controllers:WaitForChild("State")) :: any
 local Hud = require(Controllers:WaitForChild("Hud")) :: any
+local Gather = require(Controllers:WaitForChild("Gather")) :: any
 
 local player = Players.LocalPlayer
 local state = State.new(os.clock, HudFormat)
@@ -66,6 +69,25 @@ local stateChanged = Remotes:WaitForChild(Net.Remotes.StateChanged) :: RemoteEve
 stateChanged.OnClientEvent:Connect(function(snap: any)
 	state:apply(snap)
 end)
+
+-- Notify（S→C）: { code, args } をトーストで出す（S6: 範囲外で採集が止まった TOO_FAR など）
+local notify = Remotes:WaitForChild(Net.Remotes.Notify) :: RemoteEvent
+notify.OnClientEvent:Connect(function(msg: any)
+	local code = if type(msg) == "table" then msg.code else nil
+	hud:toast(Text.get(HudFormat.noticeTextKey(code)))
+end)
+
+-- 採集ノードの Prompt（S6）
+local gather = Gather.new({
+	state = state,
+	hud = hud,
+	Text = Text,
+	HudFormat = HudFormat,
+	gatherStart = Remotes:WaitForChild(Net.Remotes.GatherStart),
+	gatherStop = Remotes:WaitForChild(Net.Remotes.GatherStop),
+	root = workspace,
+})
+gather:start()
 
 -- 初回の GetSnapshot（帰還収穫の要約はこの応答にだけ入る）。NOT_READY・RATE_LIMITED は 1 秒おきに再試行（レート 2/s 以内）
 local getSnapshot = Remotes:WaitForChild(Net.Remotes.GetSnapshot) :: RemoteFunction

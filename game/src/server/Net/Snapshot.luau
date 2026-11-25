@@ -11,6 +11,8 @@
 --   （表示専用。サーバーは毎分と変更時にスナップショットを送り直すので、補間の誤差は次の送信で消える）
 -- - 入れないもの（隠す情報・内部状態）: 遭遇の結果・試行数・乱数ブロック（遭遇中の状態は CaptureService にあり、ここには渡さない）、
 --   session（錠）、carry（端数）、next_uid、next_spawn_at、stats、settled_min、last_online_at、created_at/updated_at、first_capture
+-- - 採集 gather（S6）は extras で渡されたセッションがあるときだけ入れる: nodeId・resource・rate（milli/時）・accruedAt
+--   （財布へ積算済みの時刻 = 秒）。クライアントは accruedAt からの経過を rate で補間する（表示専用）
 -- - 帰還収穫の要約 returnReport は extras で渡されたときだけ入れる（Remoting は GetSnapshot の応答にだけ渡し、StateChanged には入れない）
 -- - seq = プレイヤーごとの送信番号（クライアントは古い seq を捨てる。GetSnapshot の応答と StateChanged の到着順が入れ替わっても戻らない）
 
@@ -33,6 +35,7 @@ export type Extras = {
 	seq: number,
 	plot: number?, -- 部地の番号（PlotService。満員で無ければ nil）
 	returnReport: any?, -- IdleCalc.ReturnReport（GetSnapshot の応答だけ）
+	gather: any?, -- GatherService.Session（採集中だけ。写しを作って入れる）
 }
 
 -- 最上位のキー（SnapshotSpec がこれ以外のキーが無いことを確かめる。足すときはここと Spec を同時に直す）
@@ -54,6 +57,7 @@ Snapshot.KEYS = table.freeze({
 	"daily",
 	"plot",
 	"returnReport",
+	"gather",
 })
 
 local function copyArray(a: { any }): { any }
@@ -123,6 +127,11 @@ function Snapshot.build(ctx: Ctx, save: any, nowSec: number, extras: Extras): an
 		dex[species] = at
 	end
 
+	local g = extras.gather
+	local gather = if g ~= nil
+		then { nodeId = g.nodeId, resource = g.resource, rate = g.rate, accruedAt = g.lastSec }
+		else nil
+
 	local day = ctx.QuestRules.utcDay(nowSec)
 	return {
 		v = Snapshot.VERSION,
@@ -146,6 +155,7 @@ function Snapshot.build(ctx: Ctx, save: any, nowSec: number, extras: Extras): an
 		},
 		plot = extras.plot,
 		returnReport = extras.returnReport,
+		gather = gather,
 	}
 end
 

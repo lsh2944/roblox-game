@@ -131,24 +131,17 @@ Config.WORLD = table.freeze({
 		table.freeze({ x = 185, z = 0 }),
 	}),
 	-- 部地の中の配置（部地ローカル。-Z = 前 = 広場側、+Z = 奥）。施設の台座は facilities.json の ID
-	-- 2026-11-24: 予約地の看板が出現位置の正面 8 studs にあってキャラクターを隠した（S5 Studio 1 次確認）ので、予約地を家の横へ、
-	-- 出現位置を前（家寄り）へ、展示台を少し前の端へ動かした。看板付きの物（予約地・展示台の看板枠・名札）と出現位置の関係は
-	-- labelClearance・viewLane で表し、PlotSpec が全部地（ワールド座標）で確かめる（MeadowBuilder.spawnLabelIssues）
 	plotLayout = table.freeze({
 		house = table.freeze({ x = 0, z = 20 }),
 		pedestals = table.freeze({
 			dew_spring = table.freeze({ x = -16, z = 4 }),
 			bloom_garden = table.freeze({ x = 16, z = 4 }),
 		}),
-		reserved = table.freeze({ id = "crystal_forge", x = 24, z = 20 }), -- forest の施設の予約地（MVP1 範囲外）。家の横（出現位置の視線の外）
-		showcase = table.freeze({ table.freeze({ x = -12, z = -22 }), table.freeze({ x = 0, z = -22 }), table.freeze({ x = 12, z = -22 }) }),
-		showcaseLabelSlot = 2, -- 展示台の看板を付ける枠
+		-- forest の施設の予約地（MVP1 範囲外）。家の右奥に置く（2026-11-24: 中央 z=-4 だと出現位置の正面で看板がキャラクターを隠した）
+		reserved = table.freeze({ id = "crystal_forge", x = 22, z = 22 }),
+		showcase = table.freeze({ table.freeze({ x = -12, z = -20 }), table.freeze({ x = 0, z = -20 }), table.freeze({ x = 12, z = -20 }) }),
 		sign = table.freeze({ x = 0, z = -29 }), -- 名札（前の端）
-		spawn = table.freeze({ x = 0, z = -6 }), -- 出現位置（奥 = 家・台座の方を向く）。Travel("home") の行き先も同じ
-		-- 看板と出現位置の間の最小の水平距離（studs、全部地どうし）。既定のカメラ距離（推定 12〜13 studs）より少し大きく取る
-		labelClearance = 14,
-		-- 出現位置の正面の視線帯（向きに沿って depth、左右に halfWidth）。この中に看板を置かない
-		viewLane = table.freeze({ depth = 30, halfWidth = 8 }),
+		spawn = table.freeze({ x = 0, z = -12 }), -- 出現位置（奥 = 家・台座の方を向く）。Travel("home") の行き先も同じ
 	}),
 })
 

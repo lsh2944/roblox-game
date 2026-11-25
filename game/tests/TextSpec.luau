@@ -70,5 +70,22 @@ return {
 				t:ok(Text.STRINGS[key] ~= nil, key)
 			end
 		end)
+
+		t:test("S6 채집 문구 키(Prompt·상태 칩·토스트)", function()
+			for _, key in {
+				"Prompt.Gather",
+				"Prompt.Stop",
+				"Hud.Gathering",
+				"Notice.GatherStopped",
+				"Error.TooFar",
+				"Error.Busy",
+				"Error.NotUnlocked",
+				"Error.RateLimited",
+				"Error.Generic",
+			} do
+				t:ok(Text.STRINGS[key] ~= nil, key)
+			end
+			t:eq(Text.format("Hud.Gathering", { resource = "Dew", rate = "160" }), "Gathering Dew +160/h")
+		end)
 	end,
 }

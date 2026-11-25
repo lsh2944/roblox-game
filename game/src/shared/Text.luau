@@ -24,6 +24,18 @@ Text.STRINGS = table.freeze({
 	["Notice.StorageFull"] = "Your spirit storage is full. Release a spirit to make room before using the lantern.",
 	-- Remote の応答コード（Net.ErrorCode.NOT_IMPLEMENTED: S5 時点で処理が未結線の Remote）
 	["Error.NotImplemented"] = "This feature is coming soon.",
+	-- Remote の応答コード → トースト（S6。対応は Shared.HudFormat.ERROR_TEXT_KEYS、対応の無いコードは Error.Generic）
+	["Error.TooFar"] = "You're too far away. Move closer.",
+	["Error.Busy"] = "You're busy with something else right now.",
+	["Error.NotUnlocked"] = "This area isn't unlocked yet.",
+	["Error.RateLimited"] = "Slow down a little.",
+	["Error.Generic"] = "Something went wrong. Please try again.",
+	-- Notify（S→C）: 範囲外で採集が止まった（Net.ErrorCode.TOO_FAR、HudFormat.NOTICE_TEXT_KEYS）
+	["Notice.GatherStopped"] = "You moved away from the node, so gathering stopped.",
+	-- 採集（S6）: ノードの ProximityPrompt と下中央の状態チップ（{rate} は表示整数/時）
+	["Prompt.Gather"] = "Gather",
+	["Prompt.Stop"] = "Stop",
+	["Hud.Gathering"] = "Gathering {resource} +{rate}/h",
 	-- HUD（S5: 左上の財布・右上の日次状態。{name} 形式の差し込みは Text.format）
 	["Hud.Loading"] = "Loading...",
 	["Hud.Dew"] = "Dew",

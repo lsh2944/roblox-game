@@ -95,6 +95,52 @@ return {
 			t:eq(st:units("bloom"), 0)
 		end)
 
+		t:test("State(S6): 채집 중이면 그 자원만 accruedAt 이후를 채집률로 보간, 상한 동일, 채집 노드", function()
+			local clock = 0
+			local st = deps.ClientState.new(function()
+				return clock
+			end, HF)
+			t:eq(st:gatherNode(), nil, "스냅샷 전")
+			-- 財布 bloom 2000 milli は accruedAt = 990 まで積算済み。serverNow 1000 → 経過 10 秒 × 360000/時 = +1000
+			t:eq(st:apply(snap(1, {
+				wallet = { dew = 5000, bloom = 2000 },
+				gather = { nodeId = "meadow_bloom", resource = "bloom", rate = 360000, accruedAt = 990 },
+			})), true)
+			t:eq(st:units("bloom"), 3)
+			t:eq(st:units("dew"), 45, "다른 자원은 방치 보간만")
+			t:eq(st:gatherNode(), "meadow_bloom")
+			clock = 10
+			t:eq(st:units("bloom"), 4)
+			clock = 1000
+			t:eq(st:units("bloom"), 2 + 12, "120초 상한(360000 × 120 / 3600 = 12000)")
+			t:eq(st:apply(snap(2)), true)
+			t:eq(st:gatherNode(), nil, "채집이 끝난 스냅샷")
+			t:eq(st:units("bloom"), 0)
+		end)
+
+		t:test("오류 코드 → 토스트 문구 키(없는 코드는 Error.Generic, Notify TOO_FAR 는 채집 정지)", function()
+			local E = deps.Net.ErrorCode
+			t:eq(HF.errorTextKey(E.TOO_FAR), "Error.TooFar")
+			t:eq(HF.errorTextKey(E.BUSY), "Error.Busy")
+			t:eq(HF.errorTextKey(E.NOT_UNLOCKED), "Error.NotUnlocked")
+			t:eq(HF.errorTextKey(E.RATE_LIMITED), "Error.RateLimited")
+			t:eq(HF.errorTextKey(E.NOT_IMPLEMENTED), "Error.NotImplemented")
+			t:eq(HF.errorTextKey(E.INTERNAL), "Error.Generic")
+			t:eq(HF.errorTextKey(nil), "Error.Generic")
+			t:eq(HF.errorTextKey(42), "Error.Generic")
+			t:eq(HF.noticeTextKey(E.TOO_FAR), "Notice.GatherStopped")
+			t:eq(HF.noticeTextKey(E.STORAGE_FULL), "Notice.StorageFull")
+			t:eq(HF.noticeTextKey(E.BUSY), "Error.Busy", "Notify 전용이 아니면 RF 와 같은 문구")
+			-- 対応先の文言キーは全部 Text にある（表示時に Text.get が error にならない）
+			for _, key in HF.ERROR_TEXT_KEYS do
+				t:ok(deps.Text.STRINGS[key] ~= nil, key)
+			end
+			for _, key in HF.NOTICE_TEXT_KEYS do
+				t:ok(deps.Text.STRINGS[key] ~= nil, key)
+			end
+			t:ok(deps.Text.STRINGS[HF.GENERIC_ERROR_KEY] ~= nil)
+		end)
+
 		t:test("State: 오래된·같은 seq 와 형식 틀린 것은 버림, 듣는 쪽 오류는 다른 쪽을 막지 않음", function()
 			local clock = 0
 			local st = deps.ClientState.new(function()
