@@ -49,7 +49,7 @@ Luau (cwd: `roblox-game`, 도구는 `.tools/bin/`, Windows는 `*.exe` — Git Ba
 200시드 full 실행은 수십 분~수 시간 걸리므로 계획서·메인이 지정한 경우에만 실행한다.
 
 ## 작업 규칙
-- 코드 주석은 일본어, README·docs는 한국어.
+- 코드 주석은 일본어, docs와 하위 폴더 README는 한국어. 저장소 루트 `README.md`는 GitHub 첫 화면이라 영어로 쓴다(2026-11-25 사용자 결정). 정령·지역의 영어 이름은 id 기반 임시 번역이다.
 - `outputs/`의 기존 run은 덮어쓰거나 삭제하지 않는다. 실행마다 새 run_id·`--out`을 쓴다.
 - 리뷰 기준은 Git(커밋·`git diff`). Git 도입(2026-11-11) 전의 비교는 `baselines/<날짜>_<라벨>/`을 썼다. 줄바꿈은 `.gitattributes`로 LF 고정(Windows CRLF 변환 금지).
 - data 스키마·키를 바꾸면 소비자 양쪽(econ_sim 로더·검증기, Luau 모듈)과 `test_vectors.json`을 함께 확인한다.
