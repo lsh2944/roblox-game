@@ -5,8 +5,8 @@
 --   GatherCalc・RosterRules・FacilityRules・QuestRules・CraftRules、
 --   ReplicatedStorage.GameData（data）、ReplicatedStorage.Remotes、ServerStorage.TestData.test_vectors、
 --   ServerScriptService.Server の Clock・ServerRng・Data.{SaveSchema, Migrations, DataStoreAdapter, PlayerDataService}・
---   Services.{IdleService, Activity, GatherService, WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService}（MockStore のみ使用、実 DataStore には触れない）、
---   Net.{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World.MeadowBuilder（checkConfig・plotFrame だけ。ワールドは作らない）、Shared.HudFormat、
+--   Services.{IdleService, Activity, GatherService, WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService, TravelService}（MockStore のみ使用、実 DataStore には触れない）、
+--   Net.{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World.MeadowBuilder（純粋関数だけ。ワールドは作らない）、Shared.HudFormat、
 --   StarterPlayer.StarterPlayerScripts.Client.Controllers.State（純粋。テストだけで読む）、
 --   ServerStorage.Tests（TestKit・VectorRunner・名前が "Spec" で終わるモジュール）、ServerScriptService.Server.Config
 -- RunService:IsStudio() のときだけ動く（ライブサーバーでは何もしない）。
@@ -57,6 +57,7 @@ local QuestService = require(Services:WaitForChild("QuestService")) :: any
 local CraftService = require(Services:WaitForChild("CraftService")) :: any
 local SessionCleanup = require(Services:WaitForChild("SessionCleanup")) :: any
 local PlotService = require(Services:WaitForChild("PlotService")) :: any
+local TravelService = require(Services:WaitForChild("TravelService")) :: any
 local HudFormat = require(Shared:WaitForChild("HudFormat")) :: any
 local NetFolder = Server:WaitForChild("Net")
 local Validate = require(NetFolder:WaitForChild("Validate")) :: any
@@ -123,6 +124,7 @@ local deps = {
 	CraftService = CraftService,
 	SessionCleanup = SessionCleanup,
 	PlotService = PlotService,
+	TravelService = TravelService,
 	HudFormat = HudFormat,
 	Validate = Validate,
 	RateLimiter = RateLimiter,

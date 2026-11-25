@@ -3,7 +3,7 @@
 -- 実行: cwd roblox-game で `lune run game/tests/lune_run.luau`（Lune 0.11 系。失敗が 1 件でもあれば終了コード 1）
 -- 依存: @lune/fs・@lune/serde・@lune/process、game/src/shared の純粋モジュール（Text を含む）、game/src/server の Config・Clock・
 --   Data/{SaveSchema, Migrations, DataStoreAdapter, PlayerDataService}・ServerRng・Services/{IdleService, Activity, GatherService,
---   WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService}・
+--   WildSpawnService, CaptureService, RosterService, FacilityService, QuestService, CraftService, SessionCleanup, PlotService, TravelService}・
 --   Net/{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World/MeadowBuilder（純粋関数だけ使う）、game/src/client/Controllers/State（Roblox API は deps 注入なので読み込める）、
 --   game/tests の TestKit・VectorRunner・*Spec
 -- default.project.json の globIgnorePaths で Rojo の同期対象から外している（ServerStorage.Tests に入らない）。
@@ -45,6 +45,7 @@ local QuestService = require("../src/server/Services/QuestService")
 local CraftService = require("../src/server/Services/CraftService")
 local SessionCleanup = require("../src/server/Services/SessionCleanup")
 local PlotService = require("../src/server/Services/PlotService")
+local TravelService = require("../src/server/Services/TravelService")
 local HudFormat = require("../src/shared/HudFormat")
 local Validate = require("../src/server/Net/Validate")
 local RateLimiter = require("../src/server/Net/RateLimiter")
@@ -82,6 +83,7 @@ local SPECS: { [string]: any } = {
 	SnapshotSpec = require("./SnapshotSpec"),
 	PlotSpec = require("./PlotSpec"),
 	HudFormatSpec = require("./HudFormatSpec"),
+	TravelSpec = require("./TravelSpec"),
 }
 
 if not fs.isFile("data/manifest.json") then
@@ -258,6 +260,7 @@ local deps = {
 	CraftService = CraftService,
 	SessionCleanup = SessionCleanup,
 	PlotService = PlotService,
+	TravelService = TravelService,
 	HudFormat = HudFormat,
 	Validate = Validate,
 	RateLimiter = RateLimiter,

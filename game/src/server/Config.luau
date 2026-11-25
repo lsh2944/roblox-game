@@ -64,7 +64,9 @@ Config.RETURN_REPORT_MIN_OFFLINE_MINUTES = 60
 
 -- ---- Remote（S5、計画書 4.3 の Remote 表。ゲーム専用の運用値で経済契約ではない） ----
 -- プレイヤーごと・Remote ごとのトークンバケット（毎秒の補充数 = 容量）。超過は捨てて回数を記録する（追放しない）。
--- C→S の Remote は全部ここに載せる（RemotingSpec が Net.Directions と突き合わせる）。MoveSlot は 2026-11-12 メイン確認で AssignSlot と同じ 4/s
+-- C→S の Remote は全部ここに載せる（RemotingSpec が Net.Directions と突き合わせる）。MoveSlot は 2026-11-12 メイン確認で AssignSlot と同じ 4/s。
+-- Travel（2026-11-24 決定）は 1/s: 既存 RF の最も保守的な水準（CaptureEngage・ClaimDaily と同じ）。ボタンを押す操作なので人の操作では
+-- 足りる。成功するたびにキャラクターの移動と StateChanged の印が付くので、連打の上限を低く保つ
 Config.REMOTE_RATES = table.freeze({
 	GetSnapshot = 2,
 	GatherStart = 2,
@@ -78,6 +80,7 @@ Config.REMOTE_RATES = table.freeze({
 	ReleaseSpirit = 2,
 	LevelUpSpirit = 4,
 	MoveSlot = 4,
+	Travel = 1,
 })
 -- 引数の上限（型・形の検証用。実在するか・範囲の本当の上限はサービスが data で判定する）
 Config.REMOTE_ID_MAX_LEN = 32 -- nodeId・wildId・facilityId・recipeId（Remote 表: string(≤32)）
@@ -113,6 +116,9 @@ Config.WORLD = table.freeze({
 		table.freeze({ x = -22, z = -147 }),
 	}),
 	gate = table.freeze({ x = 0, z = -255 }), -- 森の関門（未解禁、"Coming soon"）
+	-- Travel("meadow") の行き先（2026-11-24 決定）: 草原の入口 = 道からフィールドに入ったところ。フィールドの中央（野生の出現区域）を向く。
+	-- サーバーだけが使う（クライアントは行き先の名前だけを送る）。PlotSpec がフィールドの中・野生区域とノード判定範囲の外を確かめる
+	meadowEntry = table.freeze({ x = 0, z = -84 }),
 	plotSize = 64,
 	plots = table.freeze({
 		table.freeze({ x = -185, z = 0 }),
@@ -125,16 +131,24 @@ Config.WORLD = table.freeze({
 		table.freeze({ x = 185, z = 0 }),
 	}),
 	-- 部地の中の配置（部地ローカル。-Z = 前 = 広場側、+Z = 奥）。施設の台座は facilities.json の ID
+	-- 2026-11-24: 予約地の看板が出現位置の正面 8 studs にあってキャラクターを隠した（S5 Studio 1 次確認）ので、予約地を家の横へ、
+	-- 出現位置を前（家寄り）へ、展示台を少し前の端へ動かした。看板付きの物（予約地・展示台の看板枠・名札）と出現位置の関係は
+	-- labelClearance・viewLane で表し、PlotSpec が全部地（ワールド座標）で確かめる（MeadowBuilder.spawnLabelIssues）
 	plotLayout = table.freeze({
 		house = table.freeze({ x = 0, z = 20 }),
 		pedestals = table.freeze({
 			dew_spring = table.freeze({ x = -16, z = 4 }),
 			bloom_garden = table.freeze({ x = 16, z = 4 }),
 		}),
-		reserved = table.freeze({ id = "crystal_forge", x = 0, z = -4 }), -- forest の施設の予約地（MVP1 範囲外）
-		showcase = table.freeze({ table.freeze({ x = -12, z = -20 }), table.freeze({ x = 0, z = -20 }), table.freeze({ x = 12, z = -20 }) }),
+		reserved = table.freeze({ id = "crystal_forge", x = 24, z = 20 }), -- forest の施設の予約地（MVP1 範囲外）。家の横（出現位置の視線の外）
+		showcase = table.freeze({ table.freeze({ x = -12, z = -22 }), table.freeze({ x = 0, z = -22 }), table.freeze({ x = 12, z = -22 }) }),
+		showcaseLabelSlot = 2, -- 展示台の看板を付ける枠
 		sign = table.freeze({ x = 0, z = -29 }), -- 名札（前の端）
-		spawn = table.freeze({ x = 0, z = -12 }), -- 出現位置（奥 = 家・台座の方を向く）
+		spawn = table.freeze({ x = 0, z = -6 }), -- 出現位置（奥 = 家・台座の方を向く）。Travel("home") の行き先も同じ
+		-- 看板と出現位置の間の最小の水平距離（studs、全部地どうし）。既定のカメラ距離（推定 12〜13 studs）より少し大きく取る
+		labelClearance = 14,
+		-- 出現位置の正面の視線帯（向きに沿って depth、左右に halfWidth）。この中に看板を置かない
+		viewLane = table.freeze({ depth = 30, halfWidth = 8 }),
 	}),
 })
 

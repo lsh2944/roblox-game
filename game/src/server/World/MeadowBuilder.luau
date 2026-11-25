@@ -2,7 +2,8 @@
 -- MeadowBuilder: meadow の仮図形ワールドを実行時に作る（広場・掲示板・部地 8 個・採集ノード 2 個・野生の出現区域・森の関門）
 -- 配置: ServerScriptService.Server.World.MeadowBuilder（Rojo: game/src/server/World/MeadowBuilder.luau）
 -- 依存: 引数で受け取る Config.WORLD・Config.GATHER_RADIUS・GameData.build の結果・ReplicatedStorage.Shared.Text。
---   Roblox API（Instance・CFrame・Vector3・Color3・Enum）は build の中だけで使う。checkConfig・plotFrame は純粋関数（Lune の PlotSpec が読む）
+--   Roblox API（Instance・CFrame・Vector3・Color3・Enum）は build の中だけで使う。checkConfig・plotFrame・plotToWorld・plotLabels・
+--   spawnLabelIssues・meadowEntryFrame は純粋関数（Lune の PlotSpec が読む）
 --
 -- 方針（docs/world_hud_design_20261112.md 1 節・ユーザー決定、2026-11-11「그래픽 = 임시 도형」）:
 -- - Workspace 直下の Config.WORLD.folderName フォルダ（Rojo の管理外）に毎回作り直す。Rojo が管理するフォルダには作らない
@@ -18,6 +19,7 @@ export type World = {
 	setPlotOwner: (index: number, displayName: string?, userId: number?) -> (),
 	spawnCFrame: (index: number) -> CFrame,
 	plazaSpawnCFrame: () -> CFrame,
+	meadowEntryCFrame: () -> CFrame, -- Travel("meadow") の行き先（2026-11-24 決定）
 }
 
 -- 設定の検査（純粋）。ノード ID が data のそのフィールドの gather_nodes と過不足なく一致し、施設 ID が data にあること
@@ -54,6 +56,71 @@ function MeadowBuilder.plotFrame(world: any, index: number): (number, number, nu
 	local dx, dz = world.plaza.x - p.x, world.plaza.z - p.z
 	local len = math.sqrt(dx * dx + dz * dz)
 	return p.x, p.z, dx / len, dz / len
+end
+
+-- 部地ローカル（lx, lz）→ ワールドの（x, z）（純粋）。build の CFrame.lookAt(中心, 中心 + 前) と同じ変換:
+-- ローカル +X = RightVector = (-fz, fx)、ローカル -Z = 前 (fx, fz)
+function MeadowBuilder.plotToWorld(world: any, index: number, lx: number, lz: number): (number, number)
+	local px, pz, fx, fz = MeadowBuilder.plotFrame(world, index)
+	return px + lx * -fz - lz * fx, pz + lx * fx - lz * fz
+end
+
+-- 部地の中で看板（BillboardGui）を付ける物の部地ローカル位置（純粋。build もこの一覧の位置に看板を付ける）
+function MeadowBuilder.plotLabels(world: any): { { name: string, x: number, z: number } }
+	local L = world.plotLayout
+	local sc = L.showcase[L.showcaseLabelSlot]
+	if sc == nil then
+		error(`MeadowBuilder: showcaseLabelSlot {tostring(L.showcaseLabelSlot)} 의 전시대가 없음`)
+	end
+	return {
+		{ name = `reserved:{L.reserved.id}`, x = L.reserved.x, z = L.reserved.z },
+		{ name = `showcase:{L.showcaseLabelSlot}`, x = sc.x, z = sc.z },
+		{ name = "sign", x = L.sign.x, z = L.sign.z },
+	}
+end
+
+-- 出現位置と看板の配置の検査（純粋、2026-11-24: 予約地の看板がキャラクターを隠した問題の再発防止）。全部地の出現位置について、
+-- 全部地（自分以外の部地も含む）の看板を、ワールド座標で次の 2 つの規則で確かめる。戻り値 = 違反の説明の一覧（空なら問題なし）
+-- 1. 水平距離 ≥ plotLayout.labelClearance
+-- 2. 出現位置の正面の視線帯（向き = 部地の奥、深さ viewLane.depth・左右 viewLane.halfWidth）の中に無い
+-- Studio での見え方（カメラの角度・看板の画面上の大きさ）の確認の代わりではない
+function MeadowBuilder.spawnLabelIssues(world: any): { string }
+	local L = world.plotLayout
+	local labels = MeadowBuilder.plotLabels(world)
+	local issues: { string } = {}
+	for i = 1, #world.plots do
+		local sx, sz = MeadowBuilder.plotToWorld(world, i, L.spawn.x, L.spawn.z)
+		-- 出現位置の向き = 部地の奥（前の逆）
+		local _, _, fx, fz = MeadowBuilder.plotFrame(world, i)
+		local vx, vz = -fx, -fz
+		for j = 1, #world.plots do
+			for _, lb in labels do
+				local wx, wz = MeadowBuilder.plotToWorld(world, j, lb.x, lb.z)
+				local dx, dz = wx - sx, wz - sz
+				local dist = math.sqrt(dx * dx + dz * dz)
+				if dist < L.labelClearance then
+					table.insert(issues, `부지 {i} 스폰 ↔ 부지 {j} {lb.name}: 거리 {string.format("%.1f", dist)} < {L.labelClearance}`)
+				end
+				local ahead = dx * vx + dz * vz
+				local side = math.abs(dx * -vz + dz * vx)
+				if ahead > 0 and ahead <= L.viewLane.depth and side < L.viewLane.halfWidth then
+					table.insert(issues, `부지 {i} 스폰 정면 시선 안에 부지 {j} {lb.name}(앞 {string.format("%.1f", ahead)}, 옆 {string.format("%.1f", side)})`)
+				end
+			end
+		end
+	end
+	return issues
+end
+
+-- 草原の入口（純粋）: 位置と向き（入口からフィールドの中心への単位ベクトル、XZ 平面）
+function MeadowBuilder.meadowEntryFrame(world: any): (number, number, number, number)
+	local e = world.meadowEntry
+	local dx, dz = world.field.x - e.x, world.field.z - e.z
+	local len = math.sqrt(dx * dx + dz * dz)
+	if len == 0 then
+		error("MeadowBuilder: meadowEntry 가 필드 중심과 같은 위치(향할 방향 없음)")
+	end
+	return e.x, e.z, dx / len, dz / len
 end
 
 -- ---- ここから Roblox API ----
@@ -220,7 +287,7 @@ local function buildPlot(folder: Instance, world: any, index: number, Text: any)
 		glow(orb, c.glow, 12)
 	end
 
-	-- 予約地（forest の施設）と展示台 3 枠（MVP1 範囲外、場所だけ）
+	-- 予約地（forest の施設）と展示台 3 枠（MVP1 範囲外、場所だけ）。看板の位置は plotLabels と同じ（PlotSpec が出現位置との距離を確かめる）
 	local r = L.reserved
 	local res = part(model, `Reserved_{r.id}`, Vector3.new(1, 9, 9), at(r.x, 0.5, r.z) * CFrame.Angles(0, 0, math.rad(90)), PALETTE.reserved, { Transparency = 0.4 })
 	;(res :: Part).Shape = Enum.PartType.Cylinder
@@ -230,7 +297,7 @@ local function buildPlot(folder: Instance, world: any, index: number, Text: any)
 	for i, s in L.showcase do
 		local pad = part(model, `Showcase{i}`, Vector3.new(8, 1, 6), at(s.x, 0.5, s.z), PALETTE.reserved, { Transparency = 0.4 })
 		pad:SetAttribute("ShowcaseSlot", i)
-		if i == 2 then
+		if i == L.showcaseLabelSlot then
 			billboard(pad, Text.get("World.Showcase"), 3, 60)
 		end
 	end
@@ -374,6 +441,12 @@ function MeadowBuilder.build(parent: Instance, world: any, gd: any, Text: any, g
 		end,
 		plazaSpawnCFrame = function(): CFrame
 			return CFrame.new(pl.x, y + 3.5, pl.z + 6)
+		end,
+		-- 草原の入口: 地面 + 3.5（キャラクターの中心）、フィールドの中心を向く
+		meadowEntryCFrame = function(): CFrame
+			local ex, ez, efx, efz = MeadowBuilder.meadowEntryFrame(world)
+			local at = Vector3.new(ex, y + 3.5, ez)
+			return CFrame.lookAt(at, at + Vector3.new(efx, 0, efz))
 		end,
 	}
 	return handle

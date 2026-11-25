@@ -4,7 +4,7 @@
 -- 依存: deps.RateLimiter・deps.PushThrottle・deps.Config・deps.Net
 -- 期待値の出典: 計画書 4.3 Remote 表の「레이트(플레이어별)」列（GetSnapshot 2/s、GatherStart 2/s、GatherStop 2/s、CaptureEngage 1/s、
 --   SetParty 2/s、AssignSlot 4/s、UpgradeFacility 2/s、Craft 2/s、ClaimDaily 1/s、ReleaseSpirit 2/s、LevelUpSpirit 4/s）、
---   MoveSlot 4/s（2026-11-12 メイン確認）、「초과는 버리고 횟수 기록, 추방 없음」、StateChanged「서버 스로틀 4/s」
+--   MoveSlot 4/s（2026-11-12 メイン確認）、Travel 1/s（2026-11-24 決定の Remote 新設、既存 RF の最も保守的な水準）、「초과는 버리고 횟수 기록, 추방 없음」、StateChanged「서버 스로틀 4/s」
 
 return {
 	name = "RateLimiter",
@@ -26,6 +26,7 @@ return {
 				ReleaseSpirit = 2,
 				LevelUpSpirit = 4,
 				MoveSlot = 4,
+				Travel = 1,
 			})
 			for name, dir in deps.Net.Directions do
 				t:eq(deps.Config.REMOTE_RATES[name] ~= nil, dir == "C2S", name)

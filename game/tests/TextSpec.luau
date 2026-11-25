@@ -42,6 +42,13 @@ return {
 			t:eq((pcall(Text.format, "Hud.NoSuchKey", {})), false)
 		end)
 
+		t:test("이동 버튼·이동 실패 문구 키(2026-11-24 Travel)", function()
+			t:eq(Text.get("Hud.TravelMeadow"), "Meadow")
+			t:eq(Text.get("Hud.TravelHome"), "Home")
+			t:ok(#Text.get("Travel.Busy") > 0)
+			t:ok(#Text.get("Travel.Failed") > 0)
+		end)
+
 		t:test("S5 HUD·월드·미구현 문구 키", function()
 			for _, key in {
 				"Error.NotImplemented",

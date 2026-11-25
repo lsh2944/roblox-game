@@ -1,13 +1,17 @@
 --!strict
--- Hud: 最小 HUD（左上 = 財布 Dew・Bloom・Wick・Meadow Materials、右上 = 日次の状態と UTC 0 時までの残り）
+-- Hud: 最小 HUD（左上 = 財布 Dew・Bloom・Wick・Meadow Materials、右上 = 日次の状態と UTC 0 時までの残り、
+--   その下 = 移動ボタン "Meadow"・"Home"（2026-11-24 決定: Travel Remote）と失敗の短い案内）
 -- 配置: StarterPlayer.StarterPlayerScripts.Client.Controllers.Hud（ModuleScript。Rojo: game/src/client/Controllers/Hud.luau）
--- 依存: new の引数で受け取る Controllers.State、ReplicatedStorage.Shared の Text・HudFormat、LocalPlayer（PlayerGui）
+-- 依存: new の引数で受け取る Controllers.State、ReplicatedStorage.Shared の Text・HudFormat、LocalPlayer（PlayerGui）、
+--   opts.travelDests（Shared.Net.TravelDest）と opts.onTravel（ボタンを押したときの要求。Main が Travel RF を呼ぶ）
 --
 -- 配置の規則（docs/world_hud_design_20261112.md 3 節）:
 -- - ScreenInsets = CoreUISafeInsets（ノッチ・Roblox の上部メニューと重ならない）。左下（移動スティック）・右下（ジャンプ）・
 --   上中央（Roblox メニュー）には置かない。左の縦メニュー・下中央の状態チップ・遭遇カード・パネルは S6〜S9
 -- - 文言は Text のキー（英語）、数は HudFormat（切り捨ての縮約表記）。値はサーバーのスナップショットだけから作る（表示専用）
 -- - 0.2 秒ごとに書き換える（財布の補間・残り時間のカウントダウン）
+-- - 移動ボタンは右上の日次の列の下（日次の 2 段目が出たり消えたりしても動かないよう、別の列で位置を固定）。右下（ジャンプ）とは離す。
+--   ボタンは行き先の名前を onTravel に渡すだけ（座標・可否はサーバーが決める）。案内は TRAVEL_MESSAGE_SECONDS 秒で消える
 
 local Hud = {}
 Hud.__index = Hud
@@ -23,6 +27,15 @@ local WALLET = {
 local INK = Color3.fromRGB(43, 37, 64)
 local PILL_HEIGHT = 32
 local TEXT_SIZE = 18
+-- 移動ボタン（タッチしやすい高さ 44）。列の上端 = 日次の列の 2 段分（32 × 2 + 間 6）+ 余白
+local TRAVEL_TOP = 8 + PILL_HEIGHT * 2 + 6 + 14
+local TRAVEL_BUTTON_SIZE = Vector2.new(116, 44)
+local TRAVEL_MESSAGE_SECONDS = 3
+
+export type HudOpts = {
+	travelDests: { Meadow: string, Home: string }?, -- Shared.Net.TravelDest
+	onTravel: ((dest: string) -> ())?,
+}
 
 export type Hud = typeof(setmetatable(
 	{} :: {
@@ -35,6 +48,9 @@ export type Hud = typeof(setmetatable(
 		dailyStatus: TextLabel,
 		dailyReset: TextLabel,
 		dailyResetPill: Frame,
+		messagePill: Frame?,
+		messageLabel: TextLabel?,
+		messageToken: number,
 		running: boolean,
 	},
 	Hud
@@ -109,7 +125,33 @@ local function column(parent: Instance, name: string, rightSide: boolean): Frame
 	return f
 end
 
-function Hud.new(playerGui: Instance, state: any, Text: any, HudFormat: any): Hud
+-- 移動ボタン 1 個（角丸・枠線つき TextButton）
+local function travelButton(parent: Instance, order: number, text: string, onClick: () -> ()): TextButton
+	local b = Instance.new("TextButton")
+	b.Name = "Travel"
+	b.LayoutOrder = order
+	b.Size = UDim2.fromOffset(TRAVEL_BUTTON_SIZE.X, TRAVEL_BUTTON_SIZE.Y)
+	b.BackgroundColor3 = Color3.fromRGB(246, 241, 255)
+	b.BackgroundTransparency = 0.05
+	b.AutoButtonColor = true
+	b.Font = Enum.Font.FredokaOne
+	b.TextSize = TEXT_SIZE
+	b.TextColor3 = INK
+	b.Text = text
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 14)
+	corner.Parent = b
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(196, 172, 255)
+	stroke.Thickness = 2
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = b
+	b.Activated:Connect(onClick)
+	b.Parent = parent
+	return b
+end
+
+function Hud.new(playerGui: Instance, state: any, Text: any, HudFormat: any, opts: HudOpts?): Hud
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "GlimmerHud"
 	gui.ResetOnSpawn = false
@@ -133,6 +175,26 @@ function Hud.new(playerGui: Instance, state: any, Text: any, HudFormat: any): Hu
 	status.Text = Text.get("Hud.Loading")
 	resetPill.Visible = false
 
+	-- 移動ボタン（opts.onTravel が無ければ作らない）
+	local messagePill: Frame? = nil
+	local messageLabel: TextLabel? = nil
+	local dests = if opts ~= nil then opts.travelDests else nil
+	local onTravel = if opts ~= nil then opts.onTravel else nil
+	if dests ~= nil and onTravel ~= nil then
+		local meadow, home, request = dests.Meadow, dests.Home, onTravel
+		local travelCol = column(gui, "Travel", true)
+		travelCol.Position = UDim2.new(1, -12, 0, TRAVEL_TOP)
+		travelButton(travelCol, 1, Text.get("Hud.TravelMeadow"), function()
+			request(meadow)
+		end)
+		travelButton(travelCol, 2, Text.get("Hud.TravelHome"), function()
+			request(home)
+		end)
+		local mp, ml = pill(travelCol, 3, nil)
+		mp.Visible = false
+		messagePill, messageLabel = mp, ml
+	end
+
 	gui.Parent = playerGui
 	local self = setmetatable({
 		gui = gui,
@@ -144,6 +206,9 @@ function Hud.new(playerGui: Instance, state: any, Text: any, HudFormat: any): Hu
 		dailyStatus = status,
 		dailyReset = reset,
 		dailyResetPill = resetPill,
+		messagePill = messagePill,
+		messageLabel = messageLabel,
+		messageToken = 0,
 		running = false,
 	}, Hud)
 	return self
@@ -171,6 +236,23 @@ function Hud.refresh(self: Hud)
 			self.dailyResetPill.Visible = false
 		end
 	end
+end
+
+-- 移動ボタンの下に短い案内を出す（TRAVEL_MESSAGE_SECONDS 秒で消える。続けて出したら新しい方の時間で消える）
+function Hud.showMessage(self: Hud, text: string)
+	local p, l = self.messagePill, self.messageLabel
+	if p == nil or l == nil then
+		return
+	end
+	self.messageToken += 1
+	local token = self.messageToken
+	l.Text = text
+	p.Visible = true
+	task.delay(TRAVEL_MESSAGE_SECONDS, function()
+		if self.messageToken == token then
+			p.Visible = false
+		end
+	end)
 end
 
 -- 書き換えループ（0.2 秒ごと、HUD が消えたら止まる）

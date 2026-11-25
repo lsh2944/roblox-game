@@ -49,7 +49,8 @@
         "Notify": { "$className": "RemoteEvent" },
         "ReleaseSpirit": { "$className": "RemoteFunction" },
         "LevelUpSpirit": { "$className": "RemoteFunction" },
-        "MoveSlot": { "$className": "RemoteFunction" }
+        "MoveSlot": { "$className": "RemoteFunction" },
+        "Travel": { "$className": "RemoteFunction" }
       }
     },
     "ServerScriptService": {

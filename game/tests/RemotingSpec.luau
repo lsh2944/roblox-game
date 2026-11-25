@@ -42,7 +42,7 @@ return {
 				remotes = env.remotes,
 				limiter = env.limiter,
 				throttle = env.throttle,
-				schemas = o.schemas or deps.Validate.schemas(deps.gd, deps.Config),
+				schemas = o.schemas or deps.Validate.schemas(deps.gd, deps.Config, Net),
 				Validate = deps.Validate,
 				getSave = function(userId: number)
 					return env.saves[userId]
@@ -247,7 +247,7 @@ return {
 			t:throws(function()
 				setup({ rates = rates })
 			end, "레이트 미정의")
-			local schemas = table.clone(deps.Validate.schemas(deps.gd, deps.Config))
+			local schemas = table.clone(deps.Validate.schemas(deps.gd, deps.Config, Net))
 			schemas.MoveSlot = nil
 			t:throws(function()
 				setup({ schemas = schemas })

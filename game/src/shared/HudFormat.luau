@@ -1,7 +1,7 @@
 --!strict
--- HudFormat: HUD の表示用の純粋関数（数の縮約表記・milli → 表示整数・財布の補間・残り時間の表記）
+-- HudFormat: HUD の表示用の純粋関数（数の縮約表記・milli → 表示整数・財布の補間・残り時間の表記・Travel の失敗文言キー）
 -- 配置: ReplicatedStorage.Shared.HudFormat（Rojo: game/src/shared/HudFormat.luau）
--- 依存: Formulas（同じフォルダ、MILLI だけ）。Roblox API 不使用（クライアント HUD と Lune の単体テストが読む）
+-- 依存: Formulas（同じフォルダ、MILLI だけ）・Net（同じフォルダ、ErrorCode だけ）。Roblox API 不使用（クライアント HUD と Lune の単体テストが読む）
 --
 -- 規則:
 -- - 表示整数 = milli // 1000（切り捨て。サーバーの Ledger・ログと同じ。持っていない量を見せない）
@@ -12,6 +12,7 @@
 --   経過は 0 以上・maxSeconds 以下に丸める（push が止まっても数字が増え続けないように）
 
 local Formulas = require("./Formulas")
+local Net = require("./Net")
 
 local HudFormat = {}
 
@@ -84,6 +85,16 @@ end
 function HudFormat.countdown(seconds: number): string
 	local s = if seconds ~= seconds or seconds < 0 then 0 else math.floor(seconds)
 	return string.format("%02d:%02d:%02d", s // 3600, (s // 60) % 60, s % 60)
+end
+
+-- Travel の失敗応答コード → 表示する文言キー（Shared.Text）。遭遇中（BUSY）だけ専用の案内、それ以外は共通の「今は移動できない」
+function HudFormat.travelErrorKey(code: any): string
+	if code == Net.ErrorCode.BUSY then
+		return "Travel.Busy"
+	elseif code == Net.ErrorCode.NOT_IMPLEMENTED then
+		return "Error.NotImplemented"
+	end
+	return "Travel.Failed"
 end
 
 return table.freeze(HudFormat)

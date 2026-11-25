@@ -30,10 +30,28 @@
 - crystal_forge 예약 자리 "Coming soon" 표지가 스폰 위치와 겹쳐 캐릭터를 가린다 → `World/MeadowBuilder.luau`·`Config.WORLD` 좌표 조정.
 - 재확인에서 나오는 다른 화면 지적과 묶어서 한 번에 고친다.
 
-## 4. 사용자 결정 대기
-1. HUD "Meadow"/"Home" 이동 버튼: Remote 계약에 없음 → `Travel(dest)` Remote 신설 여부.
-2. 귀환 수확 요약을 클라이언트 확인 후 서버에서 지울지(Ack Remote 필요). 현재는 세션 동안 유지·클라이언트가 1회만 표시.
-3. Experience Max Players = 8(W1): Studio Game Settings에서 사용자 설정.
+## 4. 사용자 결정 (2026-11-24 결정됨, 계획서 끝 기록)
+1. HUD 이동 버튼 → **`Travel(dest)` Remote 신설**(포획 중 BUSY 거부, 이동 시 채집 정지). 회사 Mac에서 구현 완료(Studio 미검증).
+2. 귀환 수확 요약 → **현행 유지**(Ack Remote 없음).
+3. Max Players = 8 → 다음 Studio 확인 때 사용자가 Game Settings에 설정.
+
+## 4-1. 2026-11-24 회사 Mac 작업분의 Studio 확인 체크리스트 (S5 재확인과 함께)
+- (a) 새 파일이 있으므로 `rojo serve` 재시작 → Connect → Explorer에 `ServerScriptService.Server.Services.TravelService`·`ServerStorage.Tests.TravelSpec`·`ReplicatedStorage.Remotes.Travel`(RemoteFunction) 확인 → Play. 기대 `[unit] UNIT PASS 208 / FAIL 0 (25 suites)`.
+- (b) 오른쪽 위 Daily 아래 **Meadow·Home 버튼**: Meadow → 초원 입구에서 필드 쪽을 봄, Home → 자기 부지 스폰에서 집 쪽을 봄. Device Emulator 모바일 가로에서 점프 버튼·조이스틱·Roblox 메뉴와 겹치지 않음.
+- (c) 클라이언트 명령 바: `local r=game.ReplicatedStorage.Remotes.Travel; print(r:InvokeServer("Meadow").code, r:InvokeServer(1).code)` → `BAD_ARG` (두 번째는 `RATE_LIMITED`여도 정상).
+- (d) 스폰 직후 캐릭터가 표지에 가리지 않음, crystal_forge "Coming soon" 표지가 집 옆(부지 로컬 (24,20))에 있음.
+- (e) 포획 중 거부(BUSY)·이동 시 채집 정지는 S6·S7에서 서비스를 TravelService에 연결한 뒤 확인(지금은 미연결, Main TODO).
+- (f) Game Settings 최대 인원 8 설정.
+- (g) 리뷰 Minor 확인: 작은 가로 모바일(iPhone SE·360×640급 Android)에서 Meadow·Home 버튼과 실패 안내가 점프 버튼과 겹치는지, 버튼을 1초 안에 두 번 누르면 "can't travel" 안내가 뜨는지(현행 동작), 사망 후 리스폰 대기 중 Travel 동작.
+
+## 4-2. 사용자 판단 대기 (2026-11-25 리뷰 Minor, 계획서 끝 기록)
+1. TravelService 주입 누락 시 제약이 조용히 꺼지는 위험 대책(권장: 세션 서비스 묶음 테이블 공유 + S6·S7 완료 기준에 Travel 확인 추가) — **S6 착수 전에 결정**.
+2. 버튼 연타 UI 디바운스(응답 대기 중 무시·RATE_LIMITED 무표시) 여부.
+3. 사망 후 리스폰 대기 중 Travel 처리(유지 / Health 조건 추가).
+4. 모바일 겹침이 확인되면 안내를 화면 위쪽 토스트로 옮길지.
+
+## 4-3. 미룬 작업
+- S6 직접 채집 결선은 사용자 지시로 보류(2026-11-24). 다음 착수 시 4-2의 1번을 먼저 정한다.
 
 ## 5. 그 뒤 순서
 S5 완료 → S6(직접 채집: GatherStart/Stop 결선, 1초 거리 재확인, ProximityPrompt → 기존 RF) → S7(외형 레지스트리·야생·포획) → S8(시설·방치·귀환 요약 화면) → S9(일일·제작) → S10(통합·실제 DataStore 재접속·2인 서버·리뷰). 각 단계에서 `Remoting.bind(name, fn, {mutates=true})`로 결선하고 SessionCleanup(PlayerRemoving은 releaseAsync 전, BindToClose는 closeAll 전)을 함께 넣는다.

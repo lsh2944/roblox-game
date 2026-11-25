@@ -4,12 +4,13 @@
 -- 配置: ServerScriptService.Server.Main（Script。Rojo: game/src/server/Main.server.luau）
 -- 依存: ReplicatedStorage.Shared の Data.GameData・Economy・Formulas・CaptureLogic・IdleCalc・Text・Net・RosterRules・QuestRules・
 --   FacilityRules、ReplicatedStorage.GameData（data/*.json）、ReplicatedStorage.Remotes、
---   ServerScriptService.Server の Config・Clock・Data.{DataStoreAdapter, PlayerDataService, SaveSchema}・Services.{IdleService, PlotService}・
+--   ServerScriptService.Server の Config・Clock・Data.{DataStoreAdapter, PlayerDataService, SaveSchema}・Services.{IdleService, PlotService, TravelService}・
 --   Net.{Validate, RateLimiter, PushThrottle, Remoting, Snapshot}・World.MeadowBuilder
 --
 -- S5 時点: 保存・放置精算に加えて、ワールド（Workspace.MeadowWorld、Rojo 管理外）・部地の割り当てと自分の部地での出現・
 --   Remote の結線（全 C→S Remote をレート → 検証 → 処理で受ける。処理は GetSnapshot だけ、S6〜S9 は NOT_IMPLEMENTED）・
 --   StateChanged（変更の印と毎分の財布更新、最大 4 回/秒）。S6〜S9 のサービス結線と SessionCleanup は各段階で行う。
+--   Travel（2026-11-24 決定、HUD の移動ボタン）は S5 で結線済み。遭遇中の拒否・採集の終了は S6・S7 で各サービスを渡したときに効く。
 -- 実 DataStore を使うのはライブサーバー、または Studio で Config.STUDIO_USE_REAL_DATASTORE=true かつ API 接続確認が通ったときだけ。
 
 local Players = game:GetService("Players")
@@ -41,6 +42,7 @@ local SaveSchema = require(DataFolder:WaitForChild("SaveSchema")) :: any
 local ServicesFolder = Server:WaitForChild("Services")
 local IdleService = require(ServicesFolder:WaitForChild("IdleService")) :: any
 local PlotService = require(ServicesFolder:WaitForChild("PlotService")) :: any
+local TravelService = require(ServicesFolder:WaitForChild("TravelService")) :: any
 local NetFolder = Server:WaitForChild("Net")
 local Validate = require(NetFolder:WaitForChild("Validate")) :: any
 local RateLimiter = require(NetFolder:WaitForChild("RateLimiter")) :: any
@@ -154,6 +156,12 @@ local world = MeadowBuilder.build(workspace, Config.WORLD, gd, Text, Config.GATH
 local plots = PlotService.new(#Config.WORLD.plots)
 print(`[World] {Config.WORLD.folderName} 생성: 부지 {#Config.WORLD.plots}개`)
 
+-- 自分の部地の出現位置（W4）。部地が無い（満員）なら広場。出現時と Travel("home") で同じ規則を使う
+local function homeCFrame(userId: number): CFrame
+	local index = plots:plotOf(userId)
+	return if index ~= nil then world.spawnCFrame(index) else world.plazaSpawnCFrame()
+end
+
 -- 6) Remote（C→S の唯一の入口。レート → 検証 → 読み込み確認 → 処理）
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
 local remotes: { [string]: Instance } = {}
@@ -175,7 +183,7 @@ local remoting = Remoting.new({
 	remotes = remotes,
 	limiter = RateLimiter.new(Config.REMOTE_RATES, os.clock),
 	throttle = PushThrottle.new(Config.PUSH_MIN_INTERVAL_SECONDS),
-	schemas = Validate.schemas(gd, Config),
+	schemas = Validate.schemas(gd, Config, Net),
 	Validate = Validate,
 	getSave = function(userId: number)
 		return playerData:get(userId)
@@ -200,12 +208,46 @@ local remoting = Remoting.new({
 remoting:bind(Net.Remotes.GetSnapshot, function(ctx: any)
 	return { ok = true, data = remoting:snapshot(ctx.userId, ctx.save, ctx.now, true) }
 end)
+-- Travel（2026-11-24 決定）: 行き先はサーバーが決める。移動は Roblox API（PivotTo）、判定は TravelService（Lune で検証）。
+-- 採集を閉じると財布が変わるので mutates = true（成功時に StateChanged）
+-- TODO(S6・S7): GatherService・CaptureService・Activity を作ったら、この new の gather・capture・activity に同じインスタンスを渡す
+--   （渡すまでは遭遇中の BUSY と採集の終了が効かない。S5 時点ではどちらのセッションも作られない）
+local travel = TravelService.new({
+	Net = Net,
+	resolve = function(userId: number, dest: string): CFrame?
+		if dest == Net.TravelDest.Home then
+			return homeCFrame(userId)
+		elseif dest == Net.TravelDest.Meadow then
+			return world.meadowEntryCFrame()
+		end
+		return nil
+	end,
+	findCharacter = function(player: Player): Model?
+		local character = player.Character
+		if character == nil or character.Parent == nil then
+			return nil
+		end
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if root == nil or not root:IsA("BasePart") then
+			return nil
+		end
+		return character
+	end,
+	pivot = function(character: Model, target: CFrame)
+		character:PivotTo(target)
+	end,
+	capture = nil,
+	gather = nil,
+	activity = nil,
+})
+remoting:bind(Net.Remotes.Travel, function(ctx: any, dest: any)
+	return travel:travel(ctx, dest)
+end, { mutates = true })
 remoting:start()
 
 -- 出現位置: 自分の部地（W4）。部地が無い（満員）なら広場
 local function placeCharacter(player: Player, character: Model)
-	local index = plots:plotOf(player.UserId)
-	local cf = if index ~= nil then world.spawnCFrame(index) else world.plazaSpawnCFrame()
+	local cf = homeCFrame(player.UserId)
 	-- 既定の出現処理の後に動かす（CharacterAdded の直後に動かすと上書きされることがあるため defer）
 	task.defer(function()
 		character:WaitForChild("HumanoidRootPart", 5)

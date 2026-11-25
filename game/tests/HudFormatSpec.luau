@@ -1,7 +1,7 @@
 --!strict
 -- HudFormatSpec: HUD の表示用純粋関数（縮約表記・milli → 表示整数・財布の補間・残り時間）とクライアントの State（seq・補間・帰還要約 1 回）
 -- 配置: ServerStorage.Tests.HudFormatSpec（Rojo: game/tests/HudFormatSpec.luau）
--- 依存: deps.HudFormat・deps.ClientState（StarterPlayer.StarterPlayerScripts.Client.Controllers.State）
+-- 依存: deps.HudFormat・deps.Net・deps.Text・deps.ClientState（StarterPlayer.StarterPlayerScripts.Client.Controllers.State）
 -- 期待値の出典: world_hud_design 3 節（左上の財布は縮約表記 1.2K）、表示整数は milli // 1000（Ledger・サーバーログと同じ切り捨て）、
 --   S5 決定（縮約は切り捨て、補間は表示専用で上限あり、古い seq は捨てる、帰還要約は 1 回だけ渡す）
 
@@ -129,6 +129,19 @@ return {
 			t:eq(st:takeReturnReport(), nil)
 			t:eq(st:apply(snap(6, { returnReport = { show = true } })), true)
 			t:eq(st:takeReturnReport(), nil, "한 세션에 1번")
+		end)
+
+		t:test("Travel 실패 문구 키: 조우 중(BUSY)만 전용 안내, 나머지는 공통, 키는 Text 에 있음", function()
+			local EC = deps.Net.ErrorCode
+			t:eq(HF.travelErrorKey(EC.BUSY), "Travel.Busy")
+			t:eq(HF.travelErrorKey(EC.NOT_IMPLEMENTED), "Error.NotImplemented")
+			for _, code in { EC.NOT_READY, EC.RATE_LIMITED, EC.BAD_ARG, EC.INTERNAL, 5 :: any } do
+				t:eq(HF.travelErrorKey(code), "Travel.Failed", tostring(code))
+			end
+			t:eq(HF.travelErrorKey(nil), "Travel.Failed", "응답 없음(통신 실패)")
+			for _, code in EC do
+				t:ok(deps.Text.STRINGS[HF.travelErrorKey(code)] ~= nil, code)
+			end
 		end)
 	end,
 }

@@ -33,6 +33,11 @@ Text.STRINGS = table.freeze({
 	["Hud.DailyClaimed"] = "Daily claimed",
 	["Hud.DailyReady"] = "Daily ready",
 	["Hud.DailyReset"] = "Resets in {time}",
+	-- 移動ボタン（2026-11-24 決定: Travel Remote）と失敗の案内（HudFormat.travelErrorKey が応答コードから選ぶ）
+	["Hud.TravelMeadow"] = "Meadow",
+	["Hud.TravelHome"] = "Home",
+	["Travel.Busy"] = "You can't travel during a capture.",
+	["Travel.Failed"] = "You can't travel right now. Please try again.",
 	-- ワールドの看板（S5 MeadowBuilder。サーバーが組み立てて複製する）
 	["World.PlotEmpty"] = "Empty Garden",
 	["World.PlotOwner"] = "{name}'s Garden",

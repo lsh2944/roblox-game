@@ -15,6 +15,7 @@ export type Spec =
 	{ kind: "int", min: number, max: number }
 	| { kind: "string", min: number, max: number, pattern: string?, allowEmpty: boolean? }
 	| { kind: "array", max: number, elem: Spec }
+	| { kind: "oneOf", values: { [string]: boolean } }
 
 -- 整数（min..max の両端を含む）
 function Validate.int(min: number, max: number): Spec
@@ -29,6 +30,17 @@ end
 -- 配列（長さ 0..max、各要素は elem）。キーは 1..n の連番だけ（辞書・穴・余分なキーは拒否）
 function Validate.array(max: number, elem: Spec): Spec
 	return table.freeze({ kind = "array", max = max, elem = elem }) :: any
+end
+
+-- 列挙（values のどれかと完全に一致する文字列だけ。大文字小文字・前後の空白も区別する）
+function Validate.oneOf(values: { string }): Spec
+	assert(#values >= 1, "Validate.oneOf: 값이 비어 있음")
+	local set: { [string]: boolean } = {}
+	for _, v in values do
+		assert(type(v) == "string", "Validate.oneOf: 문자열이 아닌 값")
+		set[v] = true
+	end
+	return table.freeze({ kind = "oneOf", values = table.freeze(set) }) :: any
 end
 
 -- data の ID（英小文字・数字・下線。fields・facilities・recipes の id がこの形）
@@ -97,6 +109,14 @@ function Validate.check(spec: Spec, v: any): (boolean, string?)
 			end
 		end
 		return true, nil
+	elseif s.kind == "oneOf" then
+		if t ~= "string" then
+			return false, `string 이 아님({t})`
+		end
+		if s.values[v] ~= true then
+			return false, "허용 목록 밖"
+		end
+		return true, nil
 	end
 	error(`Validate.check: 알 수 없는 spec kind {tostring(s.kind)}`)
 end
@@ -116,13 +136,19 @@ function Validate.args(specs: { Spec }, n: number, ...: any): (boolean, string?)
 	return true, nil
 end
 
--- C→S Remote の引数スキーマ（計画書 4.3 の Remote 表）。gd = GameData.build の結果、config = Config
-function Validate.schemas(gd: any, config: any): { [string]: { Spec } }
+-- C→S Remote の引数スキーマ（計画書 4.3 の Remote 表）。gd = GameData.build の結果、config = Config、
+-- net = ReplicatedStorage.Shared.Net（Travel の行き先の列挙 Net.TravelDest。2026-11-24 決定）
+function Validate.schemas(gd: any, config: any, net: any): { [string]: { Spec } }
 	local id = Validate.str(1, config.REMOTE_ID_MAX_LEN, Validate.ID_PATTERN)
 	local uid = Validate.str(1, config.REMOTE_UID_MAX_LEN, Validate.UID_PATTERN)
 	local slot = Validate.int(1, config.REMOTE_SLOT_MAX)
 	-- AssignSlot の uid は空文字 "" = 外す（FacilityService の契約）
 	local uidOrEmpty = Validate.str(1, config.REMOTE_UID_MAX_LEN, Validate.UID_PATTERN, true)
+	local dests: { string } = {}
+	for _, v in net.TravelDest do
+		table.insert(dests, v)
+	end
+	table.sort(dests)
 	local s = {
 		GetSnapshot = {},
 		GatherStart = { id }, -- nodeId
@@ -136,6 +162,7 @@ function Validate.schemas(gd: any, config: any): { [string]: { Spec } }
 		ReleaseSpirit = { uid },
 		LevelUpSpirit = { uid },
 		MoveSlot = { uid, id, slot }, -- uid, toFacilityId, toSlot
+		Travel = { Validate.oneOf(dests) }, -- dest（"meadow" | "home"）
 	}
 	for k, v in s do
 		s[k] = table.freeze(v)

@@ -1,9 +1,11 @@
 --!strict
 -- PlotSpec: 部地の割り当て（接続順・満員・再入室・返却後の再利用）とワールド座標表（Config.WORLD）の整合
 -- 配置: ServerStorage.Tests.PlotSpec（Rojo: game/tests/PlotSpec.luau）
--- 依存: deps.PlotService・deps.MeadowBuilder（純粋関数 checkConfig・plotFrame だけ）・deps.Config・deps.gd・deps.TestKit
+-- 依存: deps.PlotService・deps.MeadowBuilder（純粋関数 checkConfig・plotFrame・plotToWorld・plotLabels・spawnLabelIssues・
+--   meadowEntryFrame だけ）・deps.Config・deps.gd・deps.TestKit（Studio では CFrame で plotToWorld を突き合わせる）
 -- 期待値の出典: world_hud_design W1 決定（サーバー 8 人 = 部地 8 個）・W4（接続時は自分の部地）・1 節（部地 ≈64×64、
---   広場の周りに半円、ノード ID = fields.json gather_nodes[].id、判定半径 GATHER_RADIUS、野生の出現区域はフィールド中央）
+--   広場の周りに半円、ノード ID = fields.json gather_nodes[].id、判定半径 GATHER_RADIUS、野生の出現区域はフィールド中央）、
+--   2026-11-23 S5 Studio 1 次確認の指摘（予約地の看板が出現位置と重なってキャラクターを隠す）、2026-11-24 決定（Travel の草原の入口）
 
 return {
 	name = "Plot",
@@ -173,6 +175,99 @@ return {
 			for i, p in L.showcase do
 				t:ok(inside(p, 4), `전시대 {i}`)
 			end
+		end)
+
+		t:test("plotToWorld: 중심·앞(-Z)·오른쪽(+X)이 plotFrame·CFrame.lookAt 과 같음", function()
+			for i = 1, #W.plots do
+				local px, pz, fx, fz = MB.plotFrame(W, i)
+				local x0, z0 = MB.plotToWorld(W, i, 0, 0)
+				t:ok(math.abs(x0 - px) < 1e-9 and math.abs(z0 - pz) < 1e-9, `부지 {i} 중심`)
+				local x1, z1 = MB.plotToWorld(W, i, 0, -10)
+				t:ok(math.abs(x1 - (px + fx * 10)) < 1e-9 and math.abs(z1 - (pz + fz * 10)) < 1e-9, `부지 {i} 앞`)
+				local x2, z2 = MB.plotToWorld(W, i, 10, 0)
+				t:ok(math.abs(x2 - (px - fz * 10)) < 1e-9 and math.abs(z2 - (pz + fx * 10)) < 1e-9, `부지 {i} 오른쪽`)
+				if deps.env == "studio" then
+					-- Studio: build と同じ CFrame 変換と突き合わせる
+					local origin = Vector3.new(px, 0, pz)
+					local cf = CFrame.lookAt(origin, origin + Vector3.new(fx, 0, fz))
+					local w = cf * CFrame.new(7, 0, -3)
+					local wx, wz = MB.plotToWorld(W, i, 7, -3)
+					t:ok(math.abs(w.X - wx) < 1e-4 and math.abs(w.Z - wz) < 1e-4, `부지 {i} CFrame 일치`)
+				end
+			end
+		end)
+
+		t:test("스폰과 표지(예약·전시대 표지·이름표): 8 부지 전부 최소 거리·정면 시선 규칙 위반 없음", function()
+			local L = W.plotLayout
+			t:eq(#MB.plotLabels(W), 3)
+			t:ok(L.labelClearance > 0 and L.viewLane.depth > 0 and L.viewLane.halfWidth > 0, "규칙 값")
+			t:eq(MB.spawnLabelIssues(W), {})
+		end)
+
+		t:test("스폰과 표지: 옛 배치(예약 0,-4·스폰 0,-12·전시대 z -20)는 8 부지 모두 위반으로 잡힘", function()
+			local w = deps.TestKit.deepCopy(W)
+			w.plotLayout.reserved.x, w.plotLayout.reserved.z = 0, -4
+			w.plotLayout.spawn.z = -12
+			for _, sc in w.plotLayout.showcase do
+				sc.z = -20
+			end
+			local issues = MB.spawnLabelIssues(w)
+			for i = 1, #w.plots do
+				local hitReserved, hitShowcase = false, false
+				for _, msg in issues do
+					if string.find(msg, `부지 {i} 스폰`, 1, true) and string.find(msg, `부지 {i} reserved:crystal_forge`, 1, true) then
+						hitReserved = true
+					end
+					if string.find(msg, `부지 {i} 스폰`, 1, true) and string.find(msg, `부지 {i} showcase:2`, 1, true) then
+						hitShowcase = true
+					end
+				end
+				t:ok(hitReserved, `부지 {i} 예약 표지(정면 4)`)
+				t:ok(hitShowcase, `부지 {i} 전시대 표지(뒤 8)`)
+			end
+		end)
+
+		t:test("스폰과 표지: 거리 규칙과 정면 시선 규칙은 따로 잡힘", function()
+			-- 正面 22 studs（距離は十分、視線帯の中）
+			local w1 = deps.TestKit.deepCopy(W)
+			w1.plotLayout.reserved.x, w1.plotLayout.reserved.z = 0, w1.plotLayout.spawn.z + 22
+			local i1 = MB.spawnLabelIssues(w1)
+			t:eq(#i1, #w1.plots, "부지마다 1건")
+			for _, msg in i1 do
+				t:ok(string.find(msg, "정면 시선", 1, true) ~= nil, msg)
+			end
+			-- 横 10 studs（視線帯の外、距離が足りない）
+			local w2 = deps.TestKit.deepCopy(W)
+			w2.plotLayout.reserved.x, w2.plotLayout.reserved.z = w2.plotLayout.spawn.x + 10, w2.plotLayout.spawn.z
+			local i2 = MB.spawnLabelIssues(w2)
+			t:eq(#i2, #w2.plots, "부지마다 1건")
+			for _, msg in i2 do
+				t:ok(string.find(msg, "거리", 1, true) ~= nil, msg)
+			end
+			-- 表示枠の番号が無い
+			local w3 = deps.TestKit.deepCopy(W)
+			w3.plotLayout.showcaseLabelSlot = 4
+			t:throws(function()
+				MB.plotLabels(w3)
+			end, "showcaseLabelSlot")
+		end)
+
+		t:test("초원 입구(Travel meadow): 필드 안·야생 구역과 노드 판정 반경 밖·길 위, 필드 중심을 봄", function()
+			local x, z, fx, fz = MB.meadowEntryFrame(W)
+			t:ok(inField(x, z, 4), "필드 안")
+			local wz = W.wildZone
+			t:ok(math.sqrt((x - wz.x) ^ 2 + (z - wz.z) ^ 2) > wz.radius + 4, "야생 구역 밖")
+			for id, n in W.nodes do
+				t:ok(math.sqrt((x - n.x) ^ 2 + (z - n.z) ^ 2) > deps.Config.GATHER_RADIUS + 4, `노드 {id} 판정 반경 밖`)
+			end
+			t:ok(math.abs(x) <= W.path.width / 2, "길의 연장선 위")
+			t:ok(math.abs(fx * fx + fz * fz - 1) < 1e-9, "단위 벡터")
+			t:ok((W.field.x - x) * fx + (W.field.z - z) * fz > 0, "필드 중심 쪽")
+			local bad = deps.TestKit.deepCopy(W)
+			bad.meadowEntry = { x = W.field.x, z = W.field.z }
+			t:throws(function()
+				MB.meadowEntryFrame(bad)
+			end, "meadowEntry")
 		end)
 	end,
 }

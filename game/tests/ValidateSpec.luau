@@ -4,14 +4,14 @@
 -- 依存: deps.Validate・deps.Net・deps.Config・deps.gd・deps.GameData・deps.loadDocs
 -- 期待値の出典: 計画書 4.3「검증 공통」（typeof、x == x、有限、整数、範囲、文字列の長さ上限、テーブルの長さ上限と要素の型）と
 --   Remote 表の引数（nodeId: string(≤32)、uids ≤ companion_slots、slotIndex: int、uid または ""、times: int 1..100）。
---   S5 完了基準「숫자 대신 문자열, NaN 을 보내면 거부」
+--   S5 完了基準「숫자 대신 문자열, NaN 을 보내면 거부」、2026-11-24 決定（Travel(dest)、dest ∈ {"meadow","home"} の列挙検証）
 
 return {
 	name = "Validate",
 	run = function(t: any, deps: any)
 		local V = deps.Validate
 		local Net = deps.Net
-		local schemas = V.schemas(deps.gd, deps.Config)
+		local schemas = V.schemas(deps.gd, deps.Config, Net)
 		local function okArgs(name: string, ...: any): boolean
 			return (V.args(schemas[name], select("#", ...), ...))
 		end
@@ -99,6 +99,34 @@ return {
 			t:eq(okArgs("GatherStop"), true)
 		end)
 
+		t:test("열거(oneOf): 목록의 문자열만, 대소문자·공백·다른 타입 거부", function()
+			local s = V.oneOf({ "meadow", "home" })
+			t:eq((V.check(s, "meadow")), true)
+			t:eq((V.check(s, "home")), true)
+			for _, bad in { "Meadow", "HOME", " home", "home ", "", "forest", "home\0", string.rep("a", 1000), 1, true, {} :: any } do
+				t:eq((V.check(s, bad)), false, `거부되어야 함: {tostring(bad)}`)
+			end
+			t:eq((V.check(s, nil)), false, "nil")
+			t:eq((pcall(V.oneOf, {})), false, "빈 목록은 오류")
+		end)
+
+		t:test("Travel 인자: dest 는 \"meadow\"·\"home\" 하나만(Net.TravelDest)", function()
+			t:eq(okArgs("Travel", "meadow"), true)
+			t:eq(okArgs("Travel", "home"), true)
+			t:eq(okArgs("Travel"), false, "인자 없음")
+			t:eq(okArgs("Travel", "home", "extra"), false, "남는 인자")
+			t:eq(okArgs("Travel", "plaza"), false)
+			t:eq(okArgs("Travel", 1), false)
+			t:eq(okArgs("Travel", NAN), false)
+			t:eq(okArgs("Travel", { "home" }), false)
+			local n = 0
+			for _, v in Net.TravelDest do
+				n += 1
+				t:eq(okArgs("Travel", v), true, v)
+			end
+			t:eq(n, 2)
+		end)
+
 		t:test("스키마는 C→S Remote 전부에만 있음", function()
 			for name, dir in Net.Directions do
 				if dir == "C2S" then
@@ -116,7 +144,7 @@ return {
 			local docs = deps.loadDocs()
 			docs.rules.constants.companion_slots = 2
 			local gd2 = deps.GameData.build(docs)
-			local s2 = V.schemas(gd2, deps.Config)
+			local s2 = V.schemas(gd2, deps.Config, Net)
 			t:eq((V.args(s2.SetParty, 1, { "1", "2" })), true)
 			t:eq((V.args(s2.SetParty, 1, { "1", "2", "3" })), false)
 		end)
